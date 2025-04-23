@@ -1,0 +1,45 @@
+/* App.css */
+
+/* Базовый сброс и глобальные стили */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+/* Основная структура */
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px); /* Вычитаем высоту header */
+  margin-top: 80px; /* Высота header */
+  width: 100%;
+}
+
+.page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Адаптивные отступы */
+@media (max-width: 768px) {
+  .page-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: 1rem;
+  }
+}
