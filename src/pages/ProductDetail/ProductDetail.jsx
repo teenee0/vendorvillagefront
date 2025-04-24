@@ -55,9 +55,9 @@ const ProductDetail = () => {
     <div className="product-detail">
       {/* Хлебные крошки */}
       <Breadcrumbs 
-              breadcrumbs={data?.breadcrumbs} 
-        />
-
+        breadcrumbs={productData?.breadcrumbs}
+        currentPage={product?.name}  // Добавляем текущий продукт
+      />
       {/* Основная информация */}
       <div className="product-main">
         {/* Галерея */}
