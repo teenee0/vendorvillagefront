@@ -16,7 +16,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    /* height: 100vh; */
 }
 
 .section-title {
@@ -147,7 +147,7 @@
     }
 
     100% {
-        background-color: #241717;
+        background-color: #ffffff;
         transform: translate(35%, -20px);
     }
 }

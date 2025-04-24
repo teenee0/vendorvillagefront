@@ -33,7 +33,7 @@ function Header() {
           <div className={`navbar-collapse ${isMobileMenuOpen ? 'open' : ''}`}>
             <ul className="navbar-nav">
               <li className="nav-item">
-                <Link to="/categories" className="nav-link">Categories</Link>
+                <Link to="/business-categories" className="nav-link">Categories</Link>
               </li>
               <li className="nav-item">
                 <Link to="/sites" className="nav-link">Sites</Link>
