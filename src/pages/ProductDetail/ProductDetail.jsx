@@ -8,6 +8,8 @@ import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
+import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
+
 
 
 const ProductDetail = () => {
@@ -52,13 +54,9 @@ const ProductDetail = () => {
   return (
     <div className="product-detail">
       {/* Хлебные крошки */}
-      <nav className="product-breadcrumbs">
-        <button onClick={() => navigate('/marketplace/categories')}>Главная</button>
-        <span className="separator">/</span>
-        <button onClick={() => navigate('/marketplace/products')}>Товары</button>
-        <span className="separator">/</span>
-        <span className="current">{product.name}</span>
-      </nav>
+      <Breadcrumbs 
+              breadcrumbs={data?.breadcrumbs} 
+        />
 
       {/* Основная информация */}
       <div className="product-main">

@@ -1,0 +1,30 @@
+/* Хлебные крошки */
+.product-breadcrumbs {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.product-breadcrumbs button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-size: inherit;
+    transition: color 0.2s;
+}
+
+.product-breadcrumbs button:hover {
+    color: var(--accent-hover);
+}
+
+.product-breadcrumbs .separator {
+    margin: 0 0.5rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.product-breadcrumbs .current {
+    color: rgba(255, 255, 255, 0.9);
+}
