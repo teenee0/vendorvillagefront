@@ -46,7 +46,7 @@ const BusinessCategories = () => {
               <p className="card-description">{category.description}</p>
             </div>
             <Link to={`/${category.url}`} className="explore-button">
-              Жмяк
+              Жмяк (Перейти)
             </Link>
           </div>
         ))}

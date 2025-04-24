@@ -5,6 +5,9 @@ import { FiShoppingCart, FiHeart, FiShare2, FiChevronLeft } from 'react-icons/fi
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import './ProductDetail.css';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
 
 
 const ProductDetail = () => {
@@ -229,18 +232,47 @@ const ProductDetail = () => {
         )}
       </div>
 
-      {/* Похожие товары */}
+      {/* Похожие товары - карусель */}
         {productData.same_products && productData.same_products.length > 0 && (
         <div className="similar-products-section">
             <h2 className="section-title">Похожие товары</h2>
-            <div className="detail-product-grid">
+            <Slider
+            className="detail-product-carousel"
+            dots={true}
+            infinite={true}
+            speed={500}
+            slidesToShow={4}
+            slidesToScroll={1}
+            responsive={[
+                {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 3,
+                    slidesToScroll: 1,
+                }
+                },
+                {
+                breakpoint: 768,
+                settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1
+                }
+                },
+                {
+                breakpoint: 480,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1
+                }
+                }
+            ]}
+            >
             {productData.same_products.map((item) => (
-                <ProductCard 
-                key={item.id} 
-                product={item}
-                />
+                <div key={item.id} className="carousel-item">
+                <ProductCard product={item} />
+                </div>
             ))}
-            </div>
+            </Slider>
         </div>
         )}
     </div>

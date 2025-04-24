@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
 import './ProductsPage.css';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
+import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
+
 
 const ProductsPage = () => {
   const { pk } = useParams();
@@ -157,11 +159,9 @@ const ProductsPage = () => {
   return (
     <div className="products-page">
       {/* Хлебные крошки */}
-      <div className="breadcrumbs">
-        <Link to="/marketplace">Главная</Link>
-        <span className="breadcrumb-separator"> / </span>
-        <span className="current-breadcrumb">{data.category.name}</span>
-      </div>
+      <Breadcrumbs 
+        breadcrumbs={data?.breadcrumbs} 
+      />
 
       {/* Заголовок и поиск */}
       <div className="page-header">
