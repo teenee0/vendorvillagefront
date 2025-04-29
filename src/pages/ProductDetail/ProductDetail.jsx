@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import axios from "../../api/axiosDefault.js";
 import { FiShoppingCart, FiHeart, FiShare2, FiChevronLeft } from 'react-icons/fi';
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import './ProductDetail.css';
@@ -26,7 +27,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/marketplace/api/products/${pk}/`);
+        const response = await axios.get(`marketplace/api/products/${pk}/`);
         setProductData(response.data);
       } catch (err) {
         setError(err.message || 'Произошла ошибка при загрузке товара');

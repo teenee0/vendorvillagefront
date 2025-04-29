@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
+import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
 import './BusinessCategories.css';
-
 const BusinessCategories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,7 +10,7 @@ const BusinessCategories = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/business-categories/');
+        const response = await axios.get('api/business-categories/');
         setCategories(response.data);
       } catch (error) {
         console.error('Ошибка загрузки категорий:', error);

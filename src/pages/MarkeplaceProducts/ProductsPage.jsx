@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import axios from "../../api/axiosDefault.js";
 import './ProductsPage.css';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
@@ -40,7 +41,7 @@ const ProductsPage = () => {
         }
         
         const response = await axios.get(
-          `http://localhost:8000/marketplace/api/categories/${pk}/products/?${queryParams.toString()}`
+          `marketplace/api/categories/${pk}/products/?${queryParams.toString()}`
         );
         
         setData(response.data);

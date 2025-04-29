@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import Main from './pages/Main/Main';
-import Registration from './pages/Registration/Registration';
 import Marketplace from './pages/Marketplace/Marketplace';
 
 import "./App.css";
@@ -12,9 +11,13 @@ import MarketplaceCategories from './pages/MarketplaceCategories/MarketplaceCate
 import ChildCategories from './pages/ChildCategories/ChildCategories';
 import ProductsPage from './pages/MarkeplaceProducts/ProductsPage';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
-
+import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
+import AccountPage from './pages/Account/AccoutPage';
+import AuthPage from './pages/Registration/Registration';
+import PublicRoute from './pages/PublicRoute/PublicRoute';
 function App() {
   const location = useLocation();
+  
 
   return (
     <>
@@ -30,14 +33,20 @@ function App() {
             className="page-content"
           >
             <Routes location={location}>
-              <Route path="/" element={<Main />} />
-              <Route path="/account" element={<Registration />} />
-              <Route path="/marketplace" element={<Marketplace />} />
-              <Route path='/business-categories' element={<BusinessCategories/>} />
-              <Route path='/marketplace/categories' element={<MarketplaceCategories/>} />
-              <Route path="/marketplace/categories/:pk" element={<ChildCategories />} />
-              <Route path="/marketplace/categories/:pk/products" element={<ProductsPage />} />
-              <Route path="/marketplace/products/:pk" element={<ProductDetail />} />
+              <Route element={<PublicRoute />}>
+                <Route path="/" element={<Main />} />
+                <Route path="/registration-login" element={<AuthPage />} />
+                <Route path="/marketplace" element={<Marketplace />} />
+                <Route path='/business-categories' element={<BusinessCategories />} />
+                <Route path='/marketplace/categories' element={<MarketplaceCategories />} />
+                <Route path="/marketplace/categories/:pk" element={<ChildCategories />} />
+                <Route path="/marketplace/categories/:pk/products" element={<ProductsPage />} />
+                <Route path="/marketplace/products/:pk" element={<ProductDetail />} />
+              </Route>
+              <Route element={<PrivateRoute />}>
+                <Route path="/account" element={<AccountPage />} />
+                {/* Другие защищённые маршруты */}
+              </Route>
             </Routes>
           </motion.main>
         </AnimatePresence>

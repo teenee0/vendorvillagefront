@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
+import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
 import './MarketplaceCategories.css';
 
@@ -10,7 +11,7 @@ const MarketplaceCategories = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/marketplace/api/categories/');
+        const response = await axios.get('marketplace/api/categories/');
         setCategories(response.data);
       } catch (error) {
         console.error('Ошибка загрузки категорий:', error);

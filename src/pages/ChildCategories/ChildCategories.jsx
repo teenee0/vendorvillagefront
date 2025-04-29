@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import axios from "../../api/axiosDefault.js";
 import './ChildCategories.css'; // Используем тот же CSS
 
 const ChildCategories = () => {
@@ -14,7 +15,7 @@ const ChildCategories = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/marketplace/api/categories/${pk}/`);
+        const response = await axios.get(`marketplace/api/categories/${pk}/`);
   
         if (response.data.should_redirect) {
           navigate(response.data.redirect_to);
