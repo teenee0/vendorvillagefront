@@ -15,6 +15,8 @@ import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
 import AccountPage from './pages/Account/AccoutPage';
 import AuthPage from './pages/Registration/Registration';
 import PublicRoute from './pages/PublicRoute/PublicRoute';
+import ProductManagement from './pages/ProductManagement/ProductManagement';
+import ProductEditPage from './pages/ProductEditPage/ProductEditPage'
 function App() {
   const location = useLocation();
   
@@ -45,6 +47,8 @@ function App() {
               </Route>
               <Route element={<PrivateRoute />}>
                 <Route path="/account" element={<AccountPage />} />
+                <Route path="/business/:business_slug/products" element={<ProductManagement />} />
+                <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
                 {/* Другие защищённые маршруты */}
               </Route>
             </Routes>

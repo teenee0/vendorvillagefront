@@ -18,42 +18,44 @@ const ProductCard = ({ product }) => {
     };
 
     const getImageUrl = (imagePath) => {
-        // Если URL уже абсолютный (начинается с http:// или https://)
+        if (!imagePath) return '';
+        
         if (/^https?:\/\//i.test(imagePath)) {
-          return imagePath;
+            return imagePath;
         }
-        
-        // Если URL начинается с /media/ (Django media files)
         if (imagePath.startsWith('/media/')) {
-          return `http://localhost:8000${imagePath}`;
+            return `http://localhost:8000${imagePath}`;
         }
-        
-        // Если это просто путь без слеша в начале
         if (!imagePath.startsWith('/')) {
-          return `http://localhost:8000/media/${imagePath}`;
+            return `http://localhost:8000/media/${imagePath}`;
         }
-        
-        // По умолчанию добавляем базовый URL
         return `http://localhost:8000${imagePath}`;
-      };
+    };
 
-    const hasDiscount = product.discount && parseFloat(product.discount) > 0;
-    const originalPrice = parseFloat(product.price);
-    const discountPrice = hasDiscount 
-        ? originalPrice * (1 - parseFloat(product.discount) / 100)
-        : originalPrice;
+    const variant = product.default_variant;
+    const mainImage = product.main_image;
+    
+    const hasDiscount = variant && parseFloat(variant.discount) > 0;
+    const currentPrice = variant?.current_price || product.min_price;
+    const originalPrice = parseFloat(variant?.price || product.min_price);
+    const priceRange = product.min_price !== product.max_price 
+        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₽`
+        : null;
 
     return (
         <div className="product-card" onClick={goToProductPage}>
             <div className="product-image">
-                {product.images?.[0]?.image ? (
+                {mainImage?.image ? (
                     <img
-                        src={getImageUrl(product.images[0].image)}
+                        src={getImageUrl(mainImage.image)}
                         alt={product.name}
                         loading="lazy"
                         className="product-img"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/200x200?text=No+Image';
+                        }}
                     />
-                  
                 ) : (
                     <div className="no-image" aria-hidden="true">
                         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -70,22 +72,28 @@ const ProductCard = ({ product }) => {
                 </button>
                 {hasDiscount && (
                     <div className="discount-badge">
-                        -{Math.round(parseFloat(product.discount))}%
+                        -{Math.round(parseFloat(variant.discount))}%
                     </div>
                 )}
             </div>
             <div className="product-list-info">
-                <h3 className="product-name">{product.name}</h3>
-                <div className="product-price">
-                    <span className="current-price">
-                        {discountPrice.toLocaleString('ru-RU')} ₽
-                    </span>
-                    {hasDiscount && (
-                        <span className="old-price">
-                            {originalPrice.toLocaleString('ru-RU')} ₽
-                        </span>
+                <div className="price-section">
+                    <div className="current-price">
+                        {parseFloat(currentPrice).toLocaleString('ru-RU')} ₽
+                    </div>
+                    {priceRange && (
+                        <div className="price-range">
+                            {priceRange}
+                        </div>
                     )}
                 </div>
+                
+                <h3 className="product-name">{product.name}</h3>
+                
+                <div className="business-name">
+                    {product.business_name}
+                </div>
+                
                 <button
                     className="add-to-cart-button"
                     onClick={handleAddToCart}

@@ -1,41 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-// import axios from 'axios';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from "../../api/axiosDefault.js";
 import './ProductsPage.css';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
-
 
 const ProductsPage = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [data, setData] = useState(null);
+  const [filters, setFilters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtersLoading, setFiltersLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('-id');
   const [isFiltersOpen, setIsFiltersOpen] = useState(true);
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
-
-  // Инициализация фильтров из URL
+  const [expandedFilters, setExpandedFilters] = useState({});
+  const [tempFilters, setTempFilters] = useState({});
+  const [visibleFiltersCount, setVisibleFiltersCount] = useState(2); // Показываем первые 3 фильтра по умолчанию
+  // Инициализация параметров из URL
+  
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     setSearchQuery(queryParams.get('search') || '');
     setSortOption(queryParams.get('sort') || '-id');
     setPriceMin(queryParams.get('price_min') || '');
     setPriceMax(queryParams.get('price_max') || '');
+
+    const initialFilters = {};
+    queryParams.forEach((value, key) => {
+      // Сохраняем только параметры с префиксом `attr_`
+      if (key.startsWith('attr_')) {
+        initialFilters[key] = initialFilters[key] || []; // сохраняем ключ с `attr_`
+        initialFilters[key].push(value);
+      }
+    });
+    setTempFilters(initialFilters);
   }, [location.search]);
 
+  // Загрузка товаров с учетом фильтров
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const queryParams = new URLSearchParams(location.search);
         
-        // Добавляем дефолтные параметры, если их нет
         if (!queryParams.has('sort')) {
           queryParams.set('sort', '-id');
         }
@@ -56,23 +69,94 @@ const ProductsPage = () => {
     fetchData();
   }, [pk, location.search]);
 
-  const updateURL = () => {
+  // Загрузка фильтров для категории
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        setFiltersLoading(true);
+        const response = await axios.get(
+          `marketplace/api/categories/${pk}/filters/`
+        );
+        setFilters(response.data.filters);
+        
+        // Инициализация состояния раскрытия фильтров
+        const initialExpanded = {};
+        response.data.filters.forEach(filter => {
+          initialExpanded[filter.id] = false;
+        });
+        setExpandedFilters(initialExpanded);
+      } catch (err) {
+        console.error('Ошибка загрузки фильтров:', err);
+      } finally {
+        setFiltersLoading(false);
+      }
+    };
+
+    fetchFilters();
+  }, [pk]);
+
+  // Обработчик выбора атрибута
+  // Обработчик выбора атрибута
+const handleAttributeSelect = (filterId, value) => {
+  setTempFilters(prev => {
+    const newFilters = { ...prev };
+    const attrKey = `attr_${filterId}`;
+    
+    if (!newFilters[attrKey]) {
+      newFilters[attrKey] = [];
+    }
+    
+    const valueStr = value.toString();
+    const index = newFilters[attrKey].indexOf(valueStr);
+    
+    if (index === -1) {
+      newFilters[attrKey] = [...newFilters[attrKey], valueStr];
+    } else {
+      newFilters[attrKey] = newFilters[attrKey].filter(v => v !== valueStr);
+      if (newFilters[attrKey].length === 0) {
+        delete newFilters[attrKey];
+      }
+    }
+    
+    return newFilters;
+  });
+};
+
+// Функция проверки, выбран ли атрибут
+const isAttributeSelected = (filterId, value) => {
+  const attrKey = `attr_${filterId}`;
+  return tempFilters[attrKey]?.includes(value.toString()) || false;
+};
+
+  
+  
+
+  // Применение всех фильтров
+  // Применение всех фильтров
+  const applyFilters = () => {
     const queryParams = new URLSearchParams();
+    
+    // Стандартные параметры
     if (searchQuery) queryParams.set('search', searchQuery);
     if (priceMin) queryParams.set('price_min', priceMin);
     if (priceMax) queryParams.set('price_max', priceMax);
     queryParams.set('sort', sortOption);
     queryParams.set('page', 1);
+    
+    // Добавляем фильтры (ключи уже содержат "attr_")
+    Object.entries(tempFilters).forEach(([key, values]) => {
+      values.forEach(value => {
+        queryParams.append(key, value);
+      });
+    });
+    
     navigate(`?${queryParams.toString()}`);
   };
 
+
   const handleSearch = (e) => {
     e.preventDefault();
-    updateURL();
-  };
-
-  const handlePriceFilter = () => {
-    updateURL();
+    applyFilters();
   };
 
   const handlePageChange = (page) => {
@@ -91,11 +175,19 @@ const ProductsPage = () => {
     navigate(`?${queryParams.toString()}`);
   };
 
+  const toggleFilter = (filterId) => {
+    setExpandedFilters(prev => ({
+      ...prev,
+      [filterId]: !prev[filterId]
+    }));
+  };
+
   const resetFilters = () => {
     setSearchQuery('');
     setPriceMin('');
     setPriceMax('');
     setSortOption('-id');
+    setTempFilters({});
     navigate(`/marketplace/categories/${pk}/products/`);
   };
 
@@ -142,7 +234,6 @@ const ProductsPage = () => {
     );
   }
 
-  // Добавим проверку на наличие данных
   if (!data.products || !data.category) {
     return (
       <div className="not-found-container">
@@ -159,12 +250,8 @@ const ProductsPage = () => {
 
   return (
     <div className="products-page">
-      {/* Хлебные крошки */}
-      <Breadcrumbs 
-        breadcrumbs={data?.breadcrumbs} 
-      />
+      <Breadcrumbs breadcrumbs={data?.breadcrumbs} />
 
-      {/* Заголовок и поиск */}
       <div className="page-header">
         <h1>{data.category.name}</h1>
         
@@ -197,9 +284,7 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* Основное содержимое */}
       <div className="products-container">
-        {/* Боковая панель фильтров */}
         <aside className={`sidebar ${isFiltersOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-header">
             <h3>Фильтры</h3>
@@ -211,7 +296,6 @@ const ProductsPage = () => {
             </button>
           </div>
           
-          {/* Фильтр по подкатегориям */}
           <div className="filter-section">
             <h4 className="filter-title">
               Подкатегории
@@ -230,7 +314,71 @@ const ProductsPage = () => {
             </ul>
           </div>
           
-          {/* Фильтр по цене */}
+          {filtersLoading ? (
+            <div className="filters-loading">
+              <p>Загрузка фильтров...</p>
+            </div>
+          ) : (
+            <>
+              {/* Показываем только первые visibleFiltersCount фильтров */}
+              {filters.slice(0, visibleFiltersCount).map(filter => (
+                <div key={filter.id} className="filter-section">
+                  <div 
+                    className="filter-header"
+                    onClick={() => toggleFilter(filter.id)}
+                  >
+                    <h4 className="filter-title">
+                      {filter.name}
+                      {/* {filter.required && <span className="required-asterisk">*</span>} */}
+                    </h4>
+                    <span className="filter-toggle-icon">
+                      {expandedFilters[filter.id] ? '−' : '+'}
+                    </span>
+                  </div>
+                  
+                  {expandedFilters[filter.id] && (
+                    <div className="attribute-values">
+                      {filter.values.map(value => {
+                        // Для значений без ID добавляем префикс val_
+                        const filterValue = value.id ? value.id : `val_${value.value}`;
+                        
+                        return (
+                          <button
+                            key={`${filter.id}-${filterValue}`}
+                            className={`attribute-value-button ${
+                              isAttributeSelected(filter.id, filterValue) ? 'selected' : ''
+                            }`}
+                            onClick={() => handleAttributeSelect(filter.id, filterValue)}
+                          >
+                            {value.value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {/* Кнопка "Показать больше/меньше" */}
+              {filters.length > 2 && (
+                <button 
+                  className="show-more-filters"
+                  onClick={() => {
+                    if (visibleFiltersCount >= filters.length) {
+                      setVisibleFiltersCount(2); // Сворачиваем обратно до 3
+                    } else {
+                      setVisibleFiltersCount(filters.length); // Показываем все
+                    }
+                  }}
+                >
+                  {visibleFiltersCount >= filters.length ? 'Показать меньше фильтров ↑' : 'Показать больше фильтров ↓'}
+                  <span className={`chevron ${visibleFiltersCount >= filters.length ? 'up' : 'down'}`}>
+                  </span>
+                </button>
+              )}
+            </>
+          )}
+          
           <div className="filter-section">
             <h4 className="filter-title">
               Цена
@@ -242,6 +390,7 @@ const ProductsPage = () => {
                 className="price-input"
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
+                min="0"
               />
               <span className="price-separator">-</span>
               <input 
@@ -250,16 +399,16 @@ const ProductsPage = () => {
                 className="price-input"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
+                min="0"
               />
             </div>
             <button 
               className="apply-filter-button"
-              onClick={handlePriceFilter}
+              onClick={applyFilters}
             >
-              Применить
+              Применить все фильтры
             </button>
           </div>
-
           <button 
             className="reset-filters-button"
             onClick={resetFilters}
@@ -267,10 +416,7 @@ const ProductsPage = () => {
             Сбросить все фильтры
           </button>
         </aside>
-
-        {/* Список товаров */}
         <main className="main-content">
-          {/* Сортировка и количество */}
           <div className="products-header">
             <p className="products-count">
               Найдено товаров: <strong>{data.pagination?.total_items || data.products.length}</strong>
@@ -291,7 +437,6 @@ const ProductsPage = () => {
             </div>
           </div>
 
-          {/* Сетка товаров */}
           {data.products.length > 0 ? (
             <>
               <div className="product-grid">
@@ -300,7 +445,6 @@ const ProductsPage = () => {
                 ))}
               </div>
 
-              {/* Пагинация */}
               {data.pagination && data.pagination.total_pages > 1 && (
                 <div className="pagination">
                   {data.pagination.has_previous && (
@@ -386,6 +530,4 @@ function generatePaginationItems(currentPage, totalPages) {
   return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 }
 
-
 export default ProductsPage;
-// Остальной код компонента остается без изменений

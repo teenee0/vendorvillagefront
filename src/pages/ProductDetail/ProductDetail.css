@@ -292,7 +292,11 @@
   }
   
   .description, .specifications, .reviews {
-    padding: 1rem 0;
+    background-color: #1a1a1a;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    color: var(--text-primary);
   }
   
   .reviews {
@@ -303,8 +307,7 @@
 }
 
   .description p {
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-primary);
   }
   
   .specifications table {
@@ -493,3 +496,75 @@
       grid-template-columns: repeat(2, 1fr);
     }
   }
+
+.slider-container {
+  margin: 0 -10px;
+}
+
+.slide-item {
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  color: #000;
+}
+
+.slick-dots li button:before {
+  font-size: 12px;
+}
+
+/* .slider-container {
+  border: 1px solid red;
+}
+
+.slide-item {
+  border: 1px solid blue;
+} */
+
+/* Стили для выбора атрибутов */
+.attribute-selector {
+  margin-bottom: 1.5rem;
+}
+
+.attribute-selector h4 {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.attribute-values {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.attribute-value {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.attribute-value:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent-color);
+}
+
+.attribute-value.selected {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.attribute-value:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.4);
+}

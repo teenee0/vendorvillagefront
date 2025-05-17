@@ -65,8 +65,8 @@
     display: block;
     text-align: center;
     padding: 0.75rem;
-    background-color: #4299e1;
-    color: white;
+    background-color: var(--bg-blue);
+    color: var(--text-primary);
     border: none;
     border-radius: 6px;
     text-decoration: none;
@@ -77,7 +77,7 @@
   
   .explore-button:hover {
     background-color: #f40076;
-    color: #fff;
+    color: var(--text-primary);
   }
   
   .loading {

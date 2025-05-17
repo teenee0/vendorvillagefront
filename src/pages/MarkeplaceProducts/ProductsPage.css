@@ -444,3 +444,97 @@
     height: 36px;
   }
 }
+/* Стили для фильтров атрибутов */
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+  user-select: none;
+}
+
+.filter-toggle-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.attribute-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 5px 0;
+}
+
+.attribute-value-button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attribute-value-button:hover {
+  border-color: #aaa;
+}
+
+.attribute-value-button.active {
+  background-color: #f0f0f0;
+  border-color: #999;
+  font-weight: 500;
+}
+
+.color-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.required-asterisk {
+  color: #f44336;
+  margin-left: 4px;
+}
+
+/* Анимация раскрытия фильтров */
+.filter-section {
+  transition: all 0.3s ease;
+}
+
+/* Индикатор загрузки фильтров */
+.filters-loading {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+.attribute-value-button.active {
+  background: #ffffff;
+  color: #212121;
+}
+
+.attribute-value-button.selected {
+  background-color: #786b6b;
+  border-color: #aaa;
+  font-weight: bold;
+}
+
+.apply-filter-button:hover {
+  background-color: #3a80d2;
+}
+.show-more-filters {
+  width: 100%;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 1rem;
+}
+
+

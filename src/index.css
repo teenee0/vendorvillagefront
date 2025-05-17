@@ -8,8 +8,18 @@
   color-scheme: light dark;
   --text-primary: rgba(255, 255, 255, 0.87);
   --bg-primary: #242424;
+  --bg-secondary: #1a1a1a;
   --accent-color: #646cff;
+  /* --accent-color: #f40076; */
   --accent-hover: #535bf2;
+  --bg-red: #e74c3c;
+  --bg-red-hover: #da190b;
+  --bg-green: #0cbf57;
+  --bg-green-hover: #009516;
+  --bg-blue: #3498db;
+  --bg-blue-hover: #2980b9;
+  --bg-purpule: #f40076;
+
   
   color: var(--text-primary);
   background-color: var(--bg-primary);
