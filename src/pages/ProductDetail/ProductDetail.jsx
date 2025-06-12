@@ -9,6 +9,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
+import GlareHover from '../../components/GlareHover/GlareHover.jsx';
 
 const ProductDetail = () => {
   const { pk } = useParams();
@@ -221,46 +222,66 @@ const ProductDetail = () => {
             </div>
           </div>
           ))}
-          <div className="product-actions">
-            <div className="quantity-control">
-              <button 
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={!currentVariant || currentVariant.stock_quantity <= 0}
-              >
-                −
-              </button>
-              <span>{quantity}</span>
-              <button 
-                onClick={() => setQuantity(quantity + 1)}
-                disabled={!currentVariant || currentVariant.stock_quantity <= 0}
-              >
-                +
-              </button>
-            </div>
-            <button 
-              className="add-to-cart"
-              onClick={handleAddToCart}
-              disabled={!currentVariant || currentVariant.stock_quantity <= 0}
+          <div className="coming-soon-overlay">
+            <GlareHover
+              width="100%"
+              height="auto"
+              background="transparent"
+              borderRadius="8px"
+              borderColor="rgba(255, 255, 255, 0.1)"
+              glareColor="#ffffff"
+              glareOpacity={1}
+              glareAngle={-30}
+              glareSize={300}
+              transitionDuration={1250}
+              playOnce={false}
+              style={{ padding: '20px' }}
             >
-              <FiShoppingCart />
-              {currentVariant?.stock_quantity > 0 ? 'Добавить в корзину' : 'Нет в наличии'}
-            </button>
-          </div>
-          <div className="delivery-info">
-            <div className="delivery-item">
-              <div className="icon">🚚</div>
-              <div>
-                <h4>Быстрая доставка</h4>
-                <p>1-3 дня по всей России</p>
+              <div className="disabled-content">
+                <div className="product-actions">
+                  <div className="quantity-control">
+                    <button 
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={!currentVariant || currentVariant.stock_quantity <= 0}
+                    >
+                      −
+                    </button>
+                    <span>{quantity}</span>
+                    <button 
+                      onClick={() => setQuantity(quantity + 1)}
+                      disabled={!currentVariant || currentVariant.stock_quantity <= 0}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button 
+                    className="add-to-cart"
+                    onClick={handleAddToCart}
+                    disabled={!currentVariant || currentVariant.stock_quantity <= 0}
+                  >
+                    <FiShoppingCart />
+                    {currentVariant?.stock_quantity > 0 ? 'Добавить в корзину' : 'Нет в наличии'}
+                  </button>
+                </div>
+                <div className="delivery-info">
+                  <div className="delivery-item">
+                    <div className="icon">🚚</div>
+                    <div>
+                      <h4>Быстрая доставка</h4>
+                      <p>1-3 дня</p>
+                    </div>
+                  </div>
+                  <div className="delivery-item">
+                    <div className="icon">🔄</div>
+                    <div>
+                      <h4>Легкий возврат</h4>
+                      <p>14 дней на возврат</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="delivery-item">
-              <div className="icon">🔄</div>
-              <div>
-                <h4>Легкий возврат</h4>
-                <p>14 дней на возврат</p>
-              </div>
-            </div>
+              <div className="coming-soon-text">Скоро...</div>
+            </GlareHover>
           </div>
         </div>
       </div>

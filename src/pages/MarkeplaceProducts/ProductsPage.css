@@ -452,6 +452,7 @@
   cursor: pointer;
   padding: 8px 0;
   user-select: none;
+  transition: all 0.2s ease;
 }
 
 .filter-toggle-icon {
@@ -460,12 +461,22 @@
   margin-left: 10px;
 }
 
+.attribute-section {
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
 .attribute-values {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 0px;
   padding: 5px 0;
+  transition: 
+    grid-template-rows 0.3s ease-out,
+    opacity 0.3s ease,
+    padding 0.3s ease;
 }
 
 .attribute-value-button {

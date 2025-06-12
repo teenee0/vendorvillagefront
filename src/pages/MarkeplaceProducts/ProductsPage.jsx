@@ -4,6 +4,7 @@ import axios from "../../api/axiosDefault.js";
 import './ProductsPage.css';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
+import FiltersSection from '/src/components/FiltersSection/FiltersSection.jsx';
 
 const ProductsPage = () => {
   const { pk } = useParams();
@@ -296,88 +297,36 @@ const isAttributeSelected = (filterId, value) => {
             </button>
           </div>
           
-          <div className="filter-section">
-            <h4 className="filter-title">
-              Подкатегории
-            </h4>
-            <ul className="subcategory-list">
-              {data.subcategories.map(subcat => (
-                <li key={subcat.id} className="subcategory-item">
-                  <button 
-                    className={`subcategory-button ${location.pathname.includes(`/categories/${subcat.id}`) ? 'active' : ''}`}
-                    onClick={() => navigate(`/marketplace/categories/${subcat.id}/products/`)}
-                  >
-                    {subcat.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          {filtersLoading ? (
-            <div className="filters-loading">
-              <p>Загрузка фильтров...</p>
+          {data.subcategories && data.subcategories.length > 0 && (
+            <div className="filter-section">
+              <h4 className="filter-title">
+                Подкатегории
+              </h4>
+              <ul className="subcategory-list">
+                {data.subcategories.map(subcat => (
+                  <li key={subcat.id} className="subcategory-item">
+                    <button 
+                      className={`subcategory-button ${location.pathname.includes(`/categories/${subcat.id}`) ? 'active' : ''}`}
+                      onClick={() => navigate(`/marketplace/categories/${subcat.id}/products/`)}
+                    >
+                      {subcat.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
-          ) : (
-            <>
-              {/* Показываем только первые visibleFiltersCount фильтров */}
-              {filters.slice(0, visibleFiltersCount).map(filter => (
-                <div key={filter.id} className="filter-section">
-                  <div 
-                    className="filter-header"
-                    onClick={() => toggleFilter(filter.id)}
-                  >
-                    <h4 className="filter-title">
-                      {filter.name}
-                      {/* {filter.required && <span className="required-asterisk">*</span>} */}
-                    </h4>
-                    <span className="filter-toggle-icon">
-                      {expandedFilters[filter.id] ? '−' : '+'}
-                    </span>
-                  </div>
-                  
-                  {expandedFilters[filter.id] && (
-                    <div className="attribute-values">
-                      {filter.values.map(value => {
-                        // Для значений без ID добавляем префикс val_
-                        const filterValue = value.id ? value.id : `val_${value.value}`;
-                        
-                        return (
-                          <button
-                            key={`${filter.id}-${filterValue}`}
-                            className={`attribute-value-button ${
-                              isAttributeSelected(filter.id, filterValue) ? 'selected' : ''
-                            }`}
-                            onClick={() => handleAttributeSelect(filter.id, filterValue)}
-                          >
-                            {value.value}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {/* Кнопка "Показать больше/меньше" */}
-              {filters.length > 2 && (
-                <button 
-                  className="show-more-filters"
-                  onClick={() => {
-                    if (visibleFiltersCount >= filters.length) {
-                      setVisibleFiltersCount(2); // Сворачиваем обратно до 3
-                    } else {
-                      setVisibleFiltersCount(filters.length); // Показываем все
-                    }
-                  }}
-                >
-                  {visibleFiltersCount >= filters.length ? 'Показать меньше фильтров ↑' : 'Показать больше фильтров ↓'}
-                  <span className={`chevron ${visibleFiltersCount >= filters.length ? 'up' : 'down'}`}>
-                  </span>
-                </button>
-              )}
-            </>
           )}
+          
+          <FiltersSection
+            filtersLoading={filtersLoading}
+            filters={filters}
+            visibleFiltersCount={visibleFiltersCount}
+            expandedFilters={expandedFilters}
+            toggleFilter={toggleFilter}
+            isAttributeSelected={isAttributeSelected}
+            handleAttributeSelect={handleAttributeSelect}
+            setVisibleFiltersCount={setVisibleFiltersCount}
+          />
           
           <div className="filter-section">
             <h4 className="filter-title">
