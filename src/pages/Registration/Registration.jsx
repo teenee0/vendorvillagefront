@@ -98,7 +98,6 @@ const AuthPage = () => {
               <a href="#" className="social"><FaGoogle /></a>
               <a href="#" className="social"><FaLinkedinIn /></a>
             </div>
-            <span>или используйте ваш аккаунт</span>
             <input type="text" name="email" placeholder="Email" value={loginData.email} onChange={handleLoginChange} required />
             <input type="password" name="password" placeholder="Пароль" value={loginData.password} onChange={handleLoginChange} required />
             {errors.login && <div className="error-message">{errors.login}</div>}

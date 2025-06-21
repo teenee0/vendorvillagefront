@@ -1,0 +1,287 @@
+.app {
+  background-color: var(--onyx-midnight); /* Используем вашу переменную */
+  color: var(--platinum-gleam);
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.mainContent {
+  max-width: none; /* Убираем ограничение по ширине */
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+}
+  
+  /* Navigation */
+  .navbar {
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2b2b2b;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .navContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .brand {
+    color: #2daf9f;
+    font-weight: bold;
+    font-size: 1.25rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon {
+    margin-right: 0.5rem;
+  }
+  
+  .navItems {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdownToggle {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+  }
+  
+  .dropdownMenu {
+    position: absolute;
+    right: 0;
+    background-color: #1a1a1a;
+    border: 1px solid #2b2b2b;
+    border-radius: 4px;
+    padding: 0.5rem 0;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+    display: none;
+  }
+  
+  .dropdown:hover .dropdownMenu {
+    display: block;
+  }
+  
+  .dropdownMenu a {
+    color: #e0e0e0;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .dropdownMenu a:hover {
+    background-color: #222222;
+  }
+  
+  .divider {
+    height: 1px;
+    background-color: #2b2b2b;
+    margin: 0.5rem 0;
+  }
+  
+  .logout {
+    color: #a83a3a !important;
+  }
+  
+  /* Main Content */
+  .mainContent {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .pageTitle {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Stats Cards */
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .statCard {
+    background-color: #1a1a1a;
+    border: 1px solid #2b2b2b;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: transform 0.3s;
+  }
+  
+  .statCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .statCard h6 {
+    color: #b0b0b0;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .statCard h3 {
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+  }
+  
+  .success {
+    border-left: 4px solid #2daf9f;
+    color: #2daf9f;
+  }
+  
+  .warning {
+    border-left: 4px solid #d4af37;
+    color: #d4af37;
+  }
+  
+  .danger {
+    border-left: 4px solid #a83a3a;
+    color: #a83a3a;
+  }
+  
+  /* Content Row */
+  .contentRow {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .chartContainer {
+    background-color: #1a1a1a;
+    border: 1px solid #2b2b2b;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  
+  .transactions {
+    background-color: #1a1a1a;
+    border: 1px solid #2b2b2b;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  
+  .transactionList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .transactionItem {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #2b2b2b;
+  }
+  
+  .transactionItem:last-child {
+    border-bottom: none;
+  }
+  
+  .transactionHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Projects */
+  .projects {
+    background-color: #1a1a1a;
+    border: 1px solid #2b2b2b;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  
+  .projectsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .goldButton {
+    background: linear-gradient(135deg, #d4af37, #f0d284);
+    color: #000;
+    font-weight: 600;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .tableContainer {
+    overflow-x: auto;
+  }
+  
+  .projectsTable {
+    width: 100%;
+    border-collapse: collapse;
+    color: #b0b0b0;
+  }
+  
+  .projectsTable th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    border-bottom: 1px solid #2b2b2b;
+  }
+  
+  .projectsTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #2b2b2b;
+  }
+  
+  .projectsTable tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .progressBar {
+    height: 6px;
+    background-color: #2b2b2b;
+    border-radius: 3px;
+    width: 100%;
+  }
+  
+  .progressFill {
+    height: 100%;
+    border-radius: 3px;
+    background-color: #2daf9f;
+  }
+  
+  .progressFillWarning {
+    height: 100%;
+    border-radius: 3px;
+    background-color: #d4af37;
+  }

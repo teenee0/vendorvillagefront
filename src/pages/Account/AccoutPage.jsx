@@ -226,12 +226,12 @@ const AccountPage = () => {
                       </div>
                       <div className="business-card-footer">
                         <Link 
-                          to={`/business/${business.slug}/dashboard`} 
+                          to={`/business/${business.slug}/main`} 
                           className="dashboard-btn"
                         >
                           <i className="fas fa-tachometer-alt"></i> Панель управления
                         </Link>
-                        <div className="business-actions">
+                        {/* <div className="business-actions">
                           <Link 
                             to={`/business/${business.slug}/edit`} 
                             className="edit-btn"
@@ -248,7 +248,7 @@ const AccountPage = () => {
                             <i className="fas fa-boxes"></i>
                             <span className="btn-tooltip">Товары</span>
                           </Link>
-                        </div>
+                        </div> */}
                       </div>
                     </motion.div>
                   ))}

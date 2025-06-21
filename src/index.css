@@ -19,6 +19,23 @@
   --bg-blue: #3498db;
   --bg-blue-hover: #2980b9;
   --bg-purpule: #f40076;
+  /* еще цвета */
+  --onyx-midnight: #121212;       /* Основной глубокий фон */
+  --obsidian-elite: #1a1a1a;      /* Вторичный фон, карточки */
+  --phantom-noir: #222222;        /* Акцентные элементы */
+  --gilded-shadow: #2b2b2b;       /* Границы, деликатные линии */
+  
+  --platinum-gleam: #e0e0e0;      /* Основной текст */
+  --silver-whisper: #b0b0b0;      /* Вторичный текст */
+  --palladium-mist: #808080;      /* Неактивные элементы */
+  
+  --royal-emerald: #2daf9f;       /* Акцентный (премиум-зеленый/бирюза) */
+  --imperial-gold: #d4af37;       /* Золотой акцент (кнопки, выделение) */
+  --velvet-ruby: #a83a3a;         /* Опасные действия/предупреждения */
+  --luminous-sapphire: #3a5da8;   /* Информационные элементы */
+  /* Цветовая схема бизнес панели */
+  --bg-bs-dark-primary: #060010;
+  --bg-bs-light-primary
 
   
   color: var(--text-primary);

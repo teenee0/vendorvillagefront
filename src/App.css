@@ -1,11 +1,7 @@
 /* App.css */
 
 /* Базовый сброс и глобальные стили */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+
 
 html, body {
   height: 100%;
@@ -19,6 +15,13 @@ html, body {
   margin-top: 80px; /* Высота header */
   width: 100%;
 }
+.content-wrapper-business {
+  margin-top: 50px;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+}
 
 .page-content {
   flex: 1;
@@ -29,6 +32,15 @@ html, body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+.page-content-business {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Адаптивные отступы */
