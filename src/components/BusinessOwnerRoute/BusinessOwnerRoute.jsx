@@ -11,7 +11,7 @@ const BusinessOwnerRoute = () => {
     const checkBusinessAccess = async () => {
       try {
         // Проверяем права доступа к бизнесу
-        const response = await axios.get(`business/api/check-access/${business_slug}/`, {
+        const response = await axios.get(`accounts/api/business/check-access/${business_slug}/`, {
           withCredentials: true
         });
 
@@ -38,12 +38,13 @@ const BusinessOwnerRoute = () => {
   }
 
   if (accessStatus === 'unauthenticated') {
-    return <Navigate to="/registration-login" state={{ from: location }} replace />;
+    return <Navigate to="/account" state={{ from: location }} replace />;
   }
 
   if (accessStatus === 'denied') {
-    return <Navigate to="/registration-login" state={{ from: location }} replace />;
+    return <Navigate to="/account" state={{ from: location }} replace />;
   }
+  // 404 добавить выше
 
   return <Outlet />;
 };

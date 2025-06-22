@@ -20,6 +20,7 @@ import PublicRoute from './pages/PublicRoute/PublicRoute';
 import ProductManagement from './pages/ProductManagement/ProductManagement';
 import ProductEditPage from './pages/ProductEditPage/ProductEditPage'
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
+import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRoute.jsx';
 
 
 function App() {
@@ -47,10 +48,11 @@ function App() {
             >
               <Routes location={location}>
                 <Route element={<PrivateRoute />}>
-                
-                  <Route path="/business/:business_slug/main" element={<BusinessMainPage />} />
-                  <Route path="/business/:business_slug/products" element={<ProductManagement />} />
-                  <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
+                  <Route element={<BusinessOwnerRoute />}>
+                    <Route path="/business/:business_slug/main" element={<BusinessMainPage />} />
+                    <Route path="/business/:business_slug/products" element={<ProductManagement />} />
+                    <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
+                  </Route>
                 </Route>
               </Routes>
             </motion.main>

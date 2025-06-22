@@ -25,11 +25,9 @@ const ProductManagement = () => {
         const fetchData = async () => {
             try {
                 const [productsRes, categoriesRes] = await Promise.all([
-                    axios.get(`/api/business/${business_slug}/products/`),
-                    axios.get('/api/products/categories/')
+                    axios.get(`/api/business/${business_slug}/products/`)
                 ]);
                 setProducts(productsRes.data);
-                setCategories(categoriesRes.data);
                 setLoading(false);
             } catch (err) {
                 setError('Не удалось загрузить данные');
