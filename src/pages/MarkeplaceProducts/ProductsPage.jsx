@@ -24,7 +24,7 @@ const ProductsPage = () => {
   const [tempFilters, setTempFilters] = useState({});
   const [visibleFiltersCount, setVisibleFiltersCount] = useState(2); // Показываем первые 3 фильтра по умолчанию
   // Инициализация параметров из URL
-  
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     setSearchQuery(queryParams.get('search') || '');
@@ -49,108 +49,97 @@ const ProductsPage = () => {
       try {
         setLoading(true);
         const queryParams = new URLSearchParams(location.search);
-        
+  
         if (!queryParams.has('sort')) {
           queryParams.set('sort', '-id');
         }
-        
+  
         const response = await axios.get(
           `marketplace/api/categories/${pk}/products/?${queryParams.toString()}`
         );
+  
+        // Используем oldData для основных данных
+        setData(response.data.oldData);
         
-        setData(response.data);
+        // Обрабатываем фильтры из response.data.filters.filters
+        const filtersData = Array.isArray(response.data.filters?.filters) 
+          ? response.data.filters.filters 
+          : [];
+        setFilters(filtersData);
+  
+        const initialExpanded = {};
+        filtersData.forEach(filter => {
+          initialExpanded[filter.id] = false;
+        });
+        setExpandedFilters(initialExpanded);
+  
       } catch (err) {
         console.error('Ошибка загрузки:', err);
         setError(err.message || 'Произошла ошибка при загрузке данных');
       } finally {
         setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [pk, location.search]);
-
-  // Загрузка фильтров для категории
-  useEffect(() => {
-    const fetchFilters = async () => {
-      try {
-        setFiltersLoading(true);
-        const response = await axios.get(
-          `marketplace/api/categories/${pk}/filters/`
-        );
-        setFilters(response.data.filters);
-        
-        // Инициализация состояния раскрытия фильтров
-        const initialExpanded = {};
-        response.data.filters.forEach(filter => {
-          initialExpanded[filter.id] = false;
-        });
-        setExpandedFilters(initialExpanded);
-      } catch (err) {
-        console.error('Ошибка загрузки фильтров:', err);
-      } finally {
         setFiltersLoading(false);
       }
     };
-
-    fetchFilters();
-  }, [pk]);
+  
+    fetchData();
+  }, [pk, location.search]);
+  
 
   // Обработчик выбора атрибута
-  // Обработчик выбора атрибута
-const handleAttributeSelect = (filterId, value) => {
-  setTempFilters(prev => {
-    const newFilters = { ...prev };
-    const attrKey = `attr_${filterId}`;
-    
-    if (!newFilters[attrKey]) {
-      newFilters[attrKey] = [];
-    }
-    
-    const valueStr = value.toString();
-    const index = newFilters[attrKey].indexOf(valueStr);
-    
-    if (index === -1) {
-      newFilters[attrKey] = [...newFilters[attrKey], valueStr];
-    } else {
-      newFilters[attrKey] = newFilters[attrKey].filter(v => v !== valueStr);
-      if (newFilters[attrKey].length === 0) {
-        delete newFilters[attrKey];
+  const handleAttributeSelect = (filterId, value) => {
+    setTempFilters(prev => {
+      const newFilters = { ...prev };
+      const attrKey = `attr_${filterId}`;
+
+      if (!newFilters[attrKey]) {
+        newFilters[attrKey] = [];
       }
-    }
-    
-    return newFilters;
-  });
-};
 
-// Функция проверки, выбран ли атрибут
-const isAttributeSelected = (filterId, value) => {
-  const attrKey = `attr_${filterId}`;
-  return tempFilters[attrKey]?.includes(value.toString()) || false;
-};
+      const valueStr = value.toString();
+      const index = newFilters[attrKey].indexOf(valueStr);
 
-  
-  
+      if (index === -1) {
+        newFilters[attrKey] = [...newFilters[attrKey], valueStr];
+      } else {
+        newFilters[attrKey] = newFilters[attrKey].filter(v => v !== valueStr);
+        if (newFilters[attrKey].length === 0) {
+          delete newFilters[attrKey];
+        }
+      }
+
+      return newFilters;
+    });
+  };
+
+  // Функция проверки, выбран ли атрибут
+  const isAttributeSelected = (filterId, value) => {
+    const attrKey = `attr_${filterId}`;
+    return tempFilters[attrKey]?.includes(value.toString()) || false;
+  };
+
+
+
 
   // Применение всех фильтров
   // Применение всех фильтров
   const applyFilters = () => {
     const queryParams = new URLSearchParams();
-    
+
     // Стандартные параметры
     if (searchQuery) queryParams.set('search', searchQuery);
     if (priceMin) queryParams.set('price_min', priceMin);
     if (priceMax) queryParams.set('price_max', priceMax);
     queryParams.set('sort', sortOption);
     queryParams.set('page', 1);
-    
+
     // Добавляем фильтры (ключи уже содержат "attr_")
     Object.entries(tempFilters).forEach(([key, values]) => {
       values.forEach(value => {
         queryParams.append(key, value);
       });
     });
-    
+
     navigate(`?${queryParams.toString()}`);
   };
 
@@ -211,7 +200,7 @@ const isAttributeSelected = (filterId, value) => {
         <div className="error-icon">!</div>
         <h3>Произошла ошибка</h3>
         <p>{error}</p>
-        <button 
+        <button
           className="primary-button"
           onClick={() => window.location.reload()}
         >
@@ -225,7 +214,7 @@ const isAttributeSelected = (filterId, value) => {
     return (
       <div className="not-found-container">
         <h3>Категория не найдена</h3>
-        <button 
+        <button
           className="primary-button"
           onClick={() => navigate('/marketplace')}
         >
@@ -239,7 +228,7 @@ const isAttributeSelected = (filterId, value) => {
     return (
       <div className="not-found-container">
         <h3>Данные не загружены</h3>
-        <button 
+        <button
           className="primary-button"
           onClick={() => window.location.reload()}
         >
@@ -255,16 +244,16 @@ const isAttributeSelected = (filterId, value) => {
 
       <div className="page-header">
         <h1>{data.category.name}</h1>
-        
+
         <div className="header-actions">
-          <button 
+          <button
             className="filter-toggle"
             onClick={toggleFilters}
           >
             {isFiltersOpen ? 'Скрыть фильтры' : 'Показать фильтры'}
           </button>
-          
-          <form 
+
+          <form
             onSubmit={handleSearch}
             className="search-form"
           >
@@ -277,8 +266,8 @@ const isAttributeSelected = (filterId, value) => {
             />
             <button type="submit" className="search-button">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" strokeWidth="2"/>
-                <path d="M21 21L16.65 16.65" strokeWidth="2"/>
+                <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" strokeWidth="2" />
+                <path d="M21 21L16.65 16.65" strokeWidth="2" />
               </svg>
             </button>
           </form>
@@ -289,14 +278,14 @@ const isAttributeSelected = (filterId, value) => {
         <aside className={`sidebar ${isFiltersOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-header">
             <h3>Фильтры</h3>
-            <button 
+            <button
               className="close-filters"
               onClick={toggleFilters}
             >
               ×
             </button>
           </div>
-          
+
           {data.subcategories && data.subcategories.length > 0 && (
             <div className="filter-section">
               <h4 className="filter-title">
@@ -305,7 +294,7 @@ const isAttributeSelected = (filterId, value) => {
               <ul className="subcategory-list">
                 {data.subcategories.map(subcat => (
                   <li key={subcat.id} className="subcategory-item">
-                    <button 
+                    <button
                       className={`subcategory-button ${location.pathname.includes(`/categories/${subcat.id}`) ? 'active' : ''}`}
                       onClick={() => navigate(`/marketplace/categories/${subcat.id}/products/`)}
                     >
@@ -316,7 +305,7 @@ const isAttributeSelected = (filterId, value) => {
               </ul>
             </div>
           )}
-          
+
           <FiltersSection
             filtersLoading={filtersLoading}
             filters={filters}
@@ -327,38 +316,38 @@ const isAttributeSelected = (filterId, value) => {
             handleAttributeSelect={handleAttributeSelect}
             setVisibleFiltersCount={setVisibleFiltersCount}
           />
-          
+
           <div className="filter-section">
             <h4 className="filter-title">
               Цена
             </h4>
             <div className="price-inputs">
-              <input 
-                type="number" 
-                placeholder="от" 
+              <input
+                type="number"
+                placeholder="от"
                 className="price-input"
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 min="0"
               />
               <span className="price-separator">-</span>
-              <input 
-                type="number" 
-                placeholder="до" 
+              <input
+                type="number"
+                placeholder="до"
                 className="price-input"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 min="0"
               />
             </div>
-            <button 
+            <button
               className="apply-filter-button"
               onClick={applyFilters}
             >
               Применить все фильтры
             </button>
           </div>
-          <button 
+          <button
             className="reset-filters-button"
             onClick={resetFilters}
           >
@@ -372,7 +361,7 @@ const isAttributeSelected = (filterId, value) => {
             </p>
             <div className="sort-container">
               <label className="sort-label">Сортировка:</label>
-              <select 
+              <select
                 value={sortOption}
                 onChange={handleSortChange}
                 className="sort-select"
@@ -397,14 +386,14 @@ const isAttributeSelected = (filterId, value) => {
               {data.pagination && data.pagination.total_pages > 1 && (
                 <div className="pagination">
                   {data.pagination.has_previous && (
-                    <button 
+                    <button
                       className="pagination-arrow"
                       onClick={() => handlePageChange(data.pagination.current_page - 1)}
                     >
                       ← Назад
                     </button>
                   )}
-                  
+
                   <div className="page-numbers">
                     {generatePaginationItems(data.pagination.current_page, data.pagination.total_pages).map((item, index) => {
                       if (item === '...') {
@@ -421,9 +410,9 @@ const isAttributeSelected = (filterId, value) => {
                       );
                     })}
                   </div>
-                  
+
                   {data.pagination.has_next && (
-                    <button 
+                    <button
                       className="pagination-arrow"
                       onClick={() => handlePageChange(data.pagination.current_page + 1)}
                     >
@@ -435,21 +424,21 @@ const isAttributeSelected = (filterId, value) => {
             </>
           ) : (
             <div className="no-products">
-              <svg 
-                width="80" 
-                height="80" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="rgba(255, 255, 255, 0.3)" 
+              <svg
+                width="80"
+                height="80"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(255, 255, 255, 0.3)"
                 className="no-products-icon"
               >
-                <path d="M4 16L8.5 10.5L11 13.5L14.5 9L20 16M4 16H20M4 16V4H20V16" strokeWidth="1.5"/>
+                <path d="M4 16L8.5 10.5L11 13.5L14.5 9L20 16M4 16H20M4 16V4H20V16" strokeWidth="1.5" />
               </svg>
               <h3>Товары не найдены</h3>
               <p>
                 Попробуйте изменить параметры поиска
               </p>
-              <button 
+              <button
                 className="primary-button"
                 onClick={resetFilters}
               >
@@ -467,15 +456,15 @@ function generatePaginationItems(currentPage, totalPages) {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
-  
+
   if (currentPage <= 3) {
     return [1, 2, 3, 4, '...', totalPages];
   }
-  
+
   if (currentPage >= totalPages - 2) {
     return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
   }
-  
+
   return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 }
 
