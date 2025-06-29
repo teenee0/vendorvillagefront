@@ -1,10 +1,6 @@
-
-
+/* ProductManagement.module.css */
 .container {
-    padding: 2rem;
-    max-width: 1280px;
-    margin: 0 auto;
-    color: var(--text-primary);
+    margin-top: 1.3rem;
 }
 
 .header {
@@ -12,357 +8,648 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    font-size: 2rem;
+    color: var(--imperial-gold);
+}
+
+.titleIcon {
+    margin-right: 0.75rem;
+    font-size: 1.8rem;
+}
+
+.headerActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.exportButton,
+.settingsButton {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.exportButton {
+    background-color: var(--luminous-sapphire);
+    border: 1px solid var(--luminous-sapphire);
+    color: white;
+}
+
+.exportButton:hover {
+    background-color: transparent;
+    color: var(--luminous-sapphire);
+}
+
+.settingsButton {
+    background-color: transparent;
+    border: 1px solid var(--palladium-mist);
+    color: var(--silver-whisper);
+}
+
+.settingsButton:hover {
+    border-color: var(--imperial-gold);
+    color: var(--imperial-gold);
+}
+
+.contentWrapper {
+    display: flex;
+    gap: 2rem;
+}
+
+.sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.mainContent {
+    flex-grow: 1;
+}
+
+
+.categoriesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 10px;
+}
+
+.categoryButton {
+    padding: 0.5rem 1rem;
+    text-align: left;
+    background-color: var(--phantom-noir);
+    border: none;
+    border-radius: 6px;
+    color: var(--silver-whisper);
+    transition: all 0.2s;
+}
+
+.categoryButton:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.categoryButton.active {
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: 500;
+}
+
+
+.priceInputs {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+    flex-wrap: wrap; /* Добавляем перенос элементов */
+}
+
+.priceInput {
+    flex: 1 1 40%;
+    min-width: 120px;
+    max-width: calc(50% - 0.25rem);
+    padding: 0.6rem 0.8rem;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.priceInput:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.priceSeparator {
+    color: var(--silver-whisper);
+}
+
+.tableWrapper {
+    width: 1400px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tableScrollContainer {
+    overflow-x: auto;
+    width: 100%;
+    min-width: fit-content;
+}
+
+.attributesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.attributeItem {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+}
+
+.attributeValue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    cursor: help;
+}
+
+.productsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
-.title {
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    color: var(--text-primary);
-    margin: 0;
+.searchContainer {
+    display: flex;
+    flex-grow: 1;
+    max-width: 400px;
 }
 
-.addButton {
+.searchInput {
+    flex-grow: 1;
+    padding: 0.5rem 1rem;
+    background-color: var(--phantom-noir);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 6px 0 0 6px;
+    color: var(--platinum-gleam);
+    border-right: none;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.searchButton {
+    padding: 0 1rem;
+    background-color: var(--phantom-noir);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 0 6px 6px 0;
+    color: var(--silver-whisper);
+    transition: all 0.2s;
+}
+
+.searchButton:hover {
     background-color: var(--accent-color);
     color: white;
-    border: none;
-    padding: 0.6em 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 500;
+    border-color: var(--accent-color);
+}
+
+.sortContainer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: all 0.25s;
 }
 
-.addButton:hover {
-    background-color: var(--accent-hover);
-    transform: translateY(-1px);
+.productsCount {
+    margin-right: 1rem;
+    color: var(--silver-whisper);
 }
 
-.tabs {
+.productsCount strong {
+    color: var(--platinum-gleam);
+    font-weight: 600;
+}
+
+.sortLabel {
+    color: var(--silver-whisper);
+}
+
+.sortSelect {
+    padding: 0.5rem;
+    background-color: var(--phantom-noir);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 6px;
+    color: var(--platinum-gleam);
+}
+
+.sortSelect:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.viewToggle {
     display: flex;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 2rem;
-    overflow-x: auto;
+    justify-content: flex-end;
+    margin-bottom: 1.5rem;
 }
 
-.tabButton {
-    padding: 0.75rem 1.5rem;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    font-size: 1em;
+.viewToggleButton {
+    padding: 0.5rem 1rem;
+    background-color: var(--phantom-noir);
+    border: 1px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    transition: all 0.25s;
-    white-space: nowrap;
+    transition: all 0.2s;
 }
 
-.tabButtonActive {
-    composes: tabButton;
-    color: var(--accent-color);
-    border-bottom-color: var(--accent-color);
+.viewToggleButton:first-child {
+    border-radius: 6px 0 0 6px;
+    border-right: none;
 }
 
-.tabButton:hover:not(.tabButtonActive) {
-    color: var(--accent-color);
-    background-color: rgba(100, 108, 255, 0.1);
+.viewToggleButton:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+.viewToggleButton:hover {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.viewToggleButton.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
 }
 
 .productsGrid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 0.5rem;
 }
 
-@media (max-width: 768px) {
-    .productsGrid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+.productCard {
+    background-color: var(--obsidian-elite);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--gilded-shadow);
+    transition: all 0.2s;
 }
 
-@media (max-width: 600px) {
-    .productsGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.productCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-color);
 }
 
-@media (max-width: 480px) {
-    .productsGrid {
-        grid-template-columns: 1fr;
-    }
+.addProductCard {
+    background-color: var(--phantom-noir);
+    border: 2px dashed var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    min-height: 300px;
+}
+
+.addProductContent {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.addProductIcon {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.addProductText {
+    color: var(--silver-whisper);
+    margin-top: 0.5rem;
+}
+
+.tableContainer {
+    background-color: var(--obsidian-elite);
+    border-radius: 8px;
+    border: 1px solid var(--gilded-shadow);
+    overflow: hidden;
+}
+
+.productsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.productsTable th,
+.productsTable td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.productsTable th {
+    background-color: var(--phantom-noir);
+    color: var(--platinum-gleam);
+    font-weight: 500;
+}
+
+.productsTable tr:hover {
+    background-color: rgba(45, 175, 159, 0.05);
+}
+
+.addProductRow {
+    background-color: rgba(45, 175, 159, 0.05);
+    cursor: pointer;
+    text-align: center;
+}
+
+.addProductRow:hover {
+    background-color: rgba(45, 175, 159, 0.1);
+}
+
+.addRowIcon {
+    color: var(--accent-color);
+    margin-right: 0.5rem;
+}
+
+.tableImage {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.statusBadge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.statusBadge.active {
+    background-color: rgba(12, 191, 87, 0.2);
+    color: var(--bg-green);
+}
+
+.statusBadge.inactive {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: var(--bg-red);
+}
+
+.actionButton {
+    padding: 0.25rem 0.5rem;
+    background-color: transparent;
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 4px;
+    color: var(--silver-whisper);
+    margin-right: 0.5rem;
+    transition: all 0.2s;
+}
+
+.actionButton:hover {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.deleteButton {
+    border-color: var(--velvet-ruby);
+    color: var(--velvet-ruby);
+}
+
+.deleteButton:hover {
+    background-color: var(--velvet-ruby);
+    color: white;
 }
 
 .emptyState {
     text-align: center;
     padding: 3rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
+    background-color: var(--obsidian-elite);
+    border-radius: 8px;
+    border: 1px dashed var(--gilded-shadow);
 }
 
 .emptyIcon {
     font-size: 3rem;
-    color: rgba(255, 255, 255, 0.3);
-    margin-bottom: 1rem;
+    color: var(--accent-color);
+    margin-bottom: 1.5rem;
 }
 
 .emptyTitle {
-    color: var(--text-primary);
+    color: var(--platinum-gleam);
     margin-bottom: 0.5rem;
 }
 
 .emptyText {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--silver-whisper);
     margin-bottom: 1.5rem;
 }
 
-.createButton {
+.resetButton {
+    padding: 0.5rem 1.5rem;
     background-color: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 0.6em 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.3s ease;
-}
-
-.createButton:hover {
-    background-color: var(--accent-hover);
-    transform: translateY(-1px);
-}
-
-/* Modal Styles */
-.modalOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
-}
-
-.modal {
-    background: var(--bg-primary);
-    border-radius: 10px;
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.modalHeader {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modalTitle {
-    margin: 0;
-    font-size: 1.5rem;
-    color: var(--text-primary);
-}
-
-.closeButton {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.6);
-    transition: color 0.3s ease;
-}
-
-.closeButton:hover {
-    color: var(--text-primary);
-}
-
-.modalBody {
-    padding: 1.5rem;
-}
-
-.formGroup {
-    margin-bottom: 1.5rem;
-}
-
-.label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.input,
-.textarea,
-.select {
-    width: 100%;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--accent-color);
     border-radius: 6px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    color: var(--text-primary);
-}
-
-.textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.input:focus,
-.textarea:focus,
-.select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
-}
-
-.formCheck {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.checkbox {
-    width: auto;
-    accent-color: var(--accent-color);
-}
-
-.checkboxLabel {
-    margin: 0;
-    font-weight: normal;
-    color: var(--text-primary);
-}
-
-.modalFooter {
-    padding: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-}
-
-.cancelButton {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.6em 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.3s ease;
-}
-
-.cancelButton:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.submitButton {
-    background-color: var(--accent-color);
     color: white;
-    border: none;
-    padding: 0.6em 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.3s ease;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
-.submitButton:hover {
-    background-color: var(--accent-hover);
-}
-
-.submitButtonDisabled {
-    composes: submitButton;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-    cursor: not-allowed;
-}
-
-/* Categories Tab */
-.tabContent {
-    padding: 1rem 0;
-}
-
-.categoriesList {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-}
-
-.categoryItem {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.3s ease;
-}
-
-.categoryItem:hover {
-    border-color: var(--accent-color);
-    transform: translateY(-3px);
-}
-
-.categoryInfo h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--text-primary);
-    font-size: 1.2rem;
-}
-
-.categoryInfo p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-}
-
-.categoryStats {
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-}
-
-.categoryStats i {
+.resetButton:hover {
+    background-color: transparent;
     color: var(--accent-color);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        padding: 1.5rem;
+.loading,
+.error {
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--obsidian-elite);
+    border-radius: 8px;
+    margin-top: 2rem;
+}
+
+.error {
+    color: var(--velvet-ruby);
+}
+
+.loadingMore {
+    text-align: center;
+    padding: 1rem;
+    color: var(--silver-whisper);
+}
+.applyFilterButton,
+.resetFiltersButton {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+}
+
+.filterSection {
+    margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.applyFilterButton {
+    background-color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    color: white;
+}
+
+.applyFilterButton:hover {
+    background-color: transparent;
+    color: var(--accent-color);
+}
+
+.resetFiltersButton {
+    background-color: transparent;
+    border: 1px solid var(--velvet-ruby);
+    color: var(--velvet-ruby);
+}
+
+.resetFiltersButton:hover {
+    background-color: var(--velvet-ruby);
+    color: white;
+}
+
+
+.colorSwatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--gilded-shadow);
+}
+
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+    .contentWrapper {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+    }
+    
+    .productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .container {
         padding: 1rem;
     }
     
-    .categoriesList {
-        grid-template-columns: 1fr;
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
     
-    .categoryItem {
-        padding: 1rem;
+    .productsHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .searchContainer {
+        max-width: 100%;
+    }
+    
+    .sortContainer {
+        width: 100%;
+        justify-content: space-between;
     }
 }
+.priceCell {
+    min-width: 150px;
+  }
+  
+  .priceWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .priceRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .priceLabel {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+  }
+  
+  .priceValue {
+    font-weight: 500;
+  }
+  
+  .discountBadge {
+    background-color: var(--velvet-ruby);
+    color: white;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .finalPrice {
+    font-weight: 600;
+    color: var(--accent-color);
+  }
+
+
+  /* stock */
+  .stockCell {
+    padding: 0.5rem;
+    vertical-align: middle;
+  }
+  
+  .stockHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem;
+    background-color: var(--phantom-noir);
+    border-radius: 4px;
+    color: var(--platinum-gleam);
+    font-weight: 500;
+  }
+  
+  .stockHeader:hover {
+    background-color: var(--accent-color);
+  }
+  
+  .stockList {
+    margin-top: 0.5rem;
+    background-color: var(--phantom-noir);
+    border-radius: 4px;
+    padding: 0.5rem;
+  }
+  
+  .stockLocation {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+  }
+  
+  .stockLocationName {
+    color: var(--silver-whisper);
+    font-weight: 500;
+  }
+  
+  .stockLocationValue {
+    color: var(--platinum-gleam);
+  }
+  

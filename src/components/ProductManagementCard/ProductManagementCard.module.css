@@ -120,6 +120,8 @@
     display: flex;
     gap: 8px;
     margin-top: 12px;
+    align-items: center;
+    justify-content: center;
 }
 
 .editButton, 
@@ -191,6 +193,7 @@
     pointer-events: none;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
 }
 
 .tooltip::after {
