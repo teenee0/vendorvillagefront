@@ -6,12 +6,13 @@ import axios from "../../api/axiosDefault.js";
 import DraggableImageList from '../../components/DraggableThumbnail/DraggableImageList.jsx';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ImageCropper from '../../components/ImageCropper/ImageCropper.jsx';
 
 const ProductAddPage = () => {
   // Основная информация
   const { business_slug } = useParams();
+  const navigate = useNavigate();
   const [productName, setProductName] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -108,16 +109,23 @@ const ProductAddPage = () => {
       sku: `PROD-${variantCounter}`,
       price: '',
       discount: '0',
-      quantity: '0',
+      quantity: '0', // Это должно быть перенесено в stocks
       description: '',
       showThis: true,
-      reserved_quantity: '0',
+      reserved_quantity: '0', // Это должно быть перенесено в stocks
       is_available_for_sale: true,
-      location_id: locations.length > 0 ? locations[0].id : '',
+      location_id: locations.length > 0 ? String(locations[0].id) : '',
       attributes: categoryAttributes.reduce((acc, attr) => {
-        acc[attr.id] = attr.values.length > 0 ? attr.values[0].id || attr.values[0] : '';
+        acc[String(attr.id)] = attr.values.length > 0 ?
+          (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
         return acc;
-      }, {})
+      }, {}),
+      stocks: [{
+        location_id: locations.length > 0 ? String(locations[0].id) : '',
+        quantity: '0',
+        reserved_quantity: '0',
+        is_available_for_sale: true
+      }]
     };
 
     setVariants([...variants, newVariant]);
@@ -125,23 +133,32 @@ const ProductAddPage = () => {
   };
 
   // Изменение варианта
-  const handleVariantChange = (id, field, value, attributeId = null) => {
+  const handleVariantChange = (id, field, value, attributeId = null, stockIndex = 0) => {
     setVariants(variants.map(variant => {
       if (variant.id === id) {
         if (attributeId !== null) {
-          // Изменение атрибута
           return {
             ...variant,
             attributes: {
               ...variant.attributes,
-              [attributeId]: value
+              [String(attributeId)]: typeof value === 'number' ? String(value) : value
             }
           };
-        } else {
-          // Изменение обычного поля
+        } else if (field.startsWith('stocks')) {
+          const stockField = field.split('.')[1];
+          const updatedStocks = [...variant.stocks];
+          updatedStocks[stockIndex] = {
+            ...updatedStocks[stockIndex],
+            [stockField]: value
+          };
           return {
             ...variant,
-            [field]: value
+            stocks: updatedStocks
+          };
+        } else {
+          return {
+            ...variant,
+            [field]: field === 'location_id' ? String(value) : value
           };
         }
       }
@@ -155,20 +172,36 @@ const ProductAddPage = () => {
 
     const lastVariant = variants[variants.length - 1];
 
-    // Создаем полностью независимую копию варианта
+    // Преобразуем все ID в строки при копировании
+    const copiedAttributes = {};
+    Object.entries(lastVariant.attributes || {}).forEach(([key, value]) => {
+      copiedAttributes[String(key)] = typeof value === 'number' ? String(value) : value;
+    });
+
+    // Копируем stocks с преобразованием ID в строки
+    const copiedStocks = (lastVariant.stocks || []).map(stock => ({
+      location_id: String(stock.location_id),
+      quantity: stock.quantity,
+      reserved_quantity: stock.reserved_quantity || '0',
+      is_available_for_sale: stock.is_available_for_sale !== undefined ?
+        stock.is_available_for_sale : true
+    }));
+
     const newVariant = {
       id: variantCounter,
       sku: `${lastVariant.sku}-COPY-${variantCounter}`,
       price: lastVariant.price,
       discount: lastVariant.discount,
-      quantity: lastVariant.quantity,
       description: lastVariant.description,
       showThis: lastVariant.showThis,
-      reserved_quantity: lastVariant.reserved_quantity,
       is_available_for_sale: lastVariant.is_available_for_sale,
-      location_id: lastVariant.location_id,
-      // Глубокая копия атрибутов
-      attributes: { ...lastVariant.attributes }
+      attributes: copiedAttributes,
+      stocks: copiedStocks.length > 0 ? copiedStocks : [{
+        location_id: locations.length > 0 ? String(locations[0].id) : '',
+        quantity: '0',
+        reserved_quantity: '0',
+        is_available_for_sale: true
+      }]
     };
 
     setVariants([...variants, newVariant]);
@@ -206,9 +239,9 @@ const ProductAddPage = () => {
       preview: URL.createObjectURL(croppedFile),
       isMain: images.length === 0 && index === 0
     };
-    
+
     setImages(prev => [...prev, newImage]);
-    
+
     // Если это последнее изображение, закрываем модальное окно
     if (index === croppingData.files.length - 1) {
       setIsModalOpen(false);
@@ -220,14 +253,14 @@ const ProductAddPage = () => {
       });
     }
   };
-  
+
   const handleNextImage = () => {
     setCroppingData(prev => ({
       ...prev,
       currentIndex: prev.currentIndex + 1
     }));
   };
-  
+
   const handleCancelCropping = () => {
     setIsModalOpen(false);
     document.body.classList.remove(styles.bodyNoScroll);
@@ -251,11 +284,24 @@ const ProductAddPage = () => {
       // Если пытаемся сделать главным уже главное изображение
       const currentMain = prevImages.find(img => img.isMain);
       if (currentMain?.id === id) return prevImages;
-      
-      return prevImages.map(img => ({
+
+      // Создаем новый массив изображений
+      const newImages = [...prevImages];
+
+      // Находим индекс изображения, которое делаем главным
+      const newMainIndex = newImages.findIndex(img => img.id === id);
+
+      if (newMainIndex === -1) return prevImages; // если не нашли изображение
+
+      // Обновляем флаги isMain у всех изображений
+      const updatedImages = newImages.map(img => ({
         ...img,
         isMain: img.id === id
       }));
+
+      // Перемещаем новое главное изображение в начало массива
+      const [newMainImage] = updatedImages.splice(newMainIndex, 1);
+      return [newMainImage, ...updatedImages];
     });
   };
 
@@ -269,16 +315,16 @@ const ProductAddPage = () => {
         }
       }
       if (!imageToRemove) return prevImages;
-      
+
       // Фильтруем массив без удаленного изображения
       const newImages = prevImages.filter(img => img.id !== id);
-      
+
       // Если удалили главное изображение и остались другие изображения
       if (imageToRemove.isMain && newImages.length > 0) {
         // Делаем первое изображение главным
         newImages[0].isMain = true;
       }
-      
+
       return newImages;
     });
   };
@@ -297,93 +343,120 @@ const ProductAddPage = () => {
   // Валидация формы
   const validateForm = () => {
     // Проверка основной информации
-    if (!productName.trim() || !categoryId || !productDescription.trim()) {
-      return false;
+    if (!productName.trim()) {
+      return { valid: false, message: "Заполните название товара." };
+    }
+
+    if (!categoryId) {
+      return { valid: false, message: "Выберите категорию товара." };
+    }
+
+    if (!productDescription.trim()) {
+      return { valid: false, message: "Добавьте описание товара." };
     }
 
     if (images.length === 0) {
-      return false;
+      return { valid: false, message: "Добавьте хотя бы одно изображение." };
     }
-  
-    // Проверка что есть главное изображение
+
     if (!images.some(img => img.isMain)) {
-      return false;
+      return { valid: false, message: "Выберите главное изображение." };
     }
 
-    // Проверка вариантов
-    if (variants.length === 0) return false;
+    if (variants.length === 0) {
+      return { valid: false, message: "Добавьте хотя бы один вариант товара." };
+    }
 
-    return variants.every(variant => {
-      // Проверка обязательных полей варианта
-      if (!variant.sku.trim() || !variant.price || !variant.quantity || !variant.location_id) {
-        return false;
+    for (let [index, variant] of variants.entries()) {
+      if (!variant.sku.trim()) {
+        return { valid: false, message: `Вариант ${index + 1}: заполните артикул (SKU).` };
+      }
+      if (!variant.price) {
+        return { valid: false, message: `Вариант ${index + 1}: укажите цену.` };
+      }
+      if (!variant.quantity) {
+        return { valid: false, message: `Вариант ${index + 1}: укажите количество.` };
+      }
+      if (!variant.location_id) {
+        return { valid: false, message: `Вариант ${index + 1}: выберите склад/локацию.` };
       }
 
-      // Проверка обязательных атрибутов
-      return categoryAttributes.every(attr => {
+      for (let attr of categoryAttributes) {
         if (attr.required) {
-          return variant.attributes[attr.id] !== undefined &&
-            variant.attributes[attr.id] !== null &&
-            variant.attributes[attr.id] !== '';
+          const val = variant.attributes[attr.id];
+          if (val === undefined || val === null || val === '') {
+            return {
+              valid: false,
+              message: `Вариант ${index + 1}: заполните обязательный атрибут "${attr.name}".`
+            };
+          }
         }
-        return true;
-      });
-    });
+      }
+    }
+
+    return { valid: true, message: "" };
   };
 
   // Подготовка данных для отправки
   const prepareProductData = () => {
     const formData = new FormData();
 
-    // Основная информация
     formData.append('name', productName);
     formData.append('description', productDescription);
-    formData.append('category', categoryId);
-    formData.append('is_active', isActive);
-    formData.append('on_the_main', showOnMain);
+    formData.append('category', String(categoryId));
+    formData.append('is_active', isActive ? 'true' : 'false');
+    formData.append('on_the_main', showOnMain ? 'true' : 'false');
 
-    // Изображения
     images.forEach((image, index) => {
       formData.append(`images[${index}][image]`, image.file);
-      formData.append(`images[${index}][is_main]`, image.isMain);
-      formData.append(`images[${index}][display_order]`, index);
+      formData.append(`images[${index}][is_main]`, image.isMain ? 'true' : 'false');
+      formData.append(`images[${index}][display_order]`, String(index));
     });
 
-    // Варианты
     variants.forEach((variant, vIndex) => {
-      formData.append(`variants[${vIndex}][sku]`, variant.sku);
-      formData.append(`variants[${vIndex}][price]`, variant.price);
-      formData.append(`variants[${vIndex}][discount]`, variant.discount);
-      formData.append(`variants[${vIndex}][show_this]`, variant.showThis);
+      formData.append(`variants[${vIndex}][sku]`, variant.sku || '');
+      formData.append(`variants[${vIndex}][price]`, String(variant.price));
+      formData.append(`variants[${vIndex}][discount]`, String(variant.discount || 0));
+      formData.append(`variants[${vIndex}][show_this]`, variant.showThis ? 'true' : 'false');
       formData.append(`variants[${vIndex}][description]`, variant.description || '');
 
-      // Атрибуты варианта
       Object.entries(variant.attributes || {}).forEach(([attrId, value], aIndex) => {
-        const attribute = categoryAttributes.find(a => a.id === parseInt(attrId));
+        const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
         const isPredefined = attribute?.has_predefined_values;
 
-        formData.append(`variants[${vIndex}][attributes][${aIndex}][category_attribute]`, attrId);
-
+        formData.append(`variants[${vIndex}][attributes][${aIndex}][category_attribute]`, String(attrId));
         if (isPredefined) {
-          formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, value);
+          formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, String(value));
           formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, '');
         } else {
           formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, '');
-          formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, value);
+          formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, String(value));
         }
       });
 
-      // Остатки на складах (с проверкой на существование stocks)
-      formData.append(`variants[${vIndex}][stocks][0][location_id]`, variant.location_id);
-      formData.append(`variants[${vIndex}][stocks][0][quantity]`, variant.quantity);
+      (variant.stocks || []).forEach((stock, sIndex) => {
+        formData.append(`variants[${vIndex}][stocks][${sIndex}][location_id]`, String(stock.location_id));
+        formData.append(`variants[${vIndex}][stocks][${sIndex}][quantity]`, String(stock.quantity));
+        formData.append(`variants[${vIndex}][stocks][${sIndex}][reserved_quantity]`, String(stock.reserved_quantity || 0));
+        formData.append(`variants[${vIndex}][stocks][${sIndex}][is_available_for_sale]`,
+          stock.is_available_for_sale !== undefined ? (stock.is_available_for_sale ? 'true' : 'false') : 'true'
+        );
+      });
     });
 
     return formData;
   };
 
+
+
   // Отправка формы
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const productData = prepareProductData();
+    for (let pair of productData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
 
     if (!validateForm()) {
       console.error('Пожалуйста, заполните все обязательные поля');
@@ -392,47 +465,12 @@ const ProductAddPage = () => {
 
     try {
       const productData = prepareProductData();
+      for (let pair of productData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
 
-      // Для отладки: преобразуем FormData в обычный объект для вывода в консоль
-      const debugData = {
-        name: productName,
-        description: productDescription,
-        category: categoryId,
-        is_active: isActive,
-        on_the_main: showOnMain,
-        images: images.map((img, index) => ({
-          image: img.file.name,
-          is_main: img.isMain,
-          display_order: index
-        })),
-        variants: variants.map(variant => ({
-          sku: variant.sku,
-          price: variant.price,
-          discount: variant.discount,
-          show_this: variant.showThis,
-          description: variant.description,
-          attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
-            const attribute = categoryAttributes.find(a => a.id === parseInt(attrId));
-            return {
-              category_attribute: attrId,
-              predefined_value: attribute?.has_predefined_values ? value : null,
-              custom_value: !attribute?.has_predefined_values ? value : null
-            };
-          }),
-          stocks: [{
-            location_id: variant.location_id,
-            quantity: variant.quantity,
-            reserved_quantity: variant.reserved_quantity
-          }]
-        }))
-      };
-
-      console.log('Подготовленные данные для API:', debugData);
-
-      // Для реальной отправки раскомментируйте:
-      /*
       const response = await axios.post(
-        `/api/business/${business_slug}/products/`, 
+        `/api/business/${business_slug}/products/create/`,
         productData,
         {
           headers: {
@@ -440,10 +478,11 @@ const ProductAddPage = () => {
           }
         }
       );
-      console.log('Товар успешно создан:', response.data);
-      */
+      console.log('Товар успешно создан:', response.data); //datalog
+      alert('Товар успешно сохранён');
+      navigate(-1);
     } catch (error) {
-      console.error('Ошибка при подготовке данных:', error);
+      console.error('Ошибка при подготовке данных:', error.response?.data || error.message);
     }
   };
 
@@ -671,11 +710,11 @@ const ProductAddPage = () => {
                                       <input
                                         type="checkbox"
                                         className={styles.formControltd}
-                                        checked={variant.showThis}  // Изменено с value на checked
+                                        checked={variant.showThis}
                                         onChange={(e) => handleVariantChange(
                                           variant.id,
                                           'showThis',
-                                          e.target.checked  // Убедитесь, что передаёте e.target.checked
+                                          e.target.checked
                                         )}
                                       />
                                     </td>
@@ -701,7 +740,7 @@ const ProductAddPage = () => {
                                                 key={value.id}
                                                 value={value.id}
                                               >
-                                                {value.value} {/* Исправлено с value.name на value.value */}
+                                                {value.value}
                                               </option>
                                             ))}
                                           </select>
@@ -766,16 +805,16 @@ const ProductAddPage = () => {
                                       />
                                     </td>
                                     <td>
-                                      {calculateDiscountedPrice(variant.price, variant.discount)} ₽
+                                      {calculateDiscountedPrice(variant.price, variant.discount)} ₸
                                     </td>
                                     <td>
                                       <input
                                         type="number"
                                         className={styles.formControltd}
-                                        value={variant.quantity}
+                                        value={variant.stocks[0]?.quantity || ''}
                                         onChange={(e) => handleVariantChange(
                                           variant.id,
-                                          'quantity',
+                                          'stocks.quantity',
                                           e.target.value
                                         )}
                                         min="0"
@@ -786,14 +825,13 @@ const ProductAddPage = () => {
                                       <input
                                         type="number"
                                         className={styles.formControltd}
-                                        value={variant.reserved_quantity}
+                                        value={variant.stocks[0]?.reserved_quantity || ''}
                                         onChange={(e) => handleVariantChange(
                                           variant.id,
-                                          'reserved_quantity',
+                                          'stocks.reserved_quantity',
                                           e.target.value
                                         )}
                                         min="0"
-                                        required
                                       />
                                     </td>
                                     {/* доступноть для продажи из таблицы Stock (пока что не нужно, потому чтор логика пока что, что у одного варианата - один склад) */}
@@ -898,7 +936,11 @@ const ProductAddPage = () => {
 
             {/* Кнопки отправки формы */}
             <div className={styles.formActions}>
-              <button type="button" className={styles.cancelButton}>
+              <button
+                type="button"
+                onClick={() => navigate(`/business/${business_slug}/products/`)}
+                className={styles.cancelButton}
+              >
                 <FaTimes className={styles.buttonIcon} /> Отменить
               </button>
               <button

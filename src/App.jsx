@@ -22,7 +22,7 @@ import ProductEditPage from './pages/ProductEditPage/ProductEditPage'
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
 import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRoute.jsx';
 import ProductAddPage from './pages/ProductAddPage/ProductAddpage.jsx';
-
+import ProductPage from './pages/ProductPage/ProductPage.jsx';
 
 function App() {
   const location = useLocation();
@@ -53,6 +53,7 @@ function App() {
                     <Route path="/business/:business_slug/main" element={<BusinessMainPage />} />
                     <Route path="/business/:business_slug/products" element={<ProductManagement />} />
                     <Route path="/business/:business_slug/products/create" element={<ProductAddPage />} />
+                    <Route path="/business/:business_slug/products/:product_id" element={<ProductPage />} />
                     <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
                   </Route>
                 </Route>

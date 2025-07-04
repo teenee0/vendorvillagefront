@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from "../../api/axiosDefault.js";
 import { FiShoppingCart, FiHeart, FiShare2, FiChevronLeft } from 'react-icons/fi';
@@ -11,6 +11,9 @@ import "slick-carousel/slick/slick-theme.css";
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
 import GlareHover from '../../components/GlareHover/GlareHover.jsx';
 
+
+
+
 const ProductDetail = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
@@ -22,6 +25,8 @@ const ProductDetail = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
+  const mainSlider = useRef(null);
+  const thumbsSlider = useRef(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,7 +64,7 @@ const ProductDetail = () => {
       const newAttributes = { ...prev, [attributeId]: value };
       // Находим вариант, который содержит выбранное значение атрибута
       const matchingVariant = productData.product.variants.find(variant =>
-        variant.attributes.some(a => 
+        variant.attributes.some(a =>
           a.attribute_id === Number(attributeId) && a.display_value === value
         )
       );
@@ -81,7 +86,7 @@ const ProductDetail = () => {
       return false;
     }
     const isAvailable = productData.product.variants.some(variant =>
-      variant.attributes.some(a => 
+      variant.attributes.some(a =>
         a.attribute_id === Number(attributeId) && a.display_value === value
       )
     );
@@ -149,29 +154,61 @@ const ProductDetail = () => {
     ]
   };
 
+  const mainSliderSettings = {
+    asNavFor: thumbsSlider.current,
+    ref: mainSlider,
+    arrows: true,
+    fade: true,
+    beforeChange: (_, next) => setSelectedImage(next),
+  };
+
+  const thumbsSliderSettings = {
+    asNavFor: mainSlider.current,
+    ref: thumbsSlider,
+    slidesToShow: Math.min(product.images.length, 5),
+    swipeToSlide: true,
+    focusOnSelect: true,
+    arrows: false,
+  };
   return (
     <div className="product-detail">
-      <Breadcrumbs 
+      <Breadcrumbs
         breadcrumbs={productData.breadcrumbs}
         currentPage={product.name}
       />
       <div className="product-main">
         <div className="product-gallery">
-          <div 
-            className="main-image" 
-            style={{ backgroundImage: `url(${product.images[selectedImage]?.image || ''})` }}
-          />
-          <div className="thumbnails">
+          <Slider {...mainSliderSettings} className="main-slider">
             {product.images.map((img, index) => (
-              <div 
-                key={index}
-                className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
-                onClick={() => setSelectedImage(index)}
-                style={{ backgroundImage: `url(${img.image})` }}
-              />
+              <div key={index} className="slide">
+                <div className="main-image">
+                  <div
+                    className="blurred-bg"
+                    style={{ backgroundImage: `url(${img.image})` }}
+                  />
+                  <img
+                    src={img.image}
+                    alt={`Product ${index}`}
+                    className="contained-image"
+                  />
+                </div>
+              </div>
             ))}
-          </div>
+          </Slider>
+
+          <Slider {...thumbsSliderSettings} className="thumbs-slider">
+            {product.images.map((img, index) => (
+              <div key={index} className={`thumbnail-slide ${selectedImage === index ? 'active' : ''}`}>
+                <div
+                  className="thumbnail"
+                  style={{ backgroundImage: `url(${img.image})` }}
+                  onClick={() => setSelectedImage(index)}
+                />
+              </div>
+            ))}
+          </Slider>
         </div>
+
         <div className="product-info">
           <h1 className="product-title">{product.name}</h1>
           <div className="product-meta">
@@ -189,12 +226,12 @@ const ProductDetail = () => {
           {currentVariant && (
             <div className="product-price">
               <span className="current">
-                {parseFloat(currentVariant.current_price).toLocaleString('ru-RU')} ₽
+                {parseFloat(currentVariant.current_price).toLocaleString('ru-RU')} ₸
               </span>
               {currentVariant.discount > 0 && (
                 <>
                   <span className="old">
-                    {parseFloat(currentVariant.price).toLocaleString('ru-RU')} ₽
+                    {parseFloat(currentVariant.price).toLocaleString('ru-RU')} ₸
                   </span>
                   <span className="discount">
                     -{currentVariant.discount}%
@@ -204,23 +241,22 @@ const ProductDetail = () => {
             </div>
           )}
           {Object.entries(availableAttributes).map(([attrId, attr]) => (
-          <div key={attrId} className="attribute-selector">
-            <h4>{attr.name}:</h4>
-            <div className="attribute-values">
-              {attr.values.map(value => (
-                <button
-                  key={value}
-                  className={`attribute-value ${
-                    selectedAttributes[attrId] === value ? 'selected' : ''
-                  }`}
-                  onClick={() => handleAttributeSelect(Number(attrId), value)}
-                  disabled={!isAttributeValueAvailable(Number(attrId), value)}
-                >
-                  {value}
-                </button>
-              ))}
+            <div key={attrId} className="attribute-selector">
+              <h4>{attr.name}:</h4>
+              <div className="attribute-values">
+                {attr.values.map(value => (
+                  <button
+                    key={value}
+                    className={`attribute-value ${selectedAttributes[attrId] === value ? 'selected' : ''
+                      }`}
+                    onClick={() => handleAttributeSelect(Number(attrId), value)}
+                    disabled={!isAttributeValueAvailable(Number(attrId), value)}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
           ))}
           <div className="coming-soon-overlay">
             <GlareHover
@@ -240,21 +276,21 @@ const ProductDetail = () => {
               <div className="disabled-content">
                 <div className="product-actions">
                   <div className="quantity-control">
-                    <button 
+                    <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={!currentVariant || currentVariant.stock_quantity <= 0}
                     >
                       −
                     </button>
                     <span>{quantity}</span>
-                    <button 
+                    <button
                       onClick={() => setQuantity(quantity + 1)}
                       disabled={!currentVariant || currentVariant.stock_quantity <= 0}
                     >
                       +
                     </button>
                   </div>
-                  <button 
+                  <button
                     className="add-to-cart"
                     onClick={handleAddToCart}
                     disabled={!currentVariant || currentVariant.stock_quantity <= 0}
@@ -286,13 +322,13 @@ const ProductDetail = () => {
         </div>
       </div>
       <div className="product-tabs">
-        <button 
+        <button
           className={`tab ${activeTab === 'description' ? 'active' : ''}`}
           onClick={() => setActiveTab('description')}
         >
           Описание
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'specs' ? 'active' : ''}`}
           onClick={() => setActiveTab('specs')}
         >

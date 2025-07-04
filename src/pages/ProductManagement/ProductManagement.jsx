@@ -54,6 +54,31 @@ const ProductManagement = () => {
         setTempFilters(initialFilters);
     }, [location.search]);
 
+    const handleDeleteProduct = async (productId) => {
+        try {
+            const confirmDelete = window.confirm('Вы уверены, что хотите удалить этот товар?');
+            if (!confirmDelete) return;
+
+            await axios.delete(`/api/business/${business_slug}/products/${productId}/delete`);
+
+            // Обновляем список товаров после удаления
+            setData(prev => ({
+                ...prev,
+                products: prev.products.filter(product => product.id !== productId),
+                pagination: {
+                    ...prev.pagination,
+                    total_items: prev.pagination.total_items - 1
+                }
+            }));
+
+            // Можно добавить уведомление об успешном удалении
+            alert('Товар успешно удален');
+        } catch (error) {
+            console.error('Ошибка при удалении товара:', error);
+            alert('Не удалось удалить товар');
+        }
+    };
+
     // Fetch products and filters
     const fetchData = useCallback(async () => {
         try {
@@ -219,6 +244,8 @@ const ProductManagement = () => {
         return `http://localhost:8000${imagePath}`;
     };
 
+
+
     // Render product cards view
     const renderCardsView = () => (
         <InfiniteScroll
@@ -248,7 +275,8 @@ const ProductManagement = () => {
                     key={product.id}
                     product={product}
                     businessSlug={business_slug}
-                    onEdit={() => navigate(`/${business_slug}/products/edit/${product.id}`)}
+                    onDelete={handleDeleteProduct}
+                    handleCardClick={() => navigate(`/business/${businessSlug}/products/${product.id}/`)}
                 />
             ))}
         </InfiniteScroll>
@@ -298,7 +326,7 @@ const ProductManagement = () => {
                                 {/* Add product row */}
                                 <tr
                                     className={styles.addProductRow}
-                                    onClick={() => navigate(`/${business_slug}/products/create`)}
+                                    onClick={() => navigate(`/business/${business_slug}/products/create`)}
                                 >
                                     <td colSpan="12">
                                         <i className={`fa fa-plus-circle-fill ${styles.addRowIcon}`}></i>
@@ -376,13 +404,13 @@ const ProductManagement = () => {
                                                 ))}
                                             </div>
                                         </td>
-                                        
+
                                         <td className={styles.actionsCell}>
                                             <button
                                                 className={styles.actionButton}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    navigate(`/${business_slug}/products/edit/${variant.productId}?variant=${variant.id}`);
+                                                    navigate(`/business/${business_slug}/products/${variant.productId}/edit`);
                                                 }}
                                             >
                                                 <i className="fa fa-pencil"></i>
@@ -391,12 +419,13 @@ const ProductManagement = () => {
                                                 className={`${styles.actionButton} ${styles.deleteButton}`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    // Add delete confirmation logic here
+                                                    handleDeleteProduct(variant.productId);
                                                 }}
                                             >
                                                 <i className="fa fa-trash"></i>
                                             </button>
                                         </td>
+
                                     </tr>
                                 ))}
                             </tbody>
@@ -423,6 +452,12 @@ const ProductManagement = () => {
                     Товары
                 </h1>
                 <div className={styles.headerActions}>
+                    <button
+                        className={styles.addProductButton}
+                        onClick={() => navigate(`/business/${business_slug}/products/create`)}
+                    >
+                        Добавить Товар
+                    </button>
                     <button className={styles.exportButton}>
                         <i className="fa fa-download"></i> Экспорт
                     </button>

@@ -7,7 +7,7 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
     const navigate = useNavigate();
 
     const handleCardClick = () => {
-        navigate(`/business/${businessSlug}/products/${product.id}/edit`);
+        navigate(`/business/${businessSlug}/products/${product.id}/`);
     };
     
     const handleButtonClick = (e, action) => {
@@ -28,7 +28,7 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
     const hasDiscount = variant && parseFloat(variant.discount) > 0;
     const currentPrice = variant?.current_price || product.min_price;
     const priceRange = product.min_price !== product.max_price 
-        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₽`
+        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₸`
         : null;
 
     return (
@@ -67,7 +67,7 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
             <div className={`product-list-info ${styles.infoContainer}`}>
                 <div className={`price-section ${styles.priceSection}`}>
                     <div className={`current-price ${styles.currentPrice}`}>
-                        {parseFloat(currentPrice).toLocaleString('ru-RU')} ₽
+                        {parseFloat(currentPrice).toLocaleString('ru-RU')} ₸
                     </div>
                     {priceRange && (
                         <div className={`price-range ${styles.priceRange}`}>
