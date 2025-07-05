@@ -158,6 +158,26 @@ const ProductEditPage = () => {
             }));
 
             setCategoryAttributes(formattedAttributes);
+
+            // Дополнительно: обновляем variants, добавляя недостающие атрибуты
+            setVariants(prevVariants =>
+                prevVariants.map(variant => {
+                    const updatedAttributes = { ...variant.attributes };
+
+                    formattedAttributes.forEach(attr => {
+                        if (updatedAttributes[attr.id] === undefined) {
+                            // Если значение не задано — добавляем пустое
+                            updatedAttributes[attr.id] = '';
+                        }
+                    });
+
+                    return {
+                        ...variant,
+                        attributes: updatedAttributes
+                    };
+                })
+            );
+
         } catch (err) {
             setAttributesError(err.message);
             console.error('Ошибка при загрузке атрибутов категории:', err);

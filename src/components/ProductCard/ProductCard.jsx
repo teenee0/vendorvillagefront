@@ -6,7 +6,7 @@ const ProductCard = ({ product }) => {
     const navigate = useNavigate();
 
     const goToProductPage = () => navigate(`/marketplace/products/${product.id}`);
-
+    
     const handleAddToFavorites = (e) => {
         e.stopPropagation();
         console.log('Add to favorites', product.id);
@@ -19,7 +19,7 @@ const ProductCard = ({ product }) => {
 
     const getImageUrl = (imagePath) => {
         if (!imagePath) return '';
-
+        
         if (/^https?:\/\//i.test(imagePath)) {
             return imagePath;
         }
@@ -34,12 +34,12 @@ const ProductCard = ({ product }) => {
 
     const variant = product.default_variant;
     const mainImage = product.main_image;
-
+    
     const hasDiscount = variant && parseFloat(variant.discount) > 0;
     const currentPrice = variant?.current_price || product.min_price;
     const originalPrice = parseFloat(variant?.price || product.min_price);
-    const priceRange = product.min_price !== product.max_price
-        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₸`
+    const priceRange = product.min_price !== product.max_price 
+        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₽`
         : null;
 
     return (
@@ -78,21 +78,22 @@ const ProductCard = ({ product }) => {
             </div>
             <div className="product-list-info">
                 <div className="price-section">
-                    {priceRange ? (
-                        <div className="current-price">{priceRange}</div>
-                    ) : (
-                        <div className="current-price">
-                            {parseFloat(currentPrice).toLocaleString('ru-RU')} ₸
+                    <div className="current-price">
+                        {parseFloat(currentPrice).toLocaleString('ru-RU')} ₽
+                    </div>
+                    {priceRange && (
+                        <div className="price-range">
+                            {priceRange}
                         </div>
                     )}
                 </div>
-
+                
                 <h3 className="product-name">{product.name}</h3>
-
+                
                 <div className="business-name">
                     {product.business_name}
                 </div>
-
+                
                 <button
                     className="add-to-cart-button"
                     onClick={handleAddToCart}

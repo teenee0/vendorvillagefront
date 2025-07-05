@@ -542,7 +542,7 @@ const ProductManagement = () => {
                     </button>
                 </aside>
 
-                <main className={styles.mainContent}>
+                <main className={viewMode === 'cards' ? styles.mainContentFlex : styles.mainContentGrid}>
                     {/* Search and sort */}
                     <div className={styles.productsHeader}>
                         <div className={styles.searchContainer}>
@@ -554,6 +554,17 @@ const ProductManagement = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && applyFilters()}
                             />
+                            {searchQuery && (
+                                <button
+                                    className={styles.clearButton}
+                                    onClick={() => {
+                                        setSearchQuery('');
+                                        resetFilters();
+                                    }}
+                                >
+                                    <i className="fa fa-times"></i>
+                                </button>
+                            )}
                             <button
                                 className={styles.searchButton}
                                 onClick={applyFilters}
