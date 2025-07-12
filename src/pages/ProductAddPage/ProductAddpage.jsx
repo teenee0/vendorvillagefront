@@ -17,7 +17,8 @@ const ProductAddPage = () => {
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [isActive, setIsActive] = useState(true);
-  const [showOnMain, setShowOnMain] = useState(false);
+  const [isVisibleOnMarketplace, setIsVisibleOnMarketplace] = useState(true);
+  const [isVisibleOnOwnSite, setIsVisibleOnOwnSite] = useState(true);
 
   // Категории и атрибуты
   const [categoryAttributes, setCategoryAttributes] = useState([]);
@@ -106,7 +107,6 @@ const ProductAddPage = () => {
   const handleAddVariant = () => {
     const newVariant = {
       id: variantCounter,
-      sku: `PROD-${variantCounter}`,
       price: '',
       discount: '0',
       quantity: '0', // Это должно быть перенесено в stocks
@@ -189,7 +189,6 @@ const ProductAddPage = () => {
 
     const newVariant = {
       id: variantCounter,
-      sku: `${lastVariant.sku}-COPY-${variantCounter}`,
       price: lastVariant.price,
       discount: lastVariant.discount,
       description: lastVariant.description,
@@ -368,9 +367,6 @@ const ProductAddPage = () => {
     }
 
     for (let [index, variant] of variants.entries()) {
-      if (!variant.sku.trim()) {
-        return { valid: false, message: `Вариант ${index + 1}: заполните артикул (SKU).` };
-      }
       if (!variant.price) {
         return { valid: false, message: `Вариант ${index + 1}: укажите цену.` };
       }
@@ -401,51 +397,48 @@ const ProductAddPage = () => {
   const prepareProductData = () => {
     const formData = new FormData();
 
-    formData.append('name', productName);
-    formData.append('description', productDescription);
-    formData.append('category', String(categoryId));
-    formData.append('is_active', isActive ? 'true' : 'false');
-    formData.append('on_the_main', showOnMain ? 'true' : 'false');
+    // Сначала собираем JSON-часть
+    const jsonPayload = {
+      name: productName,
+      description: productDescription,
+      category: categoryId,
+      is_active: isActive,
+      is_visible_on_marketplace: isVisibleOnMarketplace,
+      is_visible_on_own_site: isVisibleOnOwnSite,
+      variants: variants.map(variant => ({
+        price: variant.price,
+        discount: variant.discount,
+        show_this: variant.showThis,
+        description: variant.description,
+        attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
+          const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
+          return {
+            category_attribute: Number(attrId),
+            predefined_value: attribute?.has_predefined_values ? Number(value) : null,
+            custom_value: attribute?.has_predefined_values ? '' : String(value)
+          };
+        }),
+        stocks: (variant.stocks || []).map(stock => ({
+          location: Number(stock.location_id),
+          quantity: Number(stock.quantity),
+          reserved_quantity: Number(stock.reserved_quantity || 0),
+          is_available_for_sale: !!stock.is_available_for_sale
+        }))
+      }))
+    };
 
+    formData.append("data", JSON.stringify(jsonPayload));  // <-- 👈 тут упаковываем всё в одно поле
+
+    // Теперь добавляем изображения
     images.forEach((image, index) => {
       formData.append(`images[${index}][image]`, image.file);
       formData.append(`images[${index}][is_main]`, image.isMain ? 'true' : 'false');
       formData.append(`images[${index}][display_order]`, String(index));
     });
 
-    variants.forEach((variant, vIndex) => {
-      formData.append(`variants[${vIndex}][sku]`, variant.sku || '');
-      formData.append(`variants[${vIndex}][price]`, String(variant.price));
-      formData.append(`variants[${vIndex}][discount]`, String(variant.discount || 0));
-      formData.append(`variants[${vIndex}][show_this]`, variant.showThis ? 'true' : 'false');
-      formData.append(`variants[${vIndex}][description]`, variant.description || '');
-
-      Object.entries(variant.attributes || {}).forEach(([attrId, value], aIndex) => {
-        const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
-        const isPredefined = attribute?.has_predefined_values;
-
-        formData.append(`variants[${vIndex}][attributes][${aIndex}][category_attribute]`, String(attrId));
-        if (isPredefined) {
-          formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, String(value));
-          formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, '');
-        } else {
-          formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, '');
-          formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, String(value));
-        }
-      });
-
-      (variant.stocks || []).forEach((stock, sIndex) => {
-        formData.append(`variants[${vIndex}][stocks][${sIndex}][location_id]`, String(stock.location_id));
-        formData.append(`variants[${vIndex}][stocks][${sIndex}][quantity]`, String(stock.quantity));
-        formData.append(`variants[${vIndex}][stocks][${sIndex}][reserved_quantity]`, String(stock.reserved_quantity || 0));
-        formData.append(`variants[${vIndex}][stocks][${sIndex}][is_available_for_sale]`,
-          stock.is_available_for_sale !== undefined ? (stock.is_available_for_sale ? 'true' : 'false') : 'true'
-        );
-      });
-    });
-
     return formData;
   };
+
 
 
 
@@ -627,13 +620,25 @@ const ProductAddPage = () => {
                   <div className={styles.checkboxGroup}>
                     <input
                       type="checkbox"
-                      id="on-main-page"
+                      id="visible-on-marketplace"
                       className={styles.formCheckbox}
-                      checked={showOnMain}
-                      onChange={(e) => setShowOnMain(e.target.checked)}
+                      checked={isVisibleOnMarketplace}
+                      onChange={(e) => setIsVisibleOnMarketplace(e.target.checked)}
                     />
-                    <label htmlFor="on-main-page" className={styles.checkboxLabel}>
-                      Показывать на главной странице
+                    <label htmlFor="visible-on-marketplace" className={styles.checkboxLabel}>
+                      Виден на маркетплейсе
+                    </label>
+                  </div>
+                  <div className={styles.checkboxGroup}>
+                    <input
+                      type="checkbox"
+                      id="visible-on-own-site"
+                      className={styles.formCheckbox}
+                      checked={isVisibleOnOwnSite}
+                      onChange={(e) => setIsVisibleOnOwnSite(e.target.checked)}
+                    />
+                    <label htmlFor="visible-on-own-site" className={styles.checkboxLabel}>
+                      Виден на собственном сайте
                     </label>
                   </div>
                   <div className={styles.checkboxGroup}>
@@ -684,7 +689,6 @@ const ProductAddPage = () => {
                                     {attr.required && <span className={styles.requiredStar}>*</span>}
                                   </th>
                                 ))}
-                                <th>Артикул*</th>
                                 <th>Цена*</th>
                                 <th>Скидка %</th>
                                 <th>Цена со скидкой</th>
@@ -761,20 +765,6 @@ const ProductAddPage = () => {
                                         )}
                                       </td>
                                     ))}
-
-                                    <td>
-                                      <input
-                                        type="text"
-                                        className={styles.formControltd}
-                                        value={variant.sku}
-                                        onChange={(e) => handleVariantChange(
-                                          variant.id,
-                                          'sku',
-                                          e.target.value
-                                        )}
-                                        required
-                                      />
-                                    </td>
                                     <td>
                                       <input
                                         type="number"

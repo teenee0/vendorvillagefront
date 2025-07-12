@@ -10,6 +10,12 @@ const ProductPage = () => {
     const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [defectQuantity, setDefectQuantity] = useState('');
+    const [defectReason, setDefectReason] = useState('');
+    const [reserveQuantity, setReserveQuantity] = useState('');
+    const [activeTab, setActiveTab] = useState('defects'); // 'defects' or 'reserves'
+    const [reserveRemoveQuantity, setReserveRemoveQuantity] = useState('');
+    const [showAllDefects, setShowAllDefects] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -25,6 +31,77 @@ const ProductPage = () => {
 
         fetchProduct();
     }, [business_slug, product_id]);
+
+    const refreshProductData = async () => {
+        try {
+            const response = await axios.get(`/api/business/${business_slug}/products/${product_id}/info`);
+            setProduct(response.data);
+        } catch (err) {
+            setError('Ошибка обновления данных товара');
+        }
+    };
+
+    const handleAddDefect = async (stockId) => {
+        if (!defectQuantity || !defectReason) return;
+
+        try {
+            await axios.post(
+                `/api/business/${business_slug}/stocks/${stockId}/defects/create/`,
+                { quantity: parseInt(defectQuantity), reason: defectReason }
+            );
+            await refreshProductData();
+            setDefectQuantity('');
+            setDefectReason('');
+        } catch (err) {
+            setError('Ошибка при добавлении брака');
+        }
+    };
+
+    const handleRemoveDefect = async (defectId, stockId) => {
+        try {
+            await axios.post(
+                `/api/business/${business_slug}/stocks/${defectId}/defects/remove/`,
+                { defect_id: defectId }
+            );
+            await refreshProductData();
+        } catch (err) {
+            setError('Ошибка при удалении брака');
+        }
+    };
+
+    const handleAddReserve = async (stockId) => {
+        if (!reserveQuantity) return;
+
+        try {
+            await axios.post(
+                `/api/business/${business_slug}/stocks/${stockId}/reserve/`,
+                { quantity: parseInt(reserveQuantity) }
+            );
+            await refreshProductData();
+            setReserveQuantity('');
+        } catch (err) {
+            setError('Ошибка при резервировании товара');
+        }
+    };
+
+    const handleRemoveReserve = async (stockId) => {
+        if (!reserveRemoveQuantity || reserveRemoveQuantity <= 0) {
+            setError('Введите корректное количество');
+            return;
+        }
+
+        try {
+            await axios.post(
+                `/api/business/${business_slug}/stocks/${stockId}/reserve/remove/`,
+                { quantity: parseInt(reserveRemoveQuantity) }
+            );
+            await refreshProductData();
+            setReserveRemoveQuantity('');
+            setError(null);
+        } catch (err) {
+            setError('Ошибка при снятии резерва: ' + (err.response?.data?.detail || err.message));
+        }
+    };
 
     const printSingleBarcode = (variant, productName) => {
         const barcodeUrl = variant.barcode_image.startsWith('/')
@@ -159,6 +236,7 @@ const ProductPage = () => {
 
     const selectedVariant = product.variants[selectedVariantIndex];
     const mainImage = product.images.find(img => img.is_main) || product.images[0];
+    const stock = selectedVariant.stocks[0];
 
     return (
         <div className={styles.pageWrapper}>
@@ -251,8 +329,10 @@ const ProductPage = () => {
                                     <span>{selectedVariant.stocks[0].location.name}</span>
                                 </div>
                                 <div className={styles.stockItem}>
+                                    <span className={styles.stockLabel}>Всего:</span>
+                                    <span>{selectedVariant.stocks[0].available_quantity} шт.</span>
                                     <span className={styles.stockLabel}>Остаток:</span>
-                                    <span>{selectedVariant.stocks[0].quantity} шт.</span>
+                                    <span>{selectedVariant.stocks[0].available_quantity} шт.</span>
                                 </div>
                             </div>
 
@@ -279,6 +359,236 @@ const ProductPage = () => {
                         </div>
                     </div>
                 </div>
+
+                <div className={styles.stockManagementSection}>
+                    <h2 className={styles.sectionTitle}>Управление складом</h2>
+
+                    <div className={styles.tabs}>
+                        <button
+                            className={`${styles.tabButton} ${activeTab === 'defects' ? styles.activeTab : ''}`}
+                            onClick={() => setActiveTab('defects')}
+                        >
+                            Браки
+                        </button>
+                        <button
+                            className={`${styles.tabButton} ${activeTab === 'reserves' ? styles.activeTab : ''}`}
+                            onClick={() => setActiveTab('reserves')}
+                        >
+                            Резервы
+                        </button>
+                    </div>
+
+                    {/* Секция информации о складе */}
+                    <div className={styles.stockSummary}>
+                        <h3>Информация о складе</h3>
+                        <div className={styles.stockStats}>
+                            <div className={styles.stockStat}>
+                                <span className={styles.statLabel}>Всего на складе:</span>
+                                <span className={styles.statValue}>{stock.quantity} шт.</span>
+                            </div>
+                            <div className={styles.stockStat}>
+                                <span className={styles.statLabel}>Доступно для продажи:</span>
+                                <span className={styles.statValue}>{stock.available_quantity} шт.</span>
+                            </div>
+                            <div className={styles.stockStat}>
+                                <span className={styles.statLabel}>Зарезервировано:</span>
+                                <span className={styles.statValue}>{stock.reserved_quantity} шт.</span>
+                            </div>
+                            <div className={styles.stockStat}>
+                                <span className={styles.statLabel}>Браковано:</span>
+                                <span className={styles.statValue}>{stock.defect_quantity} шт.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {activeTab === 'defects' && (
+                        <div className={styles.defectsSection}>
+                            <h3>Добавить брак</h3>
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}>
+                                    <label>Количество:</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={stock.quantity}
+                                        value={defectQuantity}
+                                        onChange={(e) => setDefectQuantity(e.target.value)}
+                                        className={styles.input}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Причина:</label>
+                                    <input
+                                        type="text"
+                                        value={defectReason}
+                                        onChange={(e) => setDefectReason(e.target.value)}
+                                        className={styles.input}
+                                        placeholder="Опишите причину брака"
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleAddDefect(stock.id)}
+                                className={styles.actionButton}
+                                disabled={!defectQuantity || !defectReason}
+                            >
+                                Добавить брак
+                            </button>
+
+                            <h3>Список браков</h3>
+                            {stock.defects.length > 0 ? (
+                                <div className={styles.defectsList}>
+                                    {stock.defects.slice(0, 3).map(defect => (
+                                        <div key={defect.id} className={styles.defectItem}>
+                                            <div className={styles.defectHeader}>
+                                                <span className={styles.defectQuantity}>{defect.quantity} шт.</span>
+                                                <span className={styles.defectDate}>
+                                                    {new Date(defect.created_at).toLocaleDateString()}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleRemoveDefect(defect.id, stock.id)}
+                                                    className={styles.removeButton}
+                                                >
+                                                    Удалить
+                                                </button>
+                                            </div>
+                                            <div className={styles.defectReason}>
+                                                {defect.reason.length > 50 ? (
+                                                    <>
+                                                        {defect.reason.substring(0, 50)}...
+                                                        <button
+                                                            className={styles.showMoreButton}
+                                                            onClick={(e) => {
+                                                                e.target.previousSibling.textContent = defect.reason;
+                                                                e.target.style.display = 'none';
+                                                            }}
+                                                        >
+                                                            Показать полностью
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    defect.reason
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {stock.defects.length > 3 && !showAllDefects && (
+                                        <div className={styles.showMoreWrapper}>
+                                            <button
+                                                className={styles.showMoreButton}
+                                                onClick={() => setShowAllDefects(true)}
+                                            >
+                                                Показать все браки ({stock.defects.length - 3} скрыто)
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {showAllDefects &&
+                                        stock.defects.slice(3).map(defect => (
+                                            <div key={defect.id} className={styles.defectItem}>
+                                                <div className={styles.defectHeader}>
+                                                    <span className={styles.defectQuantity}>{defect.quantity} шт.</span>
+                                                    <span className={styles.defectDate}>
+                                                        {new Date(defect.created_at).toLocaleDateString()}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleRemoveDefect(defect.id, stock.id)}
+                                                        className={styles.removeButton}
+                                                    >
+                                                        Удалить
+                                                    </button>
+                                                </div>
+                                                <div className={styles.defectReason}>
+                                                    {defect.reason.length > 50 ? (
+                                                        <>
+                                                            {defect.reason.substring(0, 50)}...
+                                                            <button
+                                                                className={styles.showMoreButton}
+                                                                onClick={(e) => {
+                                                                    e.target.previousSibling.textContent = defect.reason;
+                                                                    e.target.style.display = 'none';
+                                                                }}
+                                                            >
+                                                                Показать полностью
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        defect.reason
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            ) : (
+                                <p className={styles.noItems}>Браков нет</p>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'reserves' && (
+                        <div className={styles.reservesSection}>
+                            <h3>Резервирование товара</h3>
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}>
+                                    <label>Количество для резерва:</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={stock.available_quantity}
+                                        value={reserveQuantity}
+                                        onChange={(e) => setReserveQuantity(e.target.value)}
+                                        className={styles.input}
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleAddReserve(stock.id)}
+                                className={styles.actionButton}
+                                disabled={!reserveQuantity}
+                            >
+                                Зарезервировать
+                            </button>
+
+                            {stock.reserved_quantity > 0 && (
+                                <div className={styles.currentReserve}>
+                                    <h3>Текущий резерв</h3>
+                                    <div className={styles.reserveStats}>
+                                        <div className={styles.reserveStat}>
+                                            <span className={styles.statLabel}>Всего зарезервировано:</span>
+                                            <span className={styles.statValue}>{stock.reserved_quantity} шт.</span>
+                                        </div>
+                                        <div className={styles.reserveStat}>
+                                            <span className={styles.statLabel}>Доступно для резерва:</span>
+                                            <span className={styles.statValue}>{stock.available_quantity} шт.</span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.formRow}>
+                                        <div className={styles.formGroup}>
+                                            <label>Количество для снятия:</label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max={stock.reserved_quantity}
+                                                value={reserveRemoveQuantity}
+                                                onChange={(e) => setReserveRemoveQuantity(e.target.value)}
+                                                className={styles.input}
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleRemoveReserve(stock.id)}
+                                        className={styles.removeButton}
+                                        disabled={!reserveRemoveQuantity || reserveRemoveQuantity > stock.reserved_quantity}
+                                    >
+                                        Снять с резерва
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
 
                 <div className={styles.analyticsSection}>
                     <h2 className={styles.analyticsTitle}>Аналитика продаж</h2>

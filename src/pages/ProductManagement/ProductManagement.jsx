@@ -79,6 +79,36 @@ const ProductManagement = () => {
         }
     };
 
+    const handleToggleStatus = async (productId, currentStatus) => {
+        try {
+            const newStatus = !currentStatus;
+            const confirmMessage = newStatus
+                ? 'Вы уверены, что хотите активировать этот товар?'
+                : 'Вы уверены, что хотите деактивировать этот товар?';
+
+            if (!window.confirm(confirmMessage)) return;
+
+            await axios.patch(`/api/business/${business_slug}/products/${productId}/toggle-status/`, {
+                is_active: newStatus
+            });
+
+            // Обновляем статус товара в состоянии
+            setData(prev => ({
+                ...prev,
+                products: prev.products.map(product =>
+                    product.id === productId
+                        ? { ...product, is_active: newStatus }
+                        : product
+                )
+            }));
+
+            alert(`Товар успешно ${newStatus ? 'активирован' : 'деактивирован'}`);
+        } catch (error) {
+            console.error('Ошибка при изменении статуса товара:', error);
+            alert('Не удалось изменить статус товара');
+        }
+    };
+
     // Fetch products and filters
     const fetchData = useCallback(async () => {
         try {
@@ -276,6 +306,7 @@ const ProductManagement = () => {
                     product={product}
                     businessSlug={business_slug}
                     onDelete={handleDeleteProduct}
+                    onToggleStatus={handleToggleStatus}
                     handleCardClick={() => navigate(`/business/${businessSlug}/products/${product.id}/`)}
                 />
             ))}

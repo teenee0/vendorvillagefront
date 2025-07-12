@@ -17,7 +17,8 @@ const ProductEditPage = () => {
     const [productDescription, setProductDescription] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [isActive, setIsActive] = useState(true);
-    const [showOnMain, setShowOnMain] = useState(false);
+    const [isVisibleOnMarketplace, setIsVisibleOnMarketplace] = useState(false);
+    const [isVisibleOnOwnSite, setIsVisibleOnOwnSite] = useState(false);
 
     // Категории и атрибуты
     const [categoryAttributes, setCategoryAttributes] = useState([]);
@@ -70,7 +71,8 @@ const ProductEditPage = () => {
                     setProductDescription(productData.description);
                     setCategoryId(productData.category);
                     setIsActive(productData.is_active);
-                    setShowOnMain(productData.on_the_main);
+                    setIsVisibleOnMarketplace(productData.is_visible_on_marketplace);
+                    setIsVisibleOnOwnSite(productData.is_visible_on_own_site);
                     setCategoryName(productData.category_name); // Добавьте эту строку
 
                     // Загрузка изображений
@@ -101,7 +103,6 @@ const ProductEditPage = () => {
                             return {
                                 id: index + 1,
                                 existing_id: variant.id,
-                                sku: variant.sku,
                                 price: variant.price,
                                 discount: variant.discount,
                                 description: variant.description || '',
@@ -202,7 +203,6 @@ const ProductEditPage = () => {
     const handleAddVariant = () => {
         const newVariant = {
             id: variantCounter,
-            sku: `PROD-${variantCounter}`,
             price: '',
             discount: '0',
             quantity: '0', // Это должно быть перенесено в stocks
@@ -285,7 +285,6 @@ const ProductEditPage = () => {
 
         const newVariant = {
             id: variantCounter,
-            sku: `${lastVariant.sku}-COPY-${variantCounter}`,
             price: lastVariant.price,
             discount: lastVariant.discount,
             description: lastVariant.description,
@@ -464,9 +463,6 @@ const ProductEditPage = () => {
         }
 
         for (let [index, variant] of variants.entries()) {
-            if (!variant.sku.trim()) {
-                return { valid: false, message: `Вариант ${index + 1}: заполните артикул (SKU).` };
-            }
             if (!variant.price) {
                 return { valid: false, message: `Вариант ${index + 1}: укажите цену.` };
             }
@@ -497,84 +493,64 @@ const ProductEditPage = () => {
     const prepareProductData = () => {
         const formData = new FormData();
 
-        // Основная информация
-        formData.append('name', productName);
-        formData.append('description', productDescription);
-        formData.append('category', String(categoryId));
-        formData.append('is_active', isActive ? 'true' : 'false');
-        formData.append('on_the_main', showOnMain ? 'true' : 'false');
+        const jsonData = {
+            name: productName,
+            description: productDescription,
+            category: categoryId,
+            is_active: isActive,
+            is_visible_on_marketplace: isVisibleOnMarketplace,
+            is_visible_on_own_site: isVisibleOnOwnSite,
+            images_to_delete: imagesToDelete,
+            variants: variants.map(variant => ({
+                id: variant.existing_id,
+                price: variant.price,
+                discount: variant.discount || 0,
+                show_this: variant.showThis,
+                description: variant.description || '',
+                attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
+                    const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
+                    const isPredefined = attribute?.has_predefined_values;
+                    return {
+                        id: variant.attributesWithIds?.[attrId]?.id,
+                        category_attribute: attrId,
+                        predefined_value: isPredefined ? value : '',
+                        custom_value: isPredefined ? '' : value
+                    };
+                }),
+                stocks: (variant.stocks || []).map(stock => ({
+                    id: stock.id,
+                    location_id: stock.location_id,
+                    quantity: stock.quantity,
+                    reserved_quantity: stock.reserved_quantity || 0,
+                    is_available_for_sale: stock.is_available_for_sale !== undefined
+                        ? stock.is_available_for_sale : true
+                }))
+            }))
+        };
 
-        // Изображения для удаления
-        imagesToDelete.forEach((imageId, index) => {
-            formData.append(`images_to_delete[${index}]`, String(imageId));
+        formData.append("data", JSON.stringify(jsonData));
+
+        // Новые изображения
+        images.forEach((image, index) => {
+            if (!image.isExisting && image.file) {
+                formData.append(`images[${index}][image]`, image.file);
+                formData.append(`images[${index}][is_main]`, image.isMain ? "true" : "false");
+                formData.append(`images[${index}][display_order]`, String(index));
+            }
         });
 
-        // Работа с изображениями
+        // Существующие изображения — тоже передаём
         images.forEach((image, index) => {
-            if (!image.isExisting) {
-                formData.append(`images[${index}][image]`, image.file);
-                formData.append(`images[${index}][is_main]`, image.isMain ? 'true' : 'false');
-                formData.append(`images[${index}][display_order]`, String(index));
-            } else {
+            if (image.isExisting) {
                 formData.append(`existing_images[${index}][id]`, String(image.id));
-                formData.append(`existing_images[${index}][is_main]`, image.isMain ? 'true' : 'false');
+                formData.append(`existing_images[${index}][is_main]`, image.isMain ? "true" : "false");
                 formData.append(`existing_images[${index}][display_order]`, String(index));
             }
         });
 
-        // Работа с вариантами
-        variants.forEach((variant, vIndex) => {
-            // ID варианта, если он существует
-            if (variant.existing_id) {
-                formData.append(`variants[${vIndex}][id]`, String(variant.existing_id));
-            }
-
-            // Основные данные варианта
-            formData.append(`variants[${vIndex}][sku]`, variant.sku || '');
-            formData.append(`variants[${vIndex}][price]`, String(variant.price));
-            formData.append(`variants[${vIndex}][discount]`, String(variant.discount || 0));
-            formData.append(`variants[${vIndex}][show_this]`, variant.showThis ? 'true' : 'false');
-            formData.append(`variants[${vIndex}][description]`, variant.description || '');
-
-            // Атрибуты варианта
-            Object.entries(variant.attributes || {}).forEach(([attrId, value], aIndex) => {
-                const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
-                const isPredefined = attribute?.has_predefined_values;
-
-                // Добавляем ID атрибута варианта, если он есть
-                const variantAttrId = variant.attributesWithIds?.[attrId]?.id;
-                if (variantAttrId) {
-                    formData.append(`variants[${vIndex}][attributes][${aIndex}][id]`, String(variantAttrId));
-                }
-
-                formData.append(`variants[${vIndex}][attributes][${aIndex}][category_attribute]`, String(attrId));
-                if (isPredefined) {
-                    formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, String(value));
-                    formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, '');
-                } else {
-                    formData.append(`variants[${vIndex}][attributes][${aIndex}][predefined_value]`, '');
-                    formData.append(`variants[${vIndex}][attributes][${aIndex}][custom_value]`, String(value));
-                }
-            });
-
-            // Склады варианта
-            (variant.stocks || []).forEach((stock, sIndex) => {
-                // Добавляем ID склада, если он есть
-                if (stock.id) {
-                    formData.append(`variants[${vIndex}][stocks][${sIndex}][id]`, String(stock.id));
-                }
-
-                formData.append(`variants[${vIndex}][stocks][${sIndex}][location_id]`, String(stock.location_id));
-                formData.append(`variants[${vIndex}][stocks][${sIndex}][quantity]`, String(stock.quantity));
-                formData.append(`variants[${vIndex}][stocks][${sIndex}][reserved_quantity]`, String(stock.reserved_quantity || 0));
-                formData.append(`variants[${vIndex}][stocks][${sIndex}][is_available_for_sale]`,
-                    stock.is_available_for_sale !== undefined ? (stock.is_available_for_sale ? 'true' : 'false') : 'true'
-                );
-            });
-        });
-
         return formData;
     };
+
 
 
 
@@ -747,13 +723,25 @@ const ProductEditPage = () => {
                                     <div className={styles.checkboxGroup}>
                                         <input
                                             type="checkbox"
-                                            id="on-main-page"
+                                            id="visible-on-marketplace"
                                             className={styles.formCheckbox}
-                                            checked={showOnMain}
-                                            onChange={(e) => setShowOnMain(e.target.checked)}
+                                            checked={isVisibleOnMarketplace}
+                                            onChange={(e) => setIsVisibleOnMarketplace(e.target.checked)}
                                         />
-                                        <label htmlFor="on-main-page" className={styles.checkboxLabel}>
-                                            Показывать на главной странице
+                                        <label htmlFor="visible-on-marketplace" className={styles.checkboxLabel}>
+                                            Виден на маркетплейсе
+                                        </label>
+                                    </div>
+                                    <div className={styles.checkboxGroup}>
+                                        <input
+                                            type="checkbox"
+                                            id="visible-on-own-site"
+                                            className={styles.formCheckbox}
+                                            checked={isVisibleOnOwnSite}
+                                            onChange={(e) => setIsVisibleOnOwnSite(e.target.checked)}
+                                        />
+                                        <label htmlFor="visible-on-own-site" className={styles.checkboxLabel}>
+                                            Виден на собственном сайте
                                         </label>
                                     </div>
                                     <div className={styles.checkboxGroup}>
@@ -804,7 +792,6 @@ const ProductEditPage = () => {
                                                                         {attr.required && <span className={styles.requiredStar}>*</span>}
                                                                     </th>
                                                                 ))}
-                                                                <th>Артикул*</th>
                                                                 <th>Цена*</th>
                                                                 <th>Скидка %</th>
                                                                 <th>Цена со скидкой</th>
@@ -882,19 +869,7 @@ const ProductEditPage = () => {
                                                                             </td>
                                                                         ))}
 
-                                                                        <td>
-                                                                            <input
-                                                                                type="text"
-                                                                                className={styles.formControltd}
-                                                                                value={variant.sku}
-                                                                                onChange={(e) => handleVariantChange(
-                                                                                    variant.id,
-                                                                                    'sku',
-                                                                                    e.target.value
-                                                                                )}
-                                                                                required
-                                                                            />
-                                                                        </td>
+
                                                                         <td>
                                                                             <input
                                                                                 type="number"

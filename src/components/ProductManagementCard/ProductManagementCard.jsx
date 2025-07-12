@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ProductManagementCard.module.css';
+import { getImageUrl } from '../../utils/getImageUrl';
 // import '../ProductCard/ProductCard.css';
 
 const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete }) => {
@@ -13,14 +14,6 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
     const handleButtonClick = (e, action) => {
         e.stopPropagation();
         action();
-    };
-
-    const getImageUrl = (imagePath) => {
-        if (!imagePath) return '';
-        if (/^https?:\/\//i.test(imagePath)) return imagePath;
-        if (imagePath.startsWith('/media/')) return `http://localhost:8000${imagePath}`;
-        if (!imagePath.startsWith('/')) return `http://localhost:8000/media/${imagePath}`;
-        return `http://localhost:8000${imagePath}`;
     };
 
     const variant = product.default_variant;

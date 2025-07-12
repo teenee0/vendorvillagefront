@@ -16,6 +16,7 @@ export const BusinessFooter = () => {
   const items = [
     { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
     { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
+    { icon: <div>💳</div>, label: 'Продажа', onClick: () => handleNavigate('/sale-products') },
   ];
 
   return (
