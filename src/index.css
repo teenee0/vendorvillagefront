@@ -47,6 +47,22 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --background-main: #111216;
+  --background-card: #1a1b1f;
+  --background-hover: #24252b;
+  --border-light: #333641;
+
+  --text-main: #e4e4e4;
+  --text-muted: #999;
+  --text-danger: #ff6b6b;
+  --text-success: #6fffc2;
+
+  --accent-gold: #d4af37;
+  --accent-green: #2daf9f;
+  --accent-blue: #3a5da8;
+  --accent-red: #a83a3a;
+
 }
 
 /* Общие стили */
