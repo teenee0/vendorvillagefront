@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import {
@@ -27,8 +27,6 @@ const SalesPage = () => {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [showScanner, setShowScanner] = useState(false);
-    const [scannedBarcode, setScannedBarcode] = useState('');
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [customerName, setCustomerName] = useState('');
@@ -47,7 +45,10 @@ const SalesPage = () => {
     const [itemDiscountType, setItemDiscountType] = useState('percent');
     const [itemDiscountValue, setItemDiscountValue] = useState(0);
     const [saleCompleted, setSaleCompleted] = useState(false);
+    const [salePosting, setSalePosting] = useState(false);
     const [receiptData, setReceiptData] = useState(null);
+    const [scannerActive, setScannerActive] = useState(false); // подсветка режима
+    const searchInputRef = useRef(null); // ссылка на поле ввода
 
     // Fetch products from API
     const fetchProducts = useCallback(async () => {
@@ -60,11 +61,20 @@ const SalesPage = () => {
             const response = await axios.get(`/api/business/${business_slug}/sales-products/`, { params });
             setProducts(response.data.products);
             setLoading(false);
+            if (scannerActive) setSearchQuery('');
         } catch (err) {
             setError(err.message);
             setLoading(false);
         }
     }, [business_slug, searchQuery, selectedCategory]);
+
+    const handleSearch = async () => {
+        await fetchProducts();
+        if (scannerActive && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+        setSearchQuery('');
+    };
 
     // Fetch categories
     const fetchCategories = useCallback(async () => {
@@ -93,7 +103,15 @@ const SalesPage = () => {
         fetchProducts();
         fetchCategories();
         fetchPaymentMethods();
-    }, [fetchProducts, fetchCategories, fetchPaymentMethods]);
+    }, []);
+
+
+    const handleActivateScanner = () => {
+        setScannerActive(true);
+        setTimeout(() => {
+            searchInputRef.current && searchInputRef.current.focus();
+        }, 100);
+    };
 
     // Add to cart function
     const addToCart = (product, variant) => {
@@ -212,33 +230,10 @@ const SalesPage = () => {
         return subtotal - calculateTotal();
     };
 
-    // Handle barcode search
-    const handleBarcodeSearch = async (barcode) => {
-        try {
-            const response = await axios.get(`/api/business/${business_slug}/sales-products/?barcode=${barcode}`);
-            if (response.data.products.length > 0) {
-                const product = response.data.products[0];
-                const variant = product.variants.find(v =>
-                    v.barcode === barcode || v.sku === barcode
-                );
-
-                if (variant) {
-                    addToCart(product, variant);
-                    setSelectedProduct(product);
-                    setSelectedVariant(variant);
-                    setShowScanner(false);
-                }
-            } else {
-                alert('Товар с таким штрих-кодом не найден');
-            }
-        } catch (err) {
-            console.error('Barcode search error:', err);
-            alert('Ошибка при поиске по штрих-коду');
-        }
-    };
-
     // Complete sale
     const completeSale = async () => {
+        if (salePosting) return;        // уже жмут второй раз
+        setSalePosting(true);
         try {
             const saleData = {
                 items: cart.map(item => ({
@@ -255,17 +250,22 @@ const SalesPage = () => {
                 discount_amount: discountType === 'amount' ? discountValue : 0,
                 discount_percent: discountType === 'percent' ? discountValue : 0
             };
-            console.log(saleData)
+
+            console.log('Отправка данных продажи:', saleData); // Логируем отправляемые данные
+
             const response = await axios.post(`/api/business/${business_slug}/create-receipt/`, saleData);
 
-            // Save receipt data for printing
+            console.log('Ответ сервера:', response.data); // Логируем ответ сервера
+
             setReceiptData(response.data);
             setSaleCompleted(true);
-
-            alert('Продажа успешно оформлена!');
+            await fetchProducts();
+            setCart([]);
         } catch (err) {
-            console.error('Sale error:', err);
-            alert('Ошибка при оформлении продажи');
+            console.error('Sale error:', err.response?.data || err.message); // Улучшенное логирование ошибок
+            alert('Ошибка при оформлении продажи: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setSalePosting(false);      // разблокируем кнопку в любом случае
         }
     };
 
@@ -344,6 +344,40 @@ const SalesPage = () => {
         setItemDiscountValue(0);
     };
 
+    const handlePrintReceipt = () => {
+        if (!receiptData?.receipt_pdf_file) {
+            console.error('PDF файл чека не найден');
+            return;
+        }
+
+        const pdfUrl = receiptData.receipt_pdf_file.startsWith('http')
+            ? receiptData.receipt_pdf_file
+            : getFileUrl(receiptData.receipt_pdf_file);
+
+        const printWindow = window.open(pdfUrl, '_blank');
+
+        printWindow?.addEventListener('load', () => {
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        });
+    };
+
+    const handleDownloadPdf = () => {
+        if (!receiptData?.receipt_pdf_file) return;
+
+        const pdfUrl = receiptData.receipt_pdf_file.startsWith('http')
+            ? receiptData.receipt_pdf_file
+            : getFileUrl(receiptData.receipt_pdf_file);
+
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.download = `Чек_${receiptData.number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     // Calculate item price with discounts
     const calculateItemPrice = (item) => {
         let price = item.originalPrice;
@@ -364,6 +398,14 @@ const SalesPage = () => {
         return Math.round(price);
     };
 
+    const getFileUrl = (imagePath) => {
+        if (!imagePath) return '';
+        if (/^https?:\/\//i.test(imagePath)) return imagePath;
+        if (imagePath.startsWith('/media/')) return `http://localhost:8000${imagePath}`;
+        if (!imagePath.startsWith('/')) return `http://localhost:8000/media/${imagePath}`;
+        return `http://localhost:8000${imagePath}`;
+    };
+
     // Render product cards
     const renderProductCards = () => {
         if (loading) return <div className={styles.loading}>Загрузка товаров...</div>;
@@ -371,6 +413,7 @@ const SalesPage = () => {
         if (products.length === 0) return <div className={styles.empty}>Товары не найдены</div>;
 
         return (
+
             <div className={styles.productsGrid}>
                 {products.map(product => (
                     product.variants.map(variant => {
@@ -815,25 +858,35 @@ const SalesPage = () => {
                         <div className={styles.searchHeader}>
                             <h4>Поиск товаров</h4>
                             <button
-                                className={styles.scannerButton}
-                                onClick={() => setShowScanner(true)}
+                                className={`${styles.scannerButton} ${scannerActive ? styles.scannerActive : ''}`}
+                                onClick={() => {
+                                    setScannerActive((prev) => !prev); // ← меняем на toggle
+                                    setTimeout(() => {
+                                        searchInputRef.current && searchInputRef.current.focus();
+                                    }, 100);
+                                }}
+                                type="button"
                             >
-                                <FaBarcode /> Сканер штрих-кода
+                                {scannerActive ? <FaCheck /> : <FaBarcode />} Сканер штрих-кода
                             </button>
+
                         </div>
 
                         <div className={styles.searchControls}>
                             <div className={styles.searchInputGroup}>
                                 <input
+                                    ref={searchInputRef}
                                     type="text"
                                     placeholder="Название, артикул или штрих-код..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && fetchProducts()}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSearch();
+                                    }}
                                 />
                                 <button
                                     className={styles.searchButton}
-                                    onClick={fetchProducts}
+                                    onClick={handleSearch}
                                 >
                                     <FaSearch />
                                 </button>
@@ -975,61 +1028,6 @@ const SalesPage = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Barcode scanner modal */}
-            {showScanner && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <div className={styles.modalHeader}>
-                            <h4>Сканер штрих-кода</h4>
-                            <button
-                                className={styles.closeButton}
-                                onClick={() => setShowScanner(false)}
-                            >
-                                &times;
-                            </button>
-                        </div>
-
-                        <div className={styles.modalBody}>
-                            <div className={styles.scannerContainer}>
-                                <p>Здесь будет сканер штрих-кодов</p>
-                            </div>
-
-                            <div className={styles.manualInput}>
-                                <input
-                                    type="text"
-                                    placeholder="Или введите штрих-код вручную"
-                                    value={scannedBarcode}
-                                    onChange={(e) => setScannedBarcode(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch(scannedBarcode)}
-                                />
-                                <button
-                                    className={styles.searchButton}
-                                    onClick={() => handleBarcodeSearch(scannedBarcode)}
-                                >
-                                    <FaSearch /> Найти
-                                </button>
-                            </div>
-
-                            <div className={styles.scannerInfo}>
-                                <FaCamera /> Наведите камеру на штрих-код товара
-                            </div>
-                        </div>
-
-                        <div className={styles.modalFooter}>
-                            <button
-                                className={styles.secondaryButton}
-                                onClick={() => setShowScanner(false)}
-                            >
-                                Закрыть
-                            </button>
-                            <button className={styles.primaryButton}>
-                                <FaCamera /> Сменить камеру
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Discount Modal */}
             {/* Cart Discount Modal */}
@@ -1239,210 +1237,218 @@ const SalesPage = () => {
                             </button>
                         </div>
                         <div className={styles.modalBody}>
-                            <div className={styles.receiptPreview}>
-                                <div className={styles.receiptHeader}>
-                                    <h5>Чек #{receiptData?.id || new Date().getTime().toString().slice(-6)}</h5>
-                                    <p>{new Date().toLocaleString('ru-RU')}</p>
-                                </div>
-
-                                <div className={styles.receiptItems}>
-                                    {cart.map(item => {
-                                        const itemPrice = calculateItemPrice(item);
-                                        const originalPrice = item.originalPrice;
-                                        const hasDiscount = item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0;
-                                        const hasOriginalDiscount = item.hasOriginalDiscount;
-                                        const priceAfterOriginalDiscount = hasOriginalDiscount
-                                            ? Math.round(originalPrice * (1 - item.discount / 100))
-                                            : originalPrice;
-                                        const totalDiscount = originalPrice * item.quantity - itemPrice * item.quantity;
-
-                                        return (
-                                            <div key={item.variantId} className={styles.receiptItem}>
-                                                <div className={styles.receiptItemMain}>
-                                                    <div className={styles.receiptItemName}>
-                                                        {item.productName}
-                                                        <div className={styles.receiptItemDetails}>
-                                                            {item.attributes.map(a => (
-                                                                <span key={a.id} className={styles.receiptItemAttribute}>
-                                                                    <span className={styles.attributeName}>{a.category_attribute_name}:</span>
-                                                                    <span className={styles.attributeValue}>{a.custom_value || a.predefined_value_name}</span>
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className={styles.receiptItemPrices}>
-                                                        <div className={styles.receiptPriceRow}>
-                                                            <span className={styles.priceLabel}>{item.quantity} × {originalPrice.toLocaleString()} ₸</span>
-                                                            <span className={styles.priceValue}>{(originalPrice * item.quantity).toLocaleString()} ₸</span>
-                                                        </div>
-
-                                                        {hasOriginalDiscount && (
-                                                            <div className={styles.receiptDiscountRow}>
-                                                                <span className={styles.discountLabel}>
-                                                                    <FaPercentage size={12} /> Скидка {item.discount}%
-                                                                </span>
-                                                                <span className={styles.discountValue}>
-                                                                    -{Math.round(originalPrice * item.discount / 100 * item.quantity).toLocaleString()} ₸
-                                                                </span>
-                                                            </div>
-                                                        )}
-
-                                                        {hasDiscount && (
-                                                            <div className={styles.receiptDiscountRow}>
-                                                                <span className={styles.discountLabel}>
-                                                                    <FaPercentage size={12} /> {item.itemDiscountPercent > 0
-                                                                        ? `Доп. скидка ${item.itemDiscountPercent}%`
-                                                                        : `Скидка ${item.itemDiscountAmount} ₸`}
-                                                                </span>
-                                                                <span className={styles.discountValue}>
-                                                                    -{item.itemDiscountPercent > 0
-                                                                        ? Math.round(priceAfterOriginalDiscount * item.itemDiscountPercent / 100 * item.quantity).toLocaleString()
-                                                                        : (item.itemDiscountAmount * item.quantity).toLocaleString()} ₸
-                                                                </span>
-                                                            </div>
-                                                        )}
-
-                                                        <div className={styles.receiptTotalRow}>
-                                                            <span className={styles.totalLabel}>Итого за товар:</span>
-                                                            <span className={styles.totalValue}>{(itemPrice * item.quantity).toLocaleString()} ₸</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className={styles.receiptSummary}>
-                                    <div className={styles.receiptSummarySection}>
-                                        <div className={styles.receiptSummaryRow}>
-                                            <span>Товары:</span>
-                                            <span>{calculateSubtotal().toLocaleString()} ₸</span>
+                            {!saleCompleted ? (
+                                <>
+                                    <div className={styles.receiptPreview}>
+                                        <div className={styles.receiptHeader}>
+                                            <h5>Чек #{new Date().getTime().toString().slice(-6)}</h5>
+                                            <p>{new Date().toLocaleString('ru-RU')}</p>
                                         </div>
 
-                                        {cart.some(item => item.hasOriginalDiscount) && (
-                                            <div className={styles.receiptSummaryRow}>
-                                                <span>Изначальная скидка:</span>
-                                                <span className={styles.summaryDiscount}>
-                                                    -{cart.reduce((sum, item) => {
-                                                        if (!item.hasOriginalDiscount) return sum;
-                                                        return sum + (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
-                                                    }, 0).toLocaleString()} ₸
-                                                </span>
-                                            </div>
-                                        )}
+                                        <div className={styles.receiptItems}>
+                                            {cart.map(item => {
+                                                const itemPrice = calculateItemPrice(item);
+                                                const originalPrice = item.originalPrice;
+                                                const hasDiscount = item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0;
+                                                const hasOriginalDiscount = item.hasOriginalDiscount;
+                                                const priceAfterOriginalDiscount = hasOriginalDiscount
+                                                    ? Math.round(originalPrice * (1 - item.discount / 100))
+                                                    : originalPrice;
 
-                                        {cart.some(item => item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0) && (
-                                            <div className={styles.receiptSummaryRow}>
-                                                <span>Ваши скидки:</span>
-                                                <span className={styles.summaryDiscount}>
-                                                    -{cart.reduce((sum, item) => {
-                                                        const priceAfterOriginal = item.hasOriginalDiscount
-                                                            ? Math.round(item.originalPrice * (1 - item.discount / 100))
-                                                            : item.originalPrice;
-                                                        const finalPrice = calculateItemPrice(item);
-                                                        return sum + (priceAfterOriginal - finalPrice) * item.quantity;
-                                                    }, 0).toLocaleString()} ₸
-                                                </span>
-                                            </div>
-                                        )}
+                                                return (
+                                                    <div key={item.variantId} className={styles.receiptItem}>
+                                                        <div className={styles.receiptItemMain}>
+                                                            <div className={styles.receiptItemName}>
+                                                                {item.productName}
+                                                                <div className={styles.receiptItemDetails}>
+                                                                    {item.attributes.map(a => (
+                                                                        <span key={a.id} className={styles.receiptItemAttribute}>
+                                                                            <span className={styles.attributeName}>{a.category_attribute_name}:</span>
+                                                                            <span className={styles.attributeValue}>{a.custom_value || a.predefined_value_name}</span>
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
 
-                                        {discountValue > 0 && (
-                                            <div className={styles.receiptSummaryRow}>
-                                                <span>Общая скидка на чек:</span>
-                                                <span className={styles.summaryDiscount}>
-                                                    -{(discountType === 'percent'
-                                                        ? (calculateSubtotal() -
-                                                            cart.reduce((sum, item) => {
-                                                                if (item.hasOriginalDiscount) {
-                                                                    sum += (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
-                                                                }
+                                                            <div className={styles.receiptItemPrices}>
+                                                                <div className={styles.receiptPriceRow}>
+                                                                    <span className={styles.priceLabel}>{item.quantity} × {originalPrice.toLocaleString()} ₸</span>
+                                                                    <span className={styles.priceValue}>{(originalPrice * item.quantity).toLocaleString()} ₸</span>
+                                                                </div>
+
+                                                                {hasOriginalDiscount && (
+                                                                    <div className={styles.receiptDiscountRow}>
+                                                                        <span className={styles.discountLabel}>
+                                                                            <FaPercentage size={12} /> Скидка {item.discount}%
+                                                                        </span>
+                                                                        <span className={styles.discountValue}>
+                                                                            -{Math.round(originalPrice * item.discount / 100 * item.quantity).toLocaleString()} ₸
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+
+                                                                {hasDiscount && (
+                                                                    <div className={styles.receiptDiscountRow}>
+                                                                        <span className={styles.discountLabel}>
+                                                                            <FaPercentage size={12} /> {item.itemDiscountPercent > 0
+                                                                                ? `Доп. скидка ${item.itemDiscountPercent}%`
+                                                                                : `Скидка ${item.itemDiscountAmount} ₸`}
+                                                                        </span>
+                                                                        <span className={styles.discountValue}>
+                                                                            -{item.itemDiscountPercent > 0
+                                                                                ? Math.round(priceAfterOriginalDiscount * item.itemDiscountPercent / 100 * item.quantity).toLocaleString()
+                                                                                : (item.itemDiscountAmount * item.quantity).toLocaleString()} ₸
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+
+                                                                <div className={styles.receiptTotalRow}>
+                                                                    <span className={styles.totalLabel}>Итого за товар:</span>
+                                                                    <span className={styles.totalValue}>{(itemPrice * item.quantity).toLocaleString()} ₸</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <div className={styles.receiptSummary}>
+                                            <div className={styles.receiptSummarySection}>
+                                                <div className={styles.receiptSummaryRow}>
+                                                    <span>Товары:</span>
+                                                    <span>{calculateSubtotal().toLocaleString()} ₸</span>
+                                                </div>
+
+                                                {cart.some(item => item.hasOriginalDiscount) && (
+                                                    <div className={styles.receiptSummaryRow}>
+                                                        <span>Изначальная скидка:</span>
+                                                        <span className={styles.summaryDiscount}>
+                                                            -{cart.reduce((sum, item) => {
+                                                                if (!item.hasOriginalDiscount) return sum;
+                                                                return sum + (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
+                                                            }, 0).toLocaleString()} ₸
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {cart.some(item => item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0) && (
+                                                    <div className={styles.receiptSummaryRow}>
+                                                        <span>Ваши скидки:</span>
+                                                        <span className={styles.summaryDiscount}>
+                                                            -{cart.reduce((sum, item) => {
                                                                 const priceAfterOriginal = item.hasOriginalDiscount
                                                                     ? Math.round(item.originalPrice * (1 - item.discount / 100))
                                                                     : item.originalPrice;
                                                                 const finalPrice = calculateItemPrice(item);
-                                                                sum += (priceAfterOriginal - finalPrice) * item.quantity;
-                                                                return sum;
-                                                            }, 0)) * discountValue / 100
-                                                        : discountValue
-                                                    ).toLocaleString()} ₸
-                                                </span>
+                                                                return sum + (priceAfterOriginal - finalPrice) * item.quantity;
+                                                            }, 0).toLocaleString()} ₸
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {discountValue > 0 && (
+                                                    <div className={styles.receiptSummaryRow}>
+                                                        <span>Общая скидка на чек:</span>
+                                                        <span className={styles.summaryDiscount}>
+                                                            -{(discountType === 'percent'
+                                                                ? (calculateSubtotal() -
+                                                                    cart.reduce((sum, item) => {
+                                                                        if (item.hasOriginalDiscount) {
+                                                                            sum += (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
+                                                                        }
+                                                                        const priceAfterOriginal = item.hasOriginalDiscount
+                                                                            ? Math.round(item.originalPrice * (1 - item.discount / 100))
+                                                                            : item.originalPrice;
+                                                                        const finalPrice = calculateItemPrice(item);
+                                                                        sum += (priceAfterOriginal - finalPrice) * item.quantity;
+                                                                        return sum;
+                                                                    }, 0)) * discountValue / 100
+                                                                : discountValue
+                                                            ).toLocaleString()} ₸
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className={styles.receiptSummarySaleRow}>
-                                        <span>Конечная сумма скидки:</span>
-                                        <span className={styles.summaryDiscount}>-{calculateTotalDiscount().toLocaleString()} ₸</span>
+                                            <div className={styles.receiptSummarySaleRow}>
+                                                <span>Конечная сумма скидки:</span>
+                                                <span className={styles.summaryDiscount}>-{calculateTotalDiscount().toLocaleString()} ₸</span>
+                                            </div>
+
+                                            <div className={styles.receiptTotalSection}>
+                                                <div className={styles.receiptTotalRow}>
+                                                    <span>Итого к оплате:</span>
+                                                    <span className={styles.receiptGrandTotal}>{calculateTotal().toLocaleString()} ₸</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className={styles.receiptTotalSection}>
-                                        <div className={styles.receiptTotalRow}>
-                                            <span>Итого к оплате:</span>
-                                            <span className={styles.receiptGrandTotal}>{calculateTotal().toLocaleString()} ₸</span>
+                                    <div className={styles.paymentForm}>
+                                        <div className={styles.formGroup}>
+                                            <label>Способ оплаты</label>
+                                            <select
+                                                value={paymentMethod}
+                                                onChange={(e) => setPaymentMethod(e.target.value)}
+                                            >
+                                                {paymentMethods.map(method => (
+                                                    <option key={method.id} value={method.code}>
+                                                        {method.name}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
 
+                                        <div className={styles.formGroup}>
+                                            <label>Клиент (необязательно)</label>
+                                            <input
+                                                type="text"
+                                                value={customerName}
+                                                onChange={(e) => setCustomerName(e.target.value)}
+                                                placeholder="Имя клиента"
+                                            />
+                                        </div>
+
+                                        <div className={styles.formGroup}>
+                                            <label>Телефон (необязательно)</label>
+                                            <input
+                                                type="tel"
+                                                value={customerPhone}
+                                                onChange={(e) => setCustomerPhone(e.target.value)}
+                                                placeholder="+7 (XXX) XXX-XXXX"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : receiptData ? (
+                                <div className={styles.receiptCompleted}>
+                                    <div className={styles.receiptImageContainer}>
+                                        <img
+                                            src={getFileUrl(receiptData.receipt_preview_image)}
+                                            alt={`Чек ${receiptData.number}`}
+                                            className={styles.receiptImage}
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className={styles.receiptInfo}>
+                                        <h5>Чек #{receiptData.number}</h5>
+                                        <p><strong>Дата:</strong> {new Date(receiptData.created_at).toLocaleString()}</p>
+                                        <p><strong>Сумма:</strong> {parseFloat(receiptData.total_amount).toLocaleString()} ₸</p>
+                                        <p><strong>Способ оплаты:</strong> {receiptData.payment_method}</p>
+                                        {receiptData.customer_name && (
+                                            <p><strong>Клиент:</strong> {receiptData.customer_name}</p>
+                                        )}
+                                        {receiptData.customer_phone && (
+                                            <p><strong>Телефон:</strong> {receiptData.customer_phone}</p>
+                                        )}
                                     </div>
                                 </div>
-
-                                {saleCompleted && (
-                                    <div className={styles.paymentInfo}>
-                                        <div className={styles.paymentInfoRow}>
-                                            <strong>Способ оплаты:</strong>
-                                            <span>{paymentMethods.find(m => m.code === paymentMethod)?.name || paymentMethod}</span>
-                                        </div>
-                                        {customerName && (
-                                            <div className={styles.paymentInfoRow}>
-                                                <strong>Клиент:</strong>
-                                                <span>{customerName}</span>
-                                            </div>
-                                        )}
-                                        {customerPhone && (
-                                            <div className={styles.paymentInfoRow}>
-                                                <strong>Телефон:</strong>
-                                                <span>{customerPhone}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-
-                            {!saleCompleted && (
-                                <div className={styles.paymentForm}>
-                                    <div className={styles.formGroup}>
-                                        <label>Способ оплаты</label>
-                                        <select
-                                            value={paymentMethod}
-                                            onChange={(e) => setPaymentMethod(e.target.value)}
-                                        >
-                                            {paymentMethods.map(method => (
-                                                <option key={method.id} value={method.code}>
-                                                    {method.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className={styles.formGroup}>
-                                        <label>Клиент (необязательно)</label>
-                                        <input
-                                            type="text"
-                                            value={customerName}
-                                            onChange={(e) => setCustomerName(e.target.value)}
-                                            placeholder="Имя клиента"
-                                        />
-                                    </div>
-
-                                    <div className={styles.formGroup}>
-                                        <label>Телефон (необязательно)</label>
-                                        <input
-                                            type="tel"
-                                            value={customerPhone}
-                                            onChange={(e) => setCustomerPhone(e.target.value)}
-                                            placeholder="+7 (XXX) XXX-XXXX"
-                                        />
-                                    </div>
+                            ) : (
+                                <div className={styles.receiptLoading}>
+                                    <p>Формирование чека...</p>
                                 </div>
                             )}
                         </div>
@@ -1459,15 +1465,22 @@ const SalesPage = () => {
                                     <button
                                         className={styles.successButton}
                                         onClick={completeSale}
+                                        disabled={saleCompleted || salePosting}
                                     >
-                                        <FaCheck /> Подтвердить продажу
+                                        <FaCheck /> {salePosting ? 'Сохраняю…' : 'Подтвердить продажу'}
                                     </button>
                                 </>
                             ) : (
                                 <>
                                     <button
                                         className={styles.primaryButton}
-                                        onClick={printReceipt}
+                                        onClick={handleDownloadPdf}
+                                    >
+                                        Скачать PDF
+                                    </button>
+                                    <button
+                                        className={styles.primaryButton}
+                                        onClick={handlePrintReceipt}
                                     >
                                         <FaPrint /> Печать чека
                                     </button>

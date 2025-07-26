@@ -35,11 +35,9 @@
   --luminous-sapphire: #3a5da8;   /* Информационные элементы */
   /* Цветовая схема бизнес панели */
   --bg-bs-dark-primary: #060010;
-  --bg-bs-light-primary
 
   
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
+  
  
 
   /* Оптимизации рендеринга */
@@ -62,6 +60,9 @@
   --accent-green: #2daf9f;
   --accent-blue: #3a5da8;
   --accent-red: #a83a3a;
+
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 
 }
 

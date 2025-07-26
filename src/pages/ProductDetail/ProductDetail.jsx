@@ -169,6 +169,10 @@ const ProductDetail = () => {
     swipeToSlide: true,
     focusOnSelect: true,
     arrows: false,
+    centerMode: false,
+    centerPadding: '0', // Убирает отступы по краям
+    infinite: false,
+    variableWidth: true, // Позволяет слайдам быть разной ширины
   };
   return (
     <div className="product-detail">

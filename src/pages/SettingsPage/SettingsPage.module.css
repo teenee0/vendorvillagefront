@@ -1,0 +1,350 @@
+/* Full CSS styles for SettingsPage.module.css using custom variables */
+
+
+.contentWrapper {
+  min-height: 100vh;
+  padding: 24px;
+  background-color: var(--onyx-midnight);
+  display: flex;
+  justify-content: center;
+}
+
+.accountContainer {
+  display: flex;
+  flex-direction: row;
+  max-width: 1200px;
+  min-width: 700px;
+  width: 100%;
+  background: var(--obsidian-elite);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.accountSidebar {
+  width: 260px;
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+  border-right: 1px solid var(--gilded-shadow);
+}
+
+.accountMenu {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.accountMenu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 14px;
+  border-radius: 6px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.accountMenu button:hover {
+  background-color: var(--gilded-shadow);
+  color: var(--platinum-gleam);
+}
+
+.accountMenu .active {
+  background-color: var(--royal-emerald);
+  color: white;
+}
+
+.accountContent {
+  flex: 1;
+  padding: 30px;
+  background-color: var(--obsidian-elite);
+}
+
+.settingsTab h1 {
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: var(--platinum-gleam);
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--silver-whisper);
+  margin-bottom: 8px;
+}
+
+.viewField,
+.editField {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.viewField {
+  background-color: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
+.editField input,
+.editField textarea {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--gilded-shadow);
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.editField input:focus,
+.editField textarea:focus {
+  border-color: var(--royal-emerald);
+  outline: none;
+}
+
+.editField textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.editButton,
+.saveButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--royal-emerald);
+  font-size: 18px;
+}
+
+.saveButton:hover {
+  color: var(--imperial-gold);
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--phantom-noir);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+  transition: 0.2s;
+}
+
+.listItem:hover {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.itemInfo h4 {
+  font-size: 16px;
+  color: var(--platinum-gleam);
+  margin-bottom: 6px;
+}
+
+.itemInfo p {
+  font-size: 14px;
+  color: var(--silver-whisper);
+}
+
+.itemActions {
+  display: flex;
+  gap: 10px;
+}
+
+.activeButton {
+  background-color: var(--velvet-ruby);
+  color: white;
+}
+
+.inactiveButton {
+  background-color: var(--royal-emerald);
+  color: white;
+}
+
+.setDefaultButton {
+  background: none;
+  color: var(--royal-emerald);
+  border: 1px solid var(--royal-emerald);
+}
+
+.setDefaultButton:hover {
+  background-color: var(--royal-emerald);
+  color: white;
+}
+
+.deleteButton {
+  color: var(--velvet-ruby);
+  background: transparent;
+}
+
+.deleteButton:hover {
+  background-color: rgba(168, 58, 58, 0.1);
+}
+
+.addButton {
+  background-color: var(--royal-emerald);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.addButton:hover:not(:disabled) {
+  background-color: var(--imperial-gold);
+  color: black;
+}
+
+.activeBadge,
+.defaultBadge {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.activeBadge {
+  background-color: var(--royal-emerald);
+  color: white;
+}
+
+.defaultBadge {
+  background-color: var(--imperial-gold);
+  color: var(--obsidian-elite);
+}
+
+.addForm {
+  margin-top: 30px;
+}
+
+.formRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.formRow input,
+.formRow select {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--gilded-shadow);
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+  flex: 1;
+  min-width: 200px;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.settingsItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.settingsIcon {
+  background-color: var(--royal-emerald);
+  color: white;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingsItem h3 {
+  color: var(--platinum-gleam);
+  font-size: 16px;
+}
+
+.settingsItem p {
+  color: var(--silver-whisper);
+  font-size: 14px;
+}
+
+.settingsBtn {
+  margin-left: auto;
+  background-color: var(--royal-emerald);
+  color: white;
+}
+
+.settingsBtn:hover {
+  background-color: var(--imperial-gold);
+  color: black;
+}
+
+.infoAlert {
+  padding: 12px 16px;
+  background-color: rgba(45, 175, 159, 0.1);
+  color: var(--royal-emerald);
+  border: 1px solid rgba(45, 175, 159, 0.3);
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .accountContainer {
+    flex-direction: column;
+  }
+
+  .accountSidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--gilded-shadow);
+  }
+
+  .accountMenu {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .formRow {
+    flex-direction: column;
+  }
+
+  .listItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itemActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

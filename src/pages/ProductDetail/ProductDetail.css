@@ -132,7 +132,6 @@
   border-radius: 4px;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.2s;
   background-color: rgba(255, 255, 255, 0.05);
 }
 
@@ -668,4 +667,35 @@
   cursor: not-allowed;
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.4);
+}
+
+
+
+.slick-prev,
+.slick-next {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Стили для стрелок */
+.slick-prev:before,
+.slick-next:before {
+  color: var(--text-primary) !important;
+  font-size: 24px !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+.slick-prev:hover:before,
+.slick-next:hover:before {
+  color: var(--accent-color) !important;
+}
+
+/* Позиционирование стрелок */
+.slick-prev {
+  left: -30px !important;
+}
+
+.slick-next {
+  right: -30px !important;
 }

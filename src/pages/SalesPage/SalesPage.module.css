@@ -1887,3 +1887,111 @@
 .locationSelect select:focus {
     border-color: var(--royal-emerald);
 }
+
+
+
+/* Стили для завершенного чека */
+.receiptCompleted {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 15px;
+}
+
+.receiptImageContainer {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.receiptImage {
+  max-width: 100%;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.receiptInfo {
+  color: white;
+  padding: 15px;
+  border-radius: 5px;
+}
+.receiptInfo p {
+  color: white;
+}
+
+.receiptInfo h5 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.receiptInfo p {
+  margin: 8px 0;
+  font-size: 15px;
+}
+
+.receiptLoading {
+  text-align: center;
+  padding: 40px 0;
+  font-size: 16px;
+}
+
+/* Стили для печати */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modal, .modal * {
+    visibility: visible;
+  }
+  .modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    border: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+  .modalHeader, .modalFooter {
+    display: none !important;
+  }
+  .receiptImage {
+    max-height: 500px;
+  }
+}
+
+
+
+.searchResults {
+  height: calc(100vh - 320px); /* Ограничиваем высоту */
+  min-height: 400px; /* Минимальная высота */
+  overflow-y: auto; /* Включаем вертикальный скролл */
+  padding-right: 8px; /* Отступ для скроллбара */
+  margin-top: 12px;
+}
+
+/* Стилизация скроллбара */
+.searchResults::-webkit-scrollbar {
+  width: 6px;
+}
+
+.searchResults::-webkit-scrollbar-thumb {
+  background: var(--gilded-shadow);
+  border-radius: 3px;
+}
+
+.searchResults::-webkit-scrollbar-track {
+  background: var(--phantom-noir);
+  border-radius: 3px;
+}
+
+/* Products grid */
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+  padding-bottom: 10px; /* Добавляем отступ снизу */
+}
