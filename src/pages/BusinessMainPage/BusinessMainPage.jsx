@@ -92,7 +92,7 @@ const BusinessMainPage = () => {
         tz
       };
 
-      console.log('Запрос к API с параметрами:', params); // Для отладки
+      // console.log('Запрос к API с параметрами:', params); // Для отладки
 
       const response = await axios.get(
         `/api/business/${business_slug}/dashboard/`,

@@ -1,6 +1,17 @@
-/* Full CSS styles for SettingsPage.module.css using custom variables */
+/* Variables */
+:root {
+  --onyx-midnight: #0f172a;
+  --obsidian-elite: #1e293b;
+  --phantom-noir: #334155;
+  --gilded-shadow: #475569;
+  --platinum-gleam: #f8fafc;
+  --silver-whisper: #e2e8f0;
+  --royal-emerald: #10b981;
+  --imperial-gold: #f59e0b;
+  --velvet-ruby: #ef4444;
+}
 
-
+/* Base Styles */
 .contentWrapper {
   min-height: 100vh;
   padding: 24px;
@@ -22,6 +33,7 @@
   border: 1px solid var(--gilded-shadow);
 }
 
+/* Sidebar Styles */
 .accountSidebar {
   width: 260px;
   background-color: var(--phantom-noir);
@@ -33,44 +45,69 @@
   display: flex;
   flex-direction: column;
   padding: 16px;
+  gap: 8px;
 }
 
-.accountMenu button {
+.menuButton {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: none;
   border: none;
   color: var(--silver-whisper);
   font-size: 14px;
   border-radius: 6px;
-  transition: 0.3s;
+  transition: all 0.3s ease;
   cursor: pointer;
+  text-align: left;
 }
 
-.accountMenu button:hover {
+.menuButton:hover {
   background-color: var(--gilded-shadow);
   color: var(--platinum-gleam);
 }
 
-.accountMenu .active {
+.menuButton.active {
   background-color: var(--royal-emerald);
   color: white;
 }
 
+.menuButton svg {
+  font-size: 16px;
+}
+
+/* Content Styles */
 .accountContent {
   flex: 1;
   padding: 30px;
   background-color: var(--obsidian-elite);
+  color: var(--platinum-gleam);
 }
 
 .settingsTab h1 {
   font-size: 24px;
   margin-bottom: 24px;
   color: var(--platinum-gleam);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
+.settingsTab h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: var(--platinum-gleam);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Form Styles */
 .formGroup {
   margin-bottom: 20px;
 }
@@ -83,54 +120,108 @@ label {
   margin-bottom: 8px;
 }
 
-.viewField,
 .editField {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.viewField {
-  background-color: var(--phantom-noir);
-  border: 1px solid var(--gilded-shadow);
-  padding: 12px 16px;
-  border-radius: 6px;
-}
-
-.editField input,
-.editField textarea {
-  flex: 1;
+  width: 100%;
   padding: 10px 14px;
   border-radius: 6px;
   border: 1px solid var(--gilded-shadow);
   background-color: var(--phantom-noir);
   color: var(--platinum-gleam);
+  font-size: 14px;
+  transition: border-color 0.3s;
 }
 
-.editField input:focus,
-.editField textarea:focus {
+.editField:focus {
   border-color: var(--royal-emerald);
   outline: none;
 }
 
-.editField textarea {
-  min-height: 80px;
+textarea.editField {
+  min-height: 100px;
   resize: vertical;
 }
 
-.editButton,
-.saveButton {
-  background: none;
-  border: none;
+select.editField {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+/* Button Styles */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  color: var(--royal-emerald);
-  font-size: 18px;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.saveButton {
+  composes: button;
+  background-color: var(--royal-emerald);
+  color: white;
 }
 
 .saveButton:hover {
-  color: var(--imperial-gold);
+  background-color: #0d9e6e;
 }
 
+.editButton {
+  composes: button;
+  background-color: var(--gilded-shadow);
+  color: var(--platinum-gleam);
+}
+
+.editButton:hover {
+  background-color: var(--phantom-noir);
+}
+
+.cancelButton {
+  composes: button;
+  background-color: transparent;
+  color: var(--silver-whisper);
+  border: 1px solid var(--gilded-shadow);
+}
+
+.cancelButton:hover {
+  background-color: var(--phantom-noir);
+}
+
+.addButton {
+  background-color: var(--royal-emerald);
+  color: white;
+  margin: 10px;
+}
+
+.addButton:hover {
+  background-color: #0d9e6e;
+}
+
+.deleteButton {
+  composes: button;
+  background-color: transparent;
+  color: var(--velvet-ruby);
+  border: 1px solid var(--velvet-ruby);
+}
+
+.deleteButton:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* List Styles */
 .listContainer {
   display: flex;
   flex-direction: column;
@@ -145,7 +236,7 @@ label {
   background-color: var(--phantom-noir);
   border-radius: 8px;
   border: 1px solid var(--gilded-shadow);
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
 .listItem:hover {
@@ -153,15 +244,24 @@ label {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.itemInfo {
+  flex: 1;
+}
+
 .itemInfo h4 {
   font-size: 16px;
   color: var(--platinum-gleam);
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
 }
 
 .itemInfo p {
   font-size: 14px;
   color: var(--silver-whisper);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .itemActions {
@@ -169,94 +269,28 @@ label {
   gap: 10px;
 }
 
-.activeButton {
-  background-color: var(--velvet-ruby);
-  color: white;
-}
-
-.inactiveButton {
+/* Badge Styles */
+.activeBadge {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
   background-color: var(--royal-emerald);
   color: white;
 }
 
-.setDefaultButton {
-  background: none;
-  color: var(--royal-emerald);
-  border: 1px solid var(--royal-emerald);
-}
-
-.setDefaultButton:hover {
-  background-color: var(--royal-emerald);
-  color: white;
-}
-
-.deleteButton {
-  color: var(--velvet-ruby);
-  background: transparent;
-}
-
-.deleteButton:hover {
-  background-color: rgba(168, 58, 58, 0.1);
-}
-
-.addButton {
-  background-color: var(--royal-emerald);
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.addButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.addButton:hover:not(:disabled) {
-  background-color: var(--imperial-gold);
-  color: black;
-}
-
-.activeBadge,
 .defaultBadge {
   margin-left: 10px;
   padding: 2px 8px;
   border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
-}
-
-.activeBadge {
-  background-color: var(--royal-emerald);
-  color: white;
-}
-
-.defaultBadge {
   background-color: var(--imperial-gold);
   color: var(--obsidian-elite);
 }
 
-.addForm {
-  margin-top: 30px;
-}
-
-.formRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.formRow input,
-.formRow select {
-  padding: 10px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--gilded-shadow);
-  background-color: var(--phantom-noir);
-  color: var(--platinum-gleam);
-  flex: 1;
-  min-width: 200px;
-}
-
+/* Grid Styles */
 .settingsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -272,6 +306,11 @@ label {
   border: 1px solid var(--gilded-shadow);
   border-radius: 8px;
   padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.settingsItem:hover {
+  border-color: var(--royal-emerald);
 }
 
 .settingsIcon {
@@ -283,11 +322,13 @@ label {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .settingsItem h3 {
   color: var(--platinum-gleam);
   font-size: 16px;
+  margin-bottom: 4px;
 }
 
 .settingsItem p {
@@ -295,15 +336,122 @@ label {
   font-size: 14px;
 }
 
-.settingsBtn {
-  margin-left: auto;
-  background-color: var(--royal-emerald);
-  color: white;
+/* Dialog Styles */
+.dialogOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.settingsBtn:hover {
-  background-color: var(--imperial-gold);
-  color: black;
+.dialog {
+  background-color: var(--obsidian-elite);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.dialogHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--gilded-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dialogHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--platinum-gleam);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--silver-whisper);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.dialogContent {
+  padding: 20px;
+}
+
+.dialogFooter {
+  padding: 16px 20px;
+  border-top: 1px solid var(--gilded-shadow);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Checkbox Styles */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--royal-emerald);
+}
+
+/* File Input Styles */
+.fileInput {
+  position: relative;
+}
+
+.fileInput input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.fileLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+  border-radius: 6px;
+  border: 1px solid var(--gilded-shadow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.fileLabel:hover {
+  background-color: var(--gilded-shadow);
+}
+
+/* Empty State Styles */
+.emptyMessage {
+  padding: 20px;
+  text-align: center;
+  color: var(--silver-whisper);
+  background-color: var(--phantom-noir);
+  border-radius: 8px;
+  border: 1px dashed var(--gilded-shadow);
 }
 
 .infoAlert {
@@ -318,6 +466,43 @@ label {
   gap: 8px;
 }
 
+/* Loading and Error States */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+  color: var(--platinum-gleam);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: 40px;
+  color: var(--royal-emerald);
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+  color: var(--velvet-ruby);
+}
+
+.errorIcon {
+  font-size: 40px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Styles */
 @media (max-width: 768px) {
   .accountContainer {
     flex-direction: column;
@@ -332,19 +517,136 @@ label {
   .accountMenu {
     flex-direction: row;
     overflow-x: auto;
+    padding: 12px;
   }
 
-  .formRow {
-    flex-direction: column;
+  .menuButton {
+    white-space: nowrap;
+  }
+
+  .accountContent {
+    padding: 20px;
   }
 
   .listItem {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
 
   .itemActions {
     width: 100%;
     justify-content: flex-end;
   }
+
+  .dialog {
+    width: 95%;
+    max-width: none;
+  }
+}
+
+
+
+
+/* Добавьте эти стили в SettingsPage.module.css */
+
+/* Editor Styles */
+.templateEditor {
+  margin-top: 20px;
+}
+
+.codeEditor {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--gilded-shadow);
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 300px;
+  resize: vertical;
+}
+
+.codeEditor:focus {
+  border-color: var(--royal-emerald);
+  outline: none;
+}
+
+/* Preview Styles */
+.receiptPreviewContainer {
+  margin-top: 20px;
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.receiptPreview {
+  width: 58mm;
+  height: 200mm;
+  border: none;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Variables Styles */
+.templateVariables {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: var(--phantom-noir);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.templateVariables h3 {
+  margin-top: 0;
+  color: var(--platinum-gleam);
+}
+
+.variablesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.variablesGrid h4 {
+  color: var(--silver-whisper);
+  margin-bottom: 10px;
+}
+
+.variablesGrid ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.variablesGrid li {
+  margin-bottom: 8px;
+  color: var(--silver-whisper);
+  font-size: 14px;
+}
+
+.variablesGrid code {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: var(--royal-emerald);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Preview Button */
+.previewButton {
+  composes: button;
+  background-color: var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  margin-right: 10px;
+}
+
+.previewButton:hover {
+  background-color: var(--phantom-noir);
 }

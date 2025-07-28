@@ -344,23 +344,52 @@ const SalesPage = () => {
         setItemDiscountValue(0);
     };
 
-    const handlePrintReceipt = () => {
+    const handlePrintReceipt = async () => {
         if (!receiptData?.receipt_pdf_file) {
             console.error('PDF файл чека не найден');
             return;
         }
 
-        const pdfUrl = receiptData.receipt_pdf_file.startsWith('http')
-            ? receiptData.receipt_pdf_file
-            : getFileUrl(receiptData.receipt_pdf_file);
+        try {
+            // 1. Загружаем PDF как Blob
+            const response = await fetch(
+                receiptData.receipt_pdf_file.startsWith('http')
+                    ? receiptData.receipt_pdf_file
+                    : getFileUrl(receiptData.receipt_pdf_file),
+                {
+                    credentials: 'include' // Если нужны куки
+                }
+            );
 
-        const printWindow = window.open(pdfUrl, '_blank');
+            if (!response.ok) throw new Error('Ошибка загрузки PDF');
 
-        printWindow?.addEventListener('load', () => {
+            const pdfBlob = await response.blob();
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+
+            // 2. Открываем в новом окне
+            const printWindow = window.open(pdfUrl, '_blank');
+
+            // 3. Пытаемся напечатать
             setTimeout(() => {
-                printWindow.print();
-            }, 500);
-        });
+                try {
+                    printWindow?.print();
+                    // Освобождаем память через 10 сек
+                    setTimeout(() => URL.revokeObjectURL(pdfUrl), 10000);
+                } catch (e) {
+                    console.log('Печать через JS недоступна. Откройте PDF и нажмите Ctrl+P');
+                }
+            }, 1000);
+
+        } catch (error) {
+            console.error('Ошибка:', error);
+            // Просто открываем ссылку как есть
+            window.open(
+                receiptData.receipt_pdf_file.startsWith('http')
+                    ? receiptData.receipt_pdf_file
+                    : getFileUrl(receiptData.receipt_pdf_file),
+                '_blank'
+            );
+        }
     };
 
     const handleDownloadPdf = () => {
