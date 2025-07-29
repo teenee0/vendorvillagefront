@@ -309,7 +309,7 @@ const BusinessMainPage = () => {
 
   const handleTransactionClick = (transaction) => {
     setSelectedTransaction(transaction);
-    fetchTransactionDetails(transaction.number);
+    fetchTransactionDetails(transaction.id);
   };
 
   // Закрытие модального окна

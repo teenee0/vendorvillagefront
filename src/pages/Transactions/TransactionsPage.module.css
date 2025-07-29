@@ -1,0 +1,316 @@
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--onyx-midnight);
+  color: var(--platinum-gleam);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.searchBar {
+  margin-bottom: 20px;
+}
+
+.searchBar form {
+  display: flex;
+  gap: 10px;
+}
+
+.searchBar input {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 4px;
+  color: var(--platinum-gleam);
+}
+
+.searchBar input::placeholder {
+  color: var(--palladium-mist);
+}
+
+.receiptsList {
+  background: var(--obsidian-elite);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+  overflow: hidden;
+}
+
+.receiptsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.receiptsTable th, .receiptsTable td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.receiptsTable th {
+  background-color: var(--phantom-noir);
+  font-weight: 600;
+  color: var(--imperial-gold);
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.status.paid {
+  background-color: rgba(45, 175, 159, 0.2);
+  color: var(--royal-emerald);
+}
+
+.status.unpaid {
+  background-color: rgba(168, 58, 58, 0.2);
+  color: var(--velvet-ruby);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+}
+
+.actions button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.viewButton {
+  background-color: var(--luminous-sapphire);
+  color: white;
+}
+
+.printButton {
+  background-color: var(--royal-emerald);
+  color: white;
+}
+
+.deleteButton {
+  background-color: var(--velvet-ruby);
+  color: white;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 5px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover {
+  background: var(--phantom-noir);
+}
+
+.pagination button.active {
+  background-color: var(--royal-emerald);
+  color: white;
+  border-color: var(--royal-emerald);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.receiptDetails {
+  background: var(--obsidian-elite);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.receiptHeader {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.receiptHeader h2 {
+  color: var(--imperial-gold);
+}
+
+.receiptMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: var(--silver-whisper);
+}
+
+.receiptActions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.receiptActions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.receiptActions button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.pdfButton {
+  background-color: var(--imperial-gold);
+  color: var(--onyx-midnight);
+}
+
+.receiptItems {
+  margin-top: 20px;
+}
+
+.receiptItems h3 {
+  color: var(--imperial-gold);
+  margin-bottom: 15px;
+}
+
+.receiptItems table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.receiptItems th, .receiptItems td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.receiptItems th {
+  background-color: var(--phantom-noir);
+  color: var(--imperial-gold);
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.productName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+}
+
+.productAttributes {
+  font-size: 0.85em;
+  color: var(--silver-whisper);
+}
+
+.productSku {
+  font-size: 0.8em;
+  color: var(--palladium-mist);
+}
+
+.customerInfo {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.customerInfo h3 {
+  color: var(--imperial-gold);
+  margin-bottom: 10px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 15px;
+  background: none;
+  border: none;
+  color: var(--royal-emerald);
+  cursor: pointer;
+  padding: 5px 0;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  color: var(--imperial-gold);
+}
+
+.loading, .error, .empty {
+  padding: 20px;
+  text-align: center;
+  background: var(--obsidian-elite);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.error {
+  color: var(--velvet-ruby);
+}
+
+.empty {
+  color: var(--silver-whisper);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .receiptsTable {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .receiptMeta {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
+}

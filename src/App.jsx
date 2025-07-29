@@ -25,6 +25,7 @@ import ProductAddPage from './pages/ProductAddPage/ProductAddpage.jsx';
 import ProductPage from './pages/ProductPage/ProductPage.jsx';
 import SalesPage from './pages/SalesPage/SalesPage.jsx';
 import SettingsPage from './pages/SettingsPage/SettingsPage.jsx';
+import TransactionsPage from './pages/Transactions/Transactions.jsx';
 
 function App() {
   const location = useLocation();
@@ -58,6 +59,7 @@ function App() {
                     <Route path="/business/:business_slug/products/:product_id" element={<ProductPage />} />
                     <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
                     <Route path="/business/:business_slug/sale-products" element={<SalesPage />} />
+                    <Route path="/business/:business_slug/transactions" element={<TransactionsPage />} />
                     <Route path="/business/:business_slug/settings" element={<SettingsPage />} />
 
                   </Route>

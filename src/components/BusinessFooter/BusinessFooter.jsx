@@ -17,6 +17,7 @@ export const BusinessFooter = () => {
     { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
     { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
     { icon: <div>💳</div>, label: 'Продажа', onClick: () => handleNavigate('/sale-products') },
+    { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
     { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
   ];
 
