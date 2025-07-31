@@ -13,10 +13,20 @@ import {
   FaReceipt,
   FaChevronDown,
   FaChevronUp,
-  FaTimes
+  FaTimes,
+  FaCalendarAlt
 } from 'react-icons/fa';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { openReceiptPdf, printReceiptPdf } from '../../utils/printUtils';
 import styles from './TransactionsPage.module.css';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 
 const TransactionsPage = () => {
   const { business_slug } = useParams();
@@ -35,13 +45,28 @@ const TransactionsPage = () => {
   const [expandedHistoryIds, setExpandedHistoryIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Состояние для фильтрации по дате
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
 
   // Загрузка чеков
-  const fetchReceipts = async (page = 1) => {
+    const fetchReceipts = async (page = 1) => {
     try {
       setLoading(true);
       const params = { page };
+      
+      // Добавляем параметры поиска
       if (searchQuery) params.search = searchQuery;
+      
+      // Добавляем параметры даты
+      if (startDate) {
+        params.start = dayjs(startDate).tz(tz).startOf('day').utc().format();
+      }
+      if (endDate) {
+        params.end = dayjs(endDate).tz(tz).endOf('day').utc().format();
+      }
 
       const response = await axios.get(
         `/api/business/${business_slug}/receipts/`,
@@ -56,6 +81,29 @@ const TransactionsPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Обработчик изменения даты
+  const handleDateChange = (dates) => {
+    const [start, end] = dates;
+    setDateRange([start, end]);
+  };
+
+  // Применение фильтра по дате
+  const applyDateFilter = () => {
+    fetchReceipts(1);
+  };
+
+  // Сброс фильтра по дате
+  const resetDateFilter = () => {
+    setDateRange([null, null]);
+    fetchReceipts(1);
+  };
+
+  // Форматирование даты для отображения
+  const formatDisplayDate = (date) => {
+    if (!date) return 'Не указано';
+    return dayjs(date).tz(tz).format('DD.MM.YYYY HH:mm');
   };
 
   // Загрузка истории чеков
@@ -230,19 +278,63 @@ const TransactionsPage = () => {
       </div>
 
       <div className={styles.content}>
-        <div className={styles.searchBar}>
-          <form onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder={`Поиск по номеру чека...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit">
-              <FaSearch />
-            </button>
-          </form>
-        </div>
+         <div className={styles.filters}>
+          <div className={styles.searchBar}>
+            <form onSubmit={handleSearch}>
+              <input
+                type="text"
+                placeholder={`Поиск по номеру чека...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit">
+                <FaSearch />
+              </button>
+            </form>
+          </div>
+          
+          <div className={styles.dateFilter}>
+            <div className={styles.dateRangePicker}>
+              <FaCalendarAlt className={styles.calendarIcon} />
+              <DatePicker
+                selectsRange
+                startDate={startDate}
+                endDate={endDate}
+                onChange={handleDateChange}
+                dateFormat="dd.MM.yyyy"
+                className={styles.dateInput}
+                maxDate={new Date()}
+                placeholderText="Выберите период"
+                calendarClassName={styles.calendarWrapper}
+                popperClassName={styles.datePickerPopper}
+              />
+              {(startDate || endDate) && (
+                <div className={styles.datePickerActions}>
+                  <button 
+                    className={styles.applyButton}
+                    onClick={applyDateFilter}
+                  >
+                    Применить
+                  </button>
+                  <button 
+                    className={styles.resetButton}
+                    onClick={resetDateFilter}
+                  >
+                    Сбросить
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <div className={styles.dateRangeDisplay}>
+              {startDate && endDate ? (
+                `${formatDisplayDate(startDate)} - ${formatDisplayDate(endDate)}`
+              ) : (
+                'Весь период'
+              )}
+            </div>
+          </div>
+          </div>
 
         {activeTab === 'receipts' ? (
           <div className={styles.receiptsList}>
