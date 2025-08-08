@@ -1,0 +1,247 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+:root {
+  --white: #ffffff;
+  --light-gray: #f7f9fc;
+  --gray: #d1d9e6;
+  --medium-gray: #a5b1c2;
+  --blue: #4a90e2;
+  --blue-dark: #357ab8;
+  --green: #27ae60;
+  --red: #e74c3c;
+  --text-dark: #2c3e50;
+}
+
+
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* min-height: 100vh; */
+  /* background: linear-gradient(to bottom right, #f0f4f8, #dfe8f1); */
+  padding: 20px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid var(--gray);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gray);
+  background: var(--light-gray);
+  font-size: 1.5rem;
+}
+
+.tab {
+  flex: 1;
+  padding: 15px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.tab:hover {
+  background: var(--gray);
+}
+
+.activeTab {
+  background: var(--white);
+  border-bottom: 2px solid var(--blue);
+  color: var(--blue-dark);
+}
+
+.content {
+  padding: 30px;
+}
+
+.title {
+  text-align: center;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+}
+
+.authError {
+  color: var(--red);
+  background: rgba(231, 76, 60, 0.1);
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--medium-gray);
+}
+
+.input {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+  background: var(--light-gray);
+  color: var(--text-dark);
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+.errorInput {
+  border-color: var(--red);
+}
+
+.error {
+  font-size: 0.85rem;
+  color: var(--red);
+  margin-top: -15px;
+  display: block;
+  margin-left: 1rem;
+}
+
+.forgotPassword {
+  text-align: right;
+}
+
+.forgotPassword a {
+  color: var(--blue);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.forgotPassword a:hover {
+  text-decoration: underline;
+}
+
+.submitButton {
+  background: var(--green);
+  color: var(--white);
+  padding: 12px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submitButton:hover {
+  background: #219150;
+}
+
+.submitButton:disabled {
+  background: var(--gray);
+  cursor: not-allowed;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.socialAuth {
+  margin-top: 25px;
+}
+
+.socialDivider {
+  text-align: center;
+  color: var(--medium-gray);
+  position: relative;
+  margin: 20px 0;
+}
+
+.socialButtons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  /* margin-left: 22%; */
+}
+
+#googleSignIn,
+#telegramSignIn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--light-gray);
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+
+  min-width: 240px;        /* ✅ минимальная ширина для контента */
+  min-height: 44px;        /* ✅ минимальная высота */
+  flex-shrink: 0;          /* ✅ не сжимать */
+  padding: 0 16px;
+  overflow: visible;       /* на всякий случай */
+}
+
+.switchAuth {
+  margin-top: 25px;
+  text-align: center;
+  color: var(--text-dark);
+}
+
+.switchAuth button {
+  border: none;
+  background: none;
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.switchAuth button:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .card {
+    max-width: 100%;
+  }
+
+  .tab:hover {
+    background: none !important;
+  }
+
+  .content {
+    padding: 20px;
+  }
+}

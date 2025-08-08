@@ -1,7 +1,134 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Chart } from 'chart.js/auto';
 import styles from './ProductPage.module.css';
 import axios from '../../api/axiosDefault';
 import { useParams, useNavigate } from 'react-router-dom';
+
+const SalesChart = ({ analytics }) => {
+    const chartRef = useRef(null);
+    const chartInstance = useRef(null);
+
+    // Функция для генерации последовательных цветов
+    const generateColorPalette = (count) => {
+        const colors = [];
+        const hueStep = 360 / count;
+        
+        for (let i = 0; i < count; i++) {
+            const hue = (i * hueStep) % 360;
+            colors.push(`hsl(${hue}, 70%, 50%)`);
+        }
+        
+        return colors;
+    };
+
+    useEffect(() => {
+        if (!analytics || !chartRef.current) return;
+
+        const ctx = chartRef.current.getContext('2d');
+        const variantCount = analytics.variants.length;
+        const colorPalette = generateColorPalette(variantCount);
+
+        // Уничтожаем предыдущий график
+        if (chartInstance.current) {
+            chartInstance.current.destroy();
+        }
+
+        // Создаем новый график
+        chartInstance.current = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: analytics.chart.map(item => item.date),
+                datasets: analytics.variants.map((variant, index) => ({
+                    label: variant.name,
+                    data: analytics.chart.map(dateItem => {
+                        const variantData = variant.chart.find(v => v.date === dateItem.date);
+                        return variantData ? variantData.amount : 0;
+                    }),
+                    borderColor: colorPalette[index],
+                    backgroundColor: colorPalette[index] + '33', // Добавляем прозрачность
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointBackgroundColor: '#ffffff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBorderColor: colorPalette[index],
+                    pointBorderWidth: 2,
+                    fill: false
+                }))
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#ffffff',
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 12
+                            },
+                            padding: 10,
+                            usePointStyle: true,
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        bodyFont: {
+                            size: 14
+                        },
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.dataset.label}: ${context.parsed.y.toLocaleString('ru-RU')} ₸`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#666'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#666',
+                            callback: function (value) {
+                                return value.toLocaleString('ru-RU') + ' ₸';
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        return () => {
+            if (chartInstance.current) {
+                chartInstance.current.destroy();
+            }
+        };
+    }, [analytics]);
+
+    return <canvas ref={chartRef} />;
+};
 
 const ProductPage = () => {
     const { business_slug, product_id } = useParams();
@@ -16,21 +143,100 @@ const ProductPage = () => {
     const [activeTab, setActiveTab] = useState('defects'); // 'defects' or 'reserves'
     const [reserveRemoveQuantity, setReserveRemoveQuantity] = useState('');
     const [showAllDefects, setShowAllDefects] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [analytics, setAnalytics] = useState(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axios.get(`/api/business/${business_slug}/products/${product_id}/info`);
-                setProduct(response.data);
+                setLoading(true);
+                const [productResponse, historyResponse, analyticsResponse] = await Promise.all([
+                    axios.get(`/api/business/${business_slug}/products/${product_id}/info`),
+                    axios.get(`/api/business/${business_slug}/products/${product_id}/full-history/`),
+                    axios.get(`/api/business/${business_slug}/products/${product_id}/analytics/`)
+                ]);
+
+                setProduct(productResponse.data);
+                setAnalytics(analyticsResponse.data);
+                const formattedHistory = formatHistoryData(historyResponse.data);
+                setHistory(formattedHistory);
             } catch (err) {
-                setError('Ошибка загрузки товара');
+                console.error('Error fetching data:', err);
+                setError('Ошибка загрузки данных');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProduct();
+        fetchData();
     }, [business_slug, product_id]);
+
+    const fetchAnalytics = async () => {
+        setAnalyticsLoading(true);
+        try {
+            const response = await axios.get(`/api/business/${business_slug}/products/${product_id}/analytics/`);
+            setAnalytics(response.data);
+        } catch (err) {
+            console.error('Error fetching analytics:', err);
+            setError('Ошибка загрузки аналитики');
+        } finally {
+            setAnalyticsLoading(false);
+        }
+    };
+
+    const fetchHistory = async () => {
+        setHistoryLoading(true);
+        try {
+            const response = await axios.get(`/api/business/${business_slug}/products/${product_id}/full-history/`);
+            // Преобразуем данные в плоский массив для отображения
+            const formattedHistory = formatHistoryData(response.data);
+            setHistory(formattedHistory);
+        } catch (err) {
+            console.error('Error fetching history:', err);
+            setError('Ошибка загрузки истории');
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const formatHistoryData = (historyData) => {
+        const result = [];
+
+        // Обрабатываем историю складов
+        if (historyData.stocks && Array.isArray(historyData.stocks)) {
+            historyData.stocks.forEach(stockGroup => {
+                if (stockGroup.history && Array.isArray(stockGroup.history)) {
+                    stockGroup.history.forEach(item => {
+                        result.push({
+                            type: 'stock',
+                            id: item.id,
+                            date: item.history_date,
+                            user: item.history_user,
+                            action: getActionName(item.history_type),
+                            changes: item.changed_fields || {},
+                            variantId: stockGroup.variant_id,
+                            stockId: stockGroup.stock_id
+                        });
+                    });
+                }
+            });
+        }
+
+        // Сортируем по дате (новые сверху)
+        return result.sort((a, b) => new Date(b.date) - new Date(a.date));
+    };
+
+    // Функция для преобразования типа действия в читаемый формат
+    const getActionName = (actionType) => {
+        switch (actionType) {
+            case '+': return 'Создание';
+            case '~': return 'Изменение';
+            case '-': return 'Удаление';
+            default: return actionType;
+        }
+    };
 
     const refreshProductData = async () => {
         try {
@@ -114,13 +320,13 @@ const ProductPage = () => {
               <title>Печать баркода</title>
               <style>
                 @page {
-                  size: 40mm 30mm;
+                  size: 58mm 40mm;
                   margin: 0;
                 }
                 body {
                   margin: 0;
-                  width: 40mm;
-                  height: 30mm;
+                  width: 58mm;
+                  height: 40mm;
                   display: flex;
                   justify-content: center;
                   align-items: center;
@@ -132,9 +338,9 @@ const ProductPage = () => {
                   width: 100%;
                   padding: 1mm 2mm;
                 }
-                .sku {
+                .name {
                   font-weight: bold;
-                  font-size: 8.5px;
+                  font-size: 13px;
                   margin-bottom: 1mm;
                 }
                 .barcode-img {
@@ -147,7 +353,7 @@ const ProductPage = () => {
                   margin-top: 0.5mm;
                 }
                 .price {
-                  font-size: 8px;
+                  font-size: 15px;
                   font-weight: bold;
                   margin-top: 0.5mm;
                 }
@@ -167,9 +373,9 @@ const ProductPage = () => {
             </head>
             <body>
               <div class="product">
-                <div class="sku">${variant.sku}</div>
+                <div class="name">${variant.name}</div>
                 <img class="barcode-img" src="${barcodeUrl}" alt="barcode" />
-                <div class="price-barcode">
+                <div class="price">
                     ${parseFloat(variant.discount) > 0
                 ? `
                             <strike class="old-price-barcode">${parseFloat(variant.price).toLocaleString('ru-RU')} ₸</strike>
@@ -180,17 +386,6 @@ const ProductPage = () => {
                         `
             }
                     </div>
-      
-                <div class="attributes">
-                  ${variant.attributes.map(attr => `
-                    <div class="attribute">
-                      <span class="attribute-name">${attr.category_attribute_name}:</span>
-                      <span class="attribute-value">
-                        ${attr.predefined_value_name || attr.custom_value || '-'}
-                      </span>
-                    </div>
-                  `).join('')}
-                </div>
               </div>
             </body>
           </html>
@@ -208,27 +403,6 @@ const ProductPage = () => {
         }, 500);
     };
 
-    // Заглушка для данных аналитики
-    const salesAnalytics = {
-        totalSold: 1245,
-        monthlyData: [
-            { month: 'Янв', sales: 120, revenue: 240000 },
-            { month: 'Фев', sales: 145, revenue: 290000 },
-            { month: 'Мар', sales: 98, revenue: 196000 },
-            { month: 'Апр', sales: 210, revenue: 420000 },
-            { month: 'Май', sales: 175, revenue: 350000 },
-            { month: 'Июн', sales: 230, revenue: 460000 },
-            { month: 'Июл', sales: 195, revenue: 390000 },
-            { month: 'Авг', sales: 110, revenue: 220000 },
-            { month: 'Сен', sales: 0, revenue: 0 },
-            { month: 'Окт', sales: 0, revenue: 0 },
-            { month: 'Ноя', sales: 0, revenue: 0 },
-            { month: 'Дек', sales: 0, revenue: 0 },
-        ],
-        bestMonth: { month: 'Июн', sales: 230, revenue: 460000 },
-        averagePrice: 2000,
-        stockTurnover: 3.2,
-    };
 
     if (loading) return <div className={styles.loading}>Загрузка...</div>;
     if (error) return <div className={styles.error}>{error}</div>;
@@ -281,7 +455,7 @@ const ProductPage = () => {
                             >
                                 {product.variants.map((v, i) => (
                                     <option key={v.id} value={i}>
-                                        {v.sku} — {parseFloat(v.price).toLocaleString('ru-RU')} ₽
+                                        {v.name} — {parseFloat(v.price).toLocaleString('ru-RU')} ₸
                                     </option>
                                 ))}
                             </select>
@@ -593,63 +767,205 @@ const ProductPage = () => {
                 <div className={styles.analyticsSection}>
                     <h2 className={styles.analyticsTitle}>Аналитика продаж</h2>
 
-                    <div className={styles.analyticsGrid}>
-                        <div className={styles.analyticsCard}>
-                            <h3>Общие показатели</h3>
-                            <div className={styles.analyticsMetric}>
-                                <span className={styles.metricLabel}>Всего продано:</span>
-                                <span className={styles.metricValue}>{salesAnalytics.totalSold} шт.</span>
-                            </div>
-                            <div className={styles.analyticsMetric}>
-                                <span className={styles.metricLabel}>Средняя цена:</span>
-                                <span className={styles.metricValue}>
-                                    {salesAnalytics.averagePrice.toLocaleString('ru-RU')} ₸
-                                </span>
-                            </div>
-                            <div className={styles.analyticsMetric}>
-                                <span className={styles.metricLabel}>Оборачиваемость:</span>
-                                <span className={styles.metricValue}>{salesAnalytics.stockTurnover} раз</span>
-                            </div>
-                        </div>
-
-                        <div className={styles.analyticsCard}>
-                            <h3>Лучший месяц</h3>
-                            <div className={styles.bestMonth}>
-                                <span className={styles.bestMonthName}>{salesAnalytics.bestMonth.month}</span>
-                                <div className={styles.bestMonthStats}>
-                                    <div className={styles.bestMonthStat}>
-                                        <span className={styles.statLabel}>Продажи:</span>
-                                        <span className={styles.statValue}>{salesAnalytics.bestMonth.sales} шт.</span>
-                                    </div>
-                                    <div className={styles.bestMonthStat}>
-                                        <span className={styles.statLabel}>Выручка:</span>
-                                        <span className={styles.statValue}>
-                                            {salesAnalytics.bestMonth.revenue.toLocaleString('ru-RU')} ₸
-                                        </span>
-                                    </div>
+                    {analyticsLoading ? (
+                        <div className={styles.loading}>Загрузка аналитики...</div>
+                    ) : analytics ? (
+                        <div className={styles.analyticsGrid}>
+                            <div className={styles.analyticsCard}>
+                                <h3>Общие показатели</h3>
+                                <div className={styles.analyticsMetric}>
+                                    <span className={styles.metricLabel}>Выручка:</span>
+                                    <span className={styles.metricValue}>
+                                        {analytics.totals.revenue.toLocaleString('ru-RU')} ₸
+                                    </span>
+                                </div>
+                                <div className={styles.analyticsMetric}>
+                                    <span className={styles.metricLabel}>Продажи:</span>
+                                    <span className={styles.metricValue}>
+                                        {analytics.totals.sales_count} шт.
+                                    </span>
+                                </div>
+                                <div className={styles.analyticsMetric}>
+                                    <span className={styles.metricLabel}>Заказы:</span>
+                                    <span className={styles.metricValue}>
+                                        {analytics.totals.orders}
+                                    </span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className={`${styles.analyticsCard} ${styles.chartCard}`}>
-                            <h3>Продажи по месяцам</h3>
-                            <div className={styles.chartPlaceholder}>
-                                {salesAnalytics.monthlyData.map((item, index) => (
-                                    <div key={index} className={styles.chartBarContainer}>
-                                        <div
-                                            className={styles.chartBar}
-                                            style={{ height: `${(item.sales / salesAnalytics.bestMonth.sales) * 100}%` }}
-                                        ></div>
-                                        <span className={styles.chartLabel}>{item.month}</span>
+                            <div className={styles.analyticsCard}>
+                                <h3>Показатели по вариантам</h3>
+                                {analytics.variants.map(variant => (
+                                    <div key={variant.id} className={styles.variantStat}>
+                                        <h4>{variant.name}</h4>
+                                        <div className={styles.analyticsMetric}>
+                                            <span className={styles.metricLabel}>Выручка:</span>
+                                            <span className={styles.metricValue}>
+                                                {variant.totals.revenue.toLocaleString('ru-RU')} ₸
+                                            </span>
+                                        </div>
+                                        <div className={styles.analyticsMetric}>
+                                            <span className={styles.metricLabel}>Продажи:</span>
+                                            <span className={styles.metricValue}>
+                                                {variant.totals.sales_count} шт.
+                                            </span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
+
+                            <div className={`${styles.analyticsCard} ${styles.chartCard}`}>
+                                <h3>Динамика продаж по вариантам</h3>
+                                <div className={styles.chartContainer}>
+                                    <SalesChart analytics={analytics} />
+                                </div>
+                            </div>
                         </div>
+                    ) : (
+                        <div className={styles.error}>Не удалось загрузить данные аналитики</div>
+                    )}
+                </div>
+
+                <div className={styles.historySection}>
+                    <h2 className={styles.sectionTitle}>История изменений</h2>
+                    <div className={styles.historyControls}>
+                        <button
+                            onClick={fetchHistory}
+                            className={styles.refreshButton}
+                            disabled={historyLoading}
+                        >
+                            {historyLoading ? 'Загрузка...' : 'Обновить историю'}
+                        </button>
+                        <span className={styles.historyFilter}>
+                            Показано для: {selectedVariant.name}
+                        </span>
                     </div>
+
+                    {historyLoading ? (
+                        <div className={styles.loading}>Загрузка истории...</div>
+                    ) : error ? (
+                        <div className={styles.error}>{error}</div>
+                    ) : history.filter(record => {
+                        // Фильтруем записи по текущему варианту
+                        if (record.type === 'stock') {
+                            return selectedVariant.stocks.some(stock => stock.id === record.id);
+                        }
+                        if (record.type === 'variant') {
+                            return record.id === selectedVariant.id;
+                        }
+                        return true;
+                    }).length > 0 ? (
+                        <div className={styles.historyList}>
+                            {history
+                                .filter(record => {
+                                    if (record.type === 'stock') {
+                                        return selectedVariant.stocks.some(stock => stock.id === record.id);
+                                    }
+                                    if (record.type === 'variant') {
+                                        return record.id === selectedVariant.id;
+                                    }
+                                    return true;
+                                })
+                                .map((record, index) => (
+                                    <div key={`${record.type}-${record.id}-${index}`} className={styles.historyItem}>
+                                        <div className={styles.historyHeader}>
+                                            <div className={styles.historyMeta}>
+                                                <span className={styles.historyType}>
+                                                    {record.type === 'product' && 'Товар'}
+                                                    {record.type === 'variant' && 'Вариант'}
+                                                    {record.type === 'stock' && 'Склад'}
+                                                    {record.type === 'defect' && 'Брак'}
+                                                </span>
+                                                <span className={styles.historyAction}>
+                                                    {record.action}
+                                                </span>
+                                            </div>
+                                            <div className={styles.historyInfo}>
+                                                <span className={styles.historyDate}>
+                                                    {new Date(record.date).toLocaleString('ru-RU', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </span>
+                                                <span className={styles.historyUser}>
+                                                    {record.user || 'Система'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {record.changes && Object.keys(record.changes).length > 0 ? (
+                                            <div className={styles.historyChanges}>
+                                                {Object.entries(record.changes).map(([field, change]) => {
+                                                    // Функции для форматирования
+                                                    const getFieldName = (field) => {
+                                                        const names = {
+                                                            quantity: 'Количество',
+                                                            reserved_quantity: 'Резерв',
+                                                            defect_quantity: 'Браковано',
+                                                            price: 'Цена',
+                                                            discount: 'Скидка',
+                                                            sku: 'Артикул',
+                                                            last_updated: 'Обновлено',
+                                                            created_at: 'Создано'
+                                                        };
+                                                        return names[field] || field;
+                                                    };
+
+                                                    const formatValue = (value, field) => {
+                                                        if (value === null || value === undefined) return '—';
+
+                                                        if (['quantity', 'reserved_quantity', 'defect_quantity'].includes(field)) {
+                                                            return `${value} шт.`;
+                                                        }
+
+                                                        if (field === 'price') {
+                                                            return `${parseFloat(value).toLocaleString('ru-RU')} ₸`;
+                                                        }
+
+                                                        if (field === 'discount') {
+                                                            return `${value}%`;
+                                                        }
+
+                                                        if (['last_updated', 'created_at'].includes(field)) {
+                                                            return new Date(value).toLocaleString('ru-RU');
+                                                        }
+
+                                                        return value;
+                                                    };
+
+                                                    return (
+                                                        <div key={field} className={styles.changeItem}>
+                                                            <span className={styles.changeField}>{getFieldName(field)}:</span>
+                                                            <div className={styles.changeValues}>
+                                                                <span className={styles.oldValue}>
+                                                                    {formatValue(change.from, field)}
+                                                                </span>
+                                                                <span className={styles.changeArrow}>→</span>
+                                                                <span className={styles.newValue}>
+                                                                    {formatValue(change.to, field)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className={styles.noChanges}>Изменений не зафиксировано</div>
+                                        )}
+                                    </div>
+                                ))}
+                        </div>
+                    ) : (
+                        <p className={styles.noHistory}>Нет истории изменений для этого варианта</p>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
+
 
 export default ProductPage;

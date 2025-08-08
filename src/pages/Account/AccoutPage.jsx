@@ -75,11 +75,11 @@ const AccountPage = () => {
                 <img src={userData.avatar} alt="Аватар" />
               ) : (
                 <div className="avatar-placeholder">
-                  {userData.username.charAt(0).toUpperCase()}
+                  {userData.first_name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
-            <h2>{userData.username}</h2>
+            <h2>{userData.first_name}</h2>
             <p className="user-email">{userData.email}</p>
             <div className={`account-badge ${userData.is_business ? 'business' : 'personal'}`}>
               {userData.is_business ? 'Бизнес-аккаунт' : 'Личный аккаунт'}
@@ -134,8 +134,8 @@ const AccountPage = () => {
                 <h2>Основная информация</h2>
                 <div className="info-grid">
                   <div className="info-item">
-                    <label>Имя пользователя</label>
-                    <p>{userData.username}</p>
+                    <label>Имя</label>
+                    <p>{userData.first_name}</p>
                   </div>
                   <div className="info-item">
                     <label>Email</label>

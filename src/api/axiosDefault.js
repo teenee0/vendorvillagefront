@@ -1,7 +1,7 @@
 import axios_base from 'axios';
 
 const axios = axios_base.create({
-  baseURL: 'http://localhost:8000', // здесь лежит базовый домен, не надо миллион раз его писать
+  baseURL: 'https://w0320x8c-8000.euw.devtunnels.ms', // здесь лежит базовый домен, не надо миллион раз его писать
   withCredentials: true,  // Обязательно для отправки кук
 });
 

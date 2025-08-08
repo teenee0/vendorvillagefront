@@ -1206,16 +1206,23 @@ const SalesPage = () => {
                         <div className={styles.modalHeader}>
                             <h4>{saleCompleted ? 'Чек продажи' : 'Оформление продажи'}</h4>
                             <button
-                                className={styles.closeButton}
-                                onClick={() => {
-                                    if (!saleCompleted) {
-                                        setShowPaymentModal(false);
-                                    }
-                                }}
-                                disabled={saleCompleted}
-                            >
-                                &times;
-                            </button>
+    className={styles.closeButton}
+    onClick={() => {
+        // Сначала сбрасываем состояние продажи
+        if (saleCompleted) {
+            setSaleCompleted(false);
+            setReceiptData(null);
+            setCart([]);
+            setCustomerName('');
+            setCustomerPhone('');
+            setDiscountValue(0);
+        }
+        // Затем закрываем модальное окно
+        setShowPaymentModal(false);
+    }}
+>
+    &times;
+</button>
                         </div>
                         <div className={styles.modalBody}>
                             {!saleCompleted ? (

@@ -141,19 +141,19 @@ const TransactionsPage = () => {
   };
 
   // Удаление чека
-  const deleteReceipt = async (receiptId) => {
-    if (!window.confirm('Вы уверены, что хотите удалить этот чек?')) return;
+  // const deleteReceipt = async (receiptId) => {
+  //   if (!window.confirm('Вы уверены, что хотите удалить этот чек?')) return;
 
-    try {
-      await axios.delete(
-        `/api/business/${business_slug}/receipts/${receiptId}/`
-      );
-      fetchReceipts(pagination.current_page);
-      setSelectedReceipt(null);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  //   try {
+  //     await axios.delete(
+  //       `/api/business/${business_slug}/receipts/${receiptId}/`
+  //     );
+  //     fetchReceipts(pagination.current_page);
+  //     setSelectedReceipt(null);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   }
+  // };
 
   // Переключение вкладок
   const handleTabChange = (tab) => {
@@ -378,12 +378,12 @@ const TransactionsPage = () => {
                           >
                             <FaPrint /> Печать
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => deleteReceipt(receipt.id)}
                             className={styles.deleteButton}
                           >
                             <FaTrashAlt /> Удалить
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -567,12 +567,12 @@ const TransactionsPage = () => {
                 >
                   <FaFilePdf /> Открыть PDF
                 </button>
-                <button
+                {/* <button
                   onClick={() => deleteReceipt(selectedReceipt.id)}
                   className={styles.deleteButton}
                 >
                   <FaTrashAlt /> Удалить чек
-                </button>
+                </button> */}
               </div>
 
               <div className={styles.receiptItems}>

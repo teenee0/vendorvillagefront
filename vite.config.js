@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 8080, // ← Укажи нужный порт
     allowedHosts: [
-      // '60c18bed4bfe69.lhr.life'
+      'w0320x8c-8080.euw.devtunnels.ms'
     ]
   },
 })

@@ -8,8 +8,8 @@ const root = document.getElementById('root');
 const reactRoot = createRoot(root)
 reactRoot.render(
   <BrowserRouter>
-     <StrictMode> {/*__запросы дважды отправляются из за StrictMode__*/}
+     {/* <StrictMode> __запросы дважды отправляются из за StrictMode__ */}
       <App />
-    </StrictMode>
+    {/* </StrictMode> */}
   </BrowserRouter>,
 )
