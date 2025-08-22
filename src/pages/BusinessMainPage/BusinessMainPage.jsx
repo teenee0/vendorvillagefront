@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf } from 'react-icons/fa';
+import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaExclamationTriangle } from 'react-icons/fa';
 import { FcLineChart } from "react-icons/fc";
 import { Chart } from 'chart.js/auto';
 import axios from '../../api/axiosDefault';
@@ -51,8 +51,10 @@ const customDatePickerStyles = `
     border-color: var(--platinum-gleam);
   }
 `;
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
 const BusinessMainPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -73,16 +75,15 @@ const BusinessMainPage = () => {
     try {
       setLoading(true);
 
-      // Преобразуем даты в начало и конец дня в указанной временной зоне
       const startUtc = dayjs(start)
         .tz(tz)
-        .startOf('day') // Начало дня в локальном времени
+        .startOf('day')
         .utc()
         .format();
 
       const endUtc = dayjs(end)
         .tz(tz)
-        .endOf('day') // Конец дня в локальном времени
+        .endOf('day')
         .utc()
         .format();
 
@@ -91,8 +92,6 @@ const BusinessMainPage = () => {
         end: endUtc,
         tz
       };
-
-      // console.log('Запрос к API с параметрами:', params); // Для отладки
 
       const response = await axios.get(
         `/api/business/${business_slug}/dashboard/`,
@@ -107,6 +106,7 @@ const BusinessMainPage = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const end = dayjs().tz(tz).toDate();
     const start = dayjs()
@@ -170,10 +170,11 @@ const BusinessMainPage = () => {
       return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
     });
 
-    // Подготовка данных для графиков
     const salesData = data.chart.map(item => parseFloat(item.amount));
     const ordersData = data.chart.map(item => item.orders || 0);
     const variantsData = data.chart.map(item => item.variants || 0);
+    const refundData = data.chart.map(item => parseFloat(item.refund_amount || 0));
+    const returnsCountData = data.chart.map(item => item.returns || 0);
 
     chartInstance.current = new Chart(ctx, {
       type: 'line',
@@ -206,7 +207,26 @@ const BusinessMainPage = () => {
             borderDash: [5, 5],
             tension: 0.3,
             yAxisID: 'y1'
+          },
+          {
+            label: 'Возвраты (₸)',
+            data: refundData,
+            borderColor: '#ff4757',
+            backgroundColor: 'rgba(255, 71, 87, 0.1)',
+            borderDash: [10, 5],
+            tension: 0.3,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Количество возвратов',
+            data: returnsCountData,
+            borderColor: '#f3ff47ff',
+            backgroundColor: 'rgba(255, 71, 87, 0.1)',
+            borderDash: [10, 5],
+            tension: 0.3,
+            yAxisID: 'y1'
           }
+
         ]
       },
       options: {
@@ -233,7 +253,7 @@ const BusinessMainPage = () => {
                 if (label) {
                   label += ': ';
                 }
-                if (context.datasetIndex === 0) {
+                if (context.datasetIndex === 0 || context.datasetIndex === 3) {
                   label += context.parsed.y.toLocaleString('ru-RU') + ' ₸';
                 } else {
                   label += context.parsed.y.toLocaleString('ru-RU');
@@ -287,16 +307,11 @@ const BusinessMainPage = () => {
     };
   }, [data]);
 
-  if (loading) return <div className={styles.loading}>Загрузка данных...</div>;
-  if (error) return <div className={styles.error}>Ошибка: {error}</div>;
-
-  // транзакции
-
-  const fetchTransactionDetails = async (receiptNumber) => {
+  const fetchTransactionDetails = async (receiptId) => {
     try {
       setModalLoading(true);
       const response = await axios.get(
-        `/api/business/${business_slug}/receipts/${receiptNumber}/`
+        `/api/business/${business_slug}/receipts/${receiptId}/`
       );
       setTransactionDetails(response.data);
     } catch (err) {
@@ -312,28 +327,26 @@ const BusinessMainPage = () => {
     fetchTransactionDetails(transaction.id);
   };
 
-  // Закрытие модального окна
   const closeModal = () => {
     setSelectedTransaction(null);
     setTransactionDetails(null);
   };
 
   const getFileUrl = (imagePath) => {
-        if (!imagePath) return '';
-        if (/^https?:\/\//i.test(imagePath)) return imagePath;
-        if (imagePath.startsWith('/media/')) return `http://localhost:8000${imagePath}`;
-        if (!imagePath.startsWith('/')) return `http://localhost:8000/media/${imagePath}`;
-        return `http://localhost:8000${imagePath}`;
-    };
-
+    if (!imagePath) return '';
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+    if (imagePath.startsWith('/media/')) return `http://localhost:8000${imagePath}`;
+    if (!imagePath.startsWith('/')) return `http://localhost:8000/media/${imagePath}`;
+    return `http://localhost:8000${imagePath}`;
+  };
 
   const TransactionModal = ({ transaction, details, onClose, loading }) => {
     if (!transaction) return null;
 
     const formattedDate = new Date(transaction.created_at).toLocaleString('ru-RU');
-    const totalDiscount = parseFloat(details?.discount_amount) ||
-      (parseFloat(details?.total_amount) *
-        (parseFloat(details?.discount_percent) / 100));
+    const totalDiscount = parseFloat(details?.discount_amount || 0);
+    const totalReturnsAmount = parseFloat(details?.total_returns_amount || 0);
+    const profitWithReturns = parseFloat(details?.profit_with_returns || details?.total_amount || 0);
 
     return (
       <div className={styles.modalOverlay}>
@@ -349,6 +362,9 @@ const BusinessMainPage = () => {
               <span className={styles.paymentMethod}>
                 {transaction.payment_method}
               </span>
+              {details?.is_paid && (
+                <span className={styles.paidBadge}>Оплачено</span>
+              )}
             </div>
           </div>
 
@@ -356,6 +372,16 @@ const BusinessMainPage = () => {
             <div className={styles.modalLoading}>Загрузка деталей...</div>
           ) : (
             <>
+              {/* Информация о клиенте */}
+              {(details?.customer_name || details?.customer_phone) && (
+                <div className={styles.customerInfo}>
+                  <h4>Информация о клиенте</h4>
+                  {details.customer_name && <p>Имя: {details.customer_name}</p>}
+                  {details.customer_phone && <p>Телефон: {details.customer_phone}</p>}
+                </div>
+              )}
+
+              {/* Список товаров */}
               <div className={styles.itemsList}>
                 {details?.sales?.map((sale) => (
                   <div key={sale.id} className={styles.itemCard}>
@@ -373,21 +399,36 @@ const BusinessMainPage = () => {
                     )}
                     <div className={styles.itemInfo}>
                       <h4>{sale.variant.product_name}</h4>
+                      <p className={styles.variantName}>{sale.variant.name}</p>
+                      <p className={styles.sku}>SKU: {sale.variant.sku}</p>
+                      
+                      {/* Атрибуты товара */}
                       <div className={styles.itemAttributes}>
-                        {sale.variant.attributes.map(attr => (
+                        {sale.variant.attributes?.map(attr => (
                           <div key={attr.id} className={styles.attribute}>
                             <span>{attr.category_attribute_name}: </span>
-                            <strong>{attr.predefined_value_name || attr.custom_value}</strong>
+                            <strong>
+                              {attr.predefined_value_name || attr.custom_value || 'Не указано'}
+                            </strong>
                           </div>
                         ))}
                       </div>
+
+                      {/* Информация о складе */}
+                      {sale.variant.stocks_data && (
+                        <div className={styles.stockInfo}>
+                          <small>Доступно на складе: {sale.variant.stocks_data.total_available_quantity}</small>
+                        </div>
+                      )}
+
+                      {/* Ценовая информация */}
                       <div className={styles.itemPricing}>
                         <div className={styles.priceRow}>
                           <span>{sale.quantity} × </span>
                           <span className={styles.originalPrice}>
                             {parseFloat(sale.price_per_unit).toLocaleString('ru-RU')} ₸
                           </span>
-                          {sale.discount_percent > 0 && (
+                          {parseFloat(sale.discount_percent || 0) > 0 && (
                             <>
                               <span className={styles.discountBadge}>
                                 -{sale.discount_percent}%
@@ -398,19 +439,81 @@ const BusinessMainPage = () => {
                             </>
                           )}
                         </div>
+                        
+                        {/* Информация о продажах и скидках */}
+                        {sale.variant.sold_quantity && (
+                          <div className={styles.soldInfo}>
+                            <small>Продано единиц: {sale.variant.sold_quantity}</small>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Возвраты если есть */}
+                      {sale.returns && sale.returns.length > 0 && (
+                        <div className={styles.returnsSection}>
+                          <h5><FaUndo /> Возвраты по этому товару:</h5>
+                          {sale.returns.map((returnItem) => (
+                            <div key={returnItem.id} className={styles.returnItem}>
+                              <div className={styles.returnHeader}>
+                                <span>Количество: {returnItem.quantity}</span>
+                                <span className={styles.refundAmount}>
+                                  -{parseFloat(returnItem.refund_amount).toLocaleString('ru-RU')} ₸
+                                </span>
+                              </div>
+                              <p className={styles.returnReason}>
+                                <strong>Причина:</strong> {returnItem.reason}
+                              </p>
+                              <p className={styles.returnLocation}>
+                                <strong>Местоположение:</strong> {returnItem.location_name}
+                              </p>
+                              <p className={styles.returnDate}>
+                                {new Date(returnItem.return_date).toLocaleString('ru-RU')}
+                              </p>
+                              {returnItem.is_defect && (
+                                <span className={styles.defectBadge}>
+                                  <FaExclamationTriangle /> Брак
+                                </span>
+                              )}
+                              {returnItem.created_by_name && (
+                                <p className={styles.createdBy}>
+                                  Создано: {returnItem.created_by_name}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Доступно для возврата */}
+                      {sale.available_to_return > 0 && (
+                        <div className={styles.availableReturn}>
+                          <small>Доступно для возврата: {sale.available_to_return}</small>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
 
+              {/* Итоговая информация */}
               <div className={styles.receiptFooter}>
                 {totalDiscount > 0 && (
                   <div className={styles.discountInfo}>
                     <span>Скидка:</span>
                     <span className={styles.discountAmount}>
                       -{totalDiscount.toLocaleString('ru-RU')} ₸
-                      {details.discount_percent > 0 && ` (${details.discount_percent}%)`}
+                      {parseFloat(details.discount_percent || 0) > 0 && 
+                        ` (${details.discount_percent}%)`
+                      }
+                    </span>
+                  </div>
+                )}
+
+                {totalReturnsAmount > 0 && (
+                  <div className={styles.returnsInfo}>
+                    <span>Общая сумма возвратов:</span>
+                    <span className={styles.returnsAmount}>
+                      -{totalReturnsAmount.toLocaleString('ru-RU')} ₸
                     </span>
                   </div>
                 )}
@@ -418,19 +521,41 @@ const BusinessMainPage = () => {
                 <div className={styles.totalRow}>
                   <span>Итого:</span>
                   <span className={styles.totalAmount}>
-                    {parseFloat(details?.total_amount).toLocaleString('ru-RU')} ₸
+                    {parseFloat(details?.total_amount || 0).toLocaleString('ru-RU')} ₸
                   </span>
                 </div>
 
+                {profitWithReturns !== parseFloat(details?.total_amount || 0) && (
+                  <div className={styles.profitRow}>
+                    <span>Прибыль с учетом возвратов:</span>
+                    <span className={styles.profitAmount}>
+                      {profitWithReturns.toLocaleString('ru-RU')} ₸
+                    </span>
+                  </div>
+                )}
+
+                {/* Действия */}
                 <div className={styles.actionButtons}>
-                  <a
-                    href={getFileUrl(transactionDetails.receipt_pdf_file)}
-                    className={styles.downloadButton}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <FaFilePdf /> Скачать PDF
-                  </a>
+                  {details?.receipt_pdf_file && (
+                    <a
+                      href={getFileUrl(details.receipt_pdf_file)}
+                      className={styles.downloadButton}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <FaFilePdf /> Скачать PDF
+                    </a>
+                  )}
+                  {details?.receipt_preview_image && (
+                    <a
+                      href={getFileUrl(details.receipt_preview_image)}
+                      className={styles.previewButton}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Предпросмотр чека
+                    </a>
+                  )}
                 </div>
               </div>
             </>
@@ -439,6 +564,9 @@ const BusinessMainPage = () => {
       </div>
     );
   };
+
+  if (loading) return <div className={styles.loading}>Загрузка данных...</div>;
+  if (error) return <div className={styles.error}>Ошибка: {error}</div>;
 
   return (
     <div className={styles.app}>
@@ -495,12 +623,16 @@ const BusinessMainPage = () => {
           <div className={`${styles.statCard} ${styles.success}`}>
             <h6>Всего продаж</h6>
             <h3>{data?.totals?.orders || 0}</h3>
-
           </div>
 
           <div className={`${styles.statCard} ${styles.danger}`}>
-            <h6>Возвраты</h6>
-            <h3>пока что не работает</h3>
+            <h6>Сумма возвратов</h6>
+            <h3>{data?.totals?.refund_amount ? parseFloat(data.totals.refund_amount).toLocaleString('ru-RU') : '0'} ₸</h3>
+          </div>
+          
+          <div className={`${styles.statCard} ${styles.danger}`}>
+            <h6>Количество возвратов</h6>
+            <h3>{data?.totals?.returns_count || 0}</h3>
           </div>
         </div>
 
@@ -511,6 +643,7 @@ const BusinessMainPage = () => {
           </div>
 
           <div className={styles.transactionList}>
+            <h5>Последние транзакции</h5>
             {data?.transactions?.slice(0, 5).map((transaction, index) => (
               <div
                 key={index}
@@ -523,14 +656,23 @@ const BusinessMainPage = () => {
                     {transaction.is_refund ? '-' : '+'}₸{parseFloat(transaction.amount).toLocaleString('ru-RU')}
                   </span>
                 </div>
-                <small>
-                  {new Date(transaction.created_at).toLocaleString('ru-RU')}
-                </small>
+                <div className={styles.transactionMeta}>
+                  <small>
+                    {new Date(transaction.created_at).toLocaleString('ru-RU')}
+                  </small>
+                  <small className={styles.paymentMethod}>
+                    {transaction.payment_method}
+                  </small>
+                </div>
               </div>
             ))}
+            {data?.transactions?.length === 0 && (
+              <div className={styles.noTransactions}>
+                Транзакций за выбранный период не найдено
+              </div>
+            )}
           </div>
 
-          {/* Модальное окно деталей транзакции */}
           <TransactionModal
             transaction={selectedTransaction}
             details={transactionDetails}

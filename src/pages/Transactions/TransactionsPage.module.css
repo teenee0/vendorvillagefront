@@ -1,543 +1,528 @@
+:root {
+  --onyx-midnight: #121212;       /* Основной глубокий фон */
+  --obsidian-elite: #1a1a1a;      /* Вторичный фон, карточки */
+  --phantom-noir: #222222;        /* Акцентные элементы */
+  --gilded-shadow: #2b2b2b;       /* Границы, деликатные линии */
+  --platinum-gleam: #e0e0e0;      /* Основной текст */
+  --silver-whisper: #b0b0b0;      /* Вторичный текст */
+  --palladium-mist: #808080;      /* Неактивные элементы */
+  --royal-emerald: #2daf9f;       /* Акцентный (премиум-зеленый/бирюза) */
+  --imperial-gold: #d4af37;       /* Золотой акцент (кнопки, выделение) */
+  --velvet-ruby: #a83a3a;         /* Опасные действия/предупреждения */
+  --luminous-sapphire: #3a5da8;   /* Информационные элементы */
+  --bg-bs-dark-primary: #060010;  /* Темный фон бизнес-панели */
+}
+
 .container {
-  padding: 20px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 24px;
   background-color: var(--onyx-midnight);
   color: var(--platinum-gleam);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--gilded-shadow);
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+}
+
+.businessInfo {
+  font-size: 16px;
+  color: var(--silver-whisper);
+  font-weight: 500;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid var(--gilded-shadow);
+  background-color: var(--obsidian-elite);
+  color: var(--silver-whisper);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.tabButton:hover {
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.tabButton.active {
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
+  border-color: var(--royal-emerald);
+}
+
+.tabButton:focus {
+  outline: 2px solid var(--luminous-sapphire);
+  outline-offset: 2px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: center;
 }
 
 .searchBar {
-  margin-bottom: 20px;
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
 }
 
 .searchBar form {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  padding: 4px;
 }
 
 .searchBar input {
   flex: 1;
-  padding: 8px 12px;
-  background-color: var(--obsidian-elite);
-  border: 1px solid var(--gilded-shadow);
-  border-radius: 4px;
+  padding: 10px;
+  border: none;
+  background-color: transparent;
   color: var(--platinum-gleam);
+  font-size: 14px;
 }
 
 .searchBar input::placeholder {
   color: var(--palladium-mist);
 }
 
-.receiptsList {
-  background: var(--obsidian-elite);
-  border-radius: 8px;
+.searchBar input:focus {
+  outline: none;
+}
+
+.searchBar button {
+  padding: 10px;
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.searchBar button:hover {
+  background-color: var(--luminous-sapphire);
+}
+
+.searchBar button:focus {
+  outline: 2px solid var(--imperial-gold);
+  outline-offset: 2px;
+}
+
+.dateFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  min-width: 250px;
+}
+
+.dateRangePicker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendarIcon {
+  color: var(--silver-whisper);
+  font-size: 18px;
+}
+
+.dateInput {
+  padding: 10px;
   border: 1px solid var(--gilded-shadow);
+  background-color: var(--obsidian-elite);
+  color: var(--platinum-gleam);
+  border-radius: 6px;
+  font-size: 14px;
+  width: 220px;
+}
+
+.dateInput::placeholder {
+  color: var(--palladium-mist);
+}
+
+.dateInput:focus {
+  outline: 2px solid var(--luminous-sapphire);
+  outline-offset: 2px;
+}
+
+.datePickerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.applyButton,
+.resetButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.applyButton {
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
+}
+
+.applyButton:hover {
+  background-color: #259489;
+}
+
+.resetButton {
+  background-color: var(--velvet-ruby);
+  color: var(--platinum-gleam);
+}
+
+.resetButton:hover {
+  background-color: #8b2f2f;
+}
+
+.dateRangeDisplay {
+  font-size: 14px;
+  color: var(--silver-whisper);
+  font-weight: 500;
+}
+
+.loading,
+.error,
+.empty {
+  text-align: center;
+  padding: 24px;
+  font-size: 16px;
+  color: var(--silver-whisper);
+  background-color: var(--obsidian-elite);
+  border-radius: 6px;
+}
+
+.error {
+  color: var(--velvet-ruby);
+  border: 1px solid var(--velvet-ruby);
+}
+
+.receiptsList,
+.returnsList,
+.historyList {
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.receiptsTable,
+.returnsTable,
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--obsidian-elite);
+  color: var(--platinum-gleam);
+  border-radius: 6px;
   overflow: hidden;
 }
 
-.receiptsTable {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.receiptsTable th, .receiptsTable td {
-  padding: 12px 15px;
+.receiptsTable th,
+.returnsTable th,
+.itemsTable th {
+  padding: 12px 16px;
   text-align: left;
+  background-color: var(--phantom-noir);
+  color: var(--platinum-gleam);
+  font-weight: 600;
+  font-size: 14px;
   border-bottom: 1px solid var(--gilded-shadow);
 }
 
-.receiptsTable th {
+.receiptsTable td,
+.returnsTable td,
+.itemsTable td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  font-size: 14px;
+}
+
+.receiptsTable tr:hover,
+.returnsTable tr:hover,
+.itemsTable tr:hover {
   background-color: var(--phantom-noir);
-  font-weight: 600;
-  color: var(--imperial-gold);
 }
 
 .status {
-  padding: 4px 8px;
+  display: inline-block;
+  padding: 6px 12px;
   border-radius: 4px;
-  font-size: 0.85em;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .status.paid {
-  background-color: rgba(45, 175, 159, 0.2);
-  color: var(--royal-emerald);
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
 }
 
 .status.unpaid {
-  background-color: rgba(168, 58, 58, 0.2);
-  color: var(--velvet-ruby);
+  background-color: var(--velvet-ruby);
+  color: var(--platinum-gleam);
 }
 
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.actions button {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.viewButton,
+.printButton,
+.pdfButton,
+.returnButton {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.9em;
-  transition: all 0.2s ease;
-}
-
-.actions button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .viewButton {
   background-color: var(--luminous-sapphire);
-  color: white;
-}
-
-.printButton {
-  background-color: var(--royal-emerald);
-  color: white;
-}
-
-.deleteButton {
-  background-color: var(--velvet-ruby);
-  color: white;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-  gap: 5px;
-}
-
-.pagination button {
-  padding: 8px 12px;
-  background: var(--obsidian-elite);
-  border: 1px solid var(--gilded-shadow);
   color: var(--platinum-gleam);
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.pagination button:hover {
-  background: var(--phantom-noir);
-}
-
-.pagination button.active {
-  background-color: var(--royal-emerald);
-  color: white;
-  border-color: var(--royal-emerald);
-}
-
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.receiptDetails {
-  background: var(--obsidian-elite);
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--gilded-shadow);
-}
-
-.receiptHeader {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--gilded-shadow);
-}
-
-.receiptHeader h2 {
-  color: var(--imperial-gold);
-}
-
-.receiptMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 10px;
-  font-size: 0.9em;
-  color: var(--silver-whisper);
-}
-
-.receiptActions {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.receiptActions button {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s ease;
-}
-
-.receiptActions button:hover {
-  opacity: 0.9;
+.viewButton:hover {
+  background-color: #2e4a8a;
   transform: translateY(-1px);
 }
 
-.pdfButton {
+.printButton {
   background-color: var(--imperial-gold);
   color: var(--onyx-midnight);
 }
 
-.receiptItems {
-  margin-top: 20px;
+.printButton:hover {
+  background-color: #b8972f;
+  transform: translateY(-1px);
 }
 
-.receiptItems h3 {
-  color: var(--imperial-gold);
-  margin-bottom: 15px;
+.pdfButton {
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
 }
 
-.receiptItems table {
-  width: 100%;
-  border-collapse: collapse;
+.pdfButton:hover {
+  background-color: #259489;
+  transform: translateY(-1px);
 }
 
-.receiptItems th, .receiptItems td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid var(--gilded-shadow);
+.returnButton {
+  background-color: var(--velvet-ruby);
+  color: var(--platinum-gleam);
 }
 
-.receiptItems th {
-  background-color: var(--phantom-noir);
-  color: var(--imperial-gold);
+.returnButton:hover {
+  background-color: #8b2f2f;
+  transform: translateY(-1px);
 }
 
-.productInfo {
+.returnButton:disabled {
+  background-color: var(--palladium-mist);
+  color: var(--silver-whisper);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.historyContainer {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-}
-
-.productName {
-  font-weight: 600;
-  color: var(--platinum-gleam);
-}
-
-.productAttributes {
-  font-size: 0.85em;
-  color: var(--silver-whisper);
-}
-
-.productSku {
-  font-size: 0.8em;
-  color: var(--palladium-mist);
-}
-
-.customerInfo {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid var(--gilded-shadow);
-}
-
-.customerInfo h3 {
-  color: var(--imperial-gold);
-  margin-bottom: 10px;
-}
-
-.backButton {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 15px;
-  background: none;
-  border: none;
-  color: var(--royal-emerald);
-  cursor: pointer;
-  padding: 5px 0;
-  transition: all 0.2s ease;
-}
-
-.backButton:hover {
-  color: var(--imperial-gold);
-}
-
-.loading, .error, .empty {
-  padding: 20px;
-  text-align: center;
-  background: var(--obsidian-elite);
-  border-radius: 8px;
-  border: 1px solid var(--gilded-shadow);
-}
-
-.error {
-  color: var(--velvet-ruby);
-}
-
-.empty {
-  color: var(--silver-whisper);
-}
-
-/* Анимации */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.container {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-  .receiptsTable {
-    display: block;
-    overflow-x: auto;
-  }
-  
-  .receiptMeta {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .actions {
-    flex-direction: column;
-  }
-}
-
-
-/* Стили для вкладок */
-.tabs {
-  display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--gilded-shadow);
-}
-
-.tabButton {
-  padding: 10px 20px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--silver-whisper);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tabButton:hover {
-  color: var(--platinum-gleam);
-}
-
-.tabButton.active {
-  color: var(--imperial-gold);
-  border-bottom-color: var(--imperial-gold);
-  font-weight: 600;
-}
-
-/* Стили для истории изменений */
-.historyList {
-  margin-top: 20px;
+  gap: 12px;
 }
 
 .historyItem {
-  background-color: var(--phantom-noir);
-  border-radius: 8px;
-  margin-bottom: 15px;
-  overflow: hidden;
+  background-color: var(--obsidian-elite);
   border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .historyHeader {
-  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 16px;
   cursor: pointer;
-  background-color: var(--bg-bs-dark-primary);
-  transition: background-color 0.2s;
-}
-
-.historyHeader:hover {
-  background-color: #0f001a;
+  background-color: var(--phantom-noir);
 }
 
 .historyMainInfo {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 16px;
   align-items: center;
 }
 
 .receiptNumber {
   font-weight: 600;
-  color: var(--imperial-gold);
+  color: var(--platinum-gleam);
+  font-size: 15px;
 }
 
-.receiptDate {
-  color: var(--silver-whisper);
-  font-size: 0.9rem;
-}
-
+.receiptDate,
 .receiptAmount {
-  font-weight: 500;
+  color: var(--silver-whisper);
+  font-size: 14px;
 }
 
 .receiptStatus {
-  padding: 4px 8px;
+  padding: 6px 12px;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .receiptStatus.active {
-  background-color: rgba(45, 175, 159, 0.2);
-  color: var(--royal-emerald);
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
 }
 
 .receiptStatus.deleted {
-  background-color: rgba(168, 58, 58, 0.2);
-  color: var(--velvet-ruby);
+  background-color: var(--velvet-ruby);
+  color: var(--platinum-gleam);
 }
 
 .historyToggle {
-  color: var(--royal-emerald);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  color: var(--silver-whisper);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .historyDetails {
-  padding: 0 15px;
-  overflow: hidden;
-  transition: max-height 0.3s ease, padding 0.3s ease;
-}
-
-.historyItem.expanded .historyDetails {
-  padding: 15px;
-  max-height: 1000px;
+  padding: 16px;
+  background-color: var(--obsidian-elite);
 }
 
 .historyRecords {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .historyRecord {
-  padding: 15px;
-  background-color: var(--obsidian-elite);
+  padding: 12px;
+  border: 1px solid var(--gilded-shadow);
   border-radius: 6px;
-  border-left: 4px solid var(--royal-emerald);
+  background-color: var(--onyx-midnight);
 }
 
 .historyRecord.deleted {
-  border-left-color: var(--velvet-ruby);
-  background-color: rgba(168, 58, 58, 0.1);
+  background-color: #2a1c1c;
 }
 
 .recordHeader {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .recordType {
   font-weight: 600;
-  color: var(--royal-emerald);
+  color: var(--imperial-gold);
+  font-size: 14px;
 }
 
-.historyRecord.deleted .recordType {
-  color: var(--velvet-ruby);
-}
-
-.recordDate {
-  color: var(--silver-whisper);
-}
-
+.recordDate,
 .recordUser {
   color: var(--silver-whisper);
+  font-size: 14px;
 }
 
-.recordDetails {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-}
-
-.recordAmount {
-  font-weight: 500;
-}
-
-.recordDiscount {
-  color: var(--royal-emerald);
-}
-
+.recordDetails,
 .recordChanges {
-  padding: 12px;
-  background-color: var(--bg-bs-dark-primary);
-  border-radius: 4px;
-  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-.changeItem {
-  margin-bottom: 5px;
+.recordAmount,
+.recordDiscount {
+  margin-bottom: 6px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: 1px solid var(--gilded-shadow);
+  background-color: var(--obsidian-elite);
   color: var(--platinum-gleam);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
 }
 
-.changeItem strong {
-  color: var(--imperial-gold);
+.pagination button:hover {
+  background-color: var(--phantom-noir);
 }
 
-.noChanges {
-  color: var(--palladium-mist);
-  font-style: italic;
+.pagination button.active {
+  background-color: var(--royal-emerald);
+  border-color: var(--royal-emerald);
 }
 
-/* Адаптивные стили для истории */
-@media (max-width: 768px) {
-  .historyMainInfo {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .historyHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .historyToggle {
-    align-self: flex-end;
-  }
-  
-  .recordHeader {
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .recordDetails {
-    flex-direction: column;
-    gap: 5px;
-  }
+.pagination button:disabled {
+  background-color: var(--palladium-mist);
+  color: var(--silver-whisper);
+  cursor: not-allowed;
 }
-
-/* Добавим в TransactionsPage.module.css */
 
 .modalOverlay {
   position: fixed;
@@ -545,22 +530,24 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 16px;
 }
 
 .modalContent {
   background-color: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
   border-radius: 8px;
-  width: 90%;
-  max-width: 800px;
+  max-width: 900px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+  color: var(--platinum-gleam);
 }
 
 .modalHeader {
@@ -568,291 +555,331 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--gilded-shadow);
 }
 
 .modalHeader h2 {
-  margin: 0;
-  color: var(--imperial-gold);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--platinum-gleam);
 }
 
 .closeButton {
   background: none;
   border: none;
-  font-size: 1.5rem;
   color: var(--silver-whisper);
+  font-size: 20px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.3s ease;
 }
 
 .closeButton:hover {
-  color: var(--royal-emerald);
+  color: var(--velvet-ruby);
 }
 
-/* Добавим в TransactionsPage.module.css */
+.closeButton:focus {
+  outline: 2px solid var(--luminous-sapphire);
+  outline-offset: 2px;
+}
 
 .receiptDetails {
-  padding: 15px 0;
-}
-
-.itemsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-.itemsTable th, .itemsTable td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid var(--gilded-shadow);
-}
-
-.itemsTable th {
-  background-color: var(--phantom-noir);
-  color: var(--imperial-gold);
-}
-
-.receiptMeta {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .receiptMeta div {
-  background-color: var(--phantom-noir);
-  padding: 10px;
-  border-radius: 4px;
+  margin-bottom: 10px;
+  color: var(--silver-whisper);
+  font-size: 14px;
+}
+
+.receiptMeta strong {
+  color: var(--platinum-gleam);
+  font-weight: 600;
 }
 
 .receiptActions {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
+  gap: 12px;
 }
 
-.receiptActions button {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s ease;
-}
-
-.receiptActions button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.customerInfo {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid var(--gilded-shadow);
-}
-
+.receiptItems h3,
+.returnsHistory h3,
 .customerInfo h3 {
-  color: var(--imperial-gold);
-  margin-bottom: 10px;
-}
-
-@media (max-width: 768px) {
-  .modalContent {
-    width: 95%;
-    padding: 15px;
-  }
-  
-  .receiptMeta {
-    grid-template-columns: 1fr;
-  }
-  
-  .receiptActions {
-    flex-direction: column;
-  }
-  
-  .itemsTable {
-    font-size: 0.9rem;
-  }
-  
-  .itemsTable th, 
-  .itemsTable td {
-    padding: 8px 10px;
-  }
-}
-
-.headerWithControls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.periodControls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.periodButton {
-  padding: 8px 16px;
-  border: 1px solid var(--gilded-shadow);
-  background: var(--phantom-noir);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
   color: var(--platinum-gleam);
 }
 
-.periodButton:hover {
-  background: var(--gilded-shadow);
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.periodButton.active {
-  background: var(--royal-emerald);
-  color: white;
-  border-color: var(--royal-emerald);
+.productName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 14px;
 }
 
-.dateRangePicker {
+.productAttributes,
+.productSku,
+.variantName {
+  font-size: 12px;
+  color: var(--silver-whisper);
+}
+
+.defectYes {
+  color: var(--velvet-ruby);
+  font-weight: 500;
+}
+
+.defectNo {
+  color: var(--royal-emerald);
+  font-weight: 500;
+}
+
+.returnForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formRow label {
+  font-size: 14px;
+  color: var(--platinum-gleam);
+  font-weight: 500;
+}
+
+.formRow input,
+.formRow textarea,
+.formRow select {
+  padding: 10px;
+  border: 1px solid var(--gilded-shadow);
+  background-color: var(--onyx-midnight);
+  color: var(--platinum-gleam);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.formRow input:focus,
+.formRow textarea:focus,
+.formRow select:focus {
+  outline: 2px solid var(--luminous-sapphire);
+  outline-offset: 2px;
+}
+
+.formRow input::placeholder,
+.formRow textarea::placeholder {
+  color: var(--palladium-mist);
+}
+
+.formRow textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.formRowCheckbox {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--obsidian-elite);
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid var(--gilded-shadow);
 }
 
-.calendarIcon {
-  color: var(--palladium-mist);
-}
-
-.dateInput {
-  border: none;
-  padding-right: 28px;
-  padding: 4px 8px;
-  width: 100px;
-  text-align: center;
-  border-bottom: 1px solid var(--gilded-shadow);
-  background: var(--obsidian-elite);
-  color: var(--platinum-gleam);
-}
-
-.dateInput:focus {
-  outline: none;
-  border-bottom-color: var(--royal-emerald);
-}
-
-
-.dateRangeContainer {
-  position: relative;
-}
-
-.dateRangePicker {
+.checkboxLabel {
   display: flex;
   align-items: center;
+  gap: 6px;
+  color: var(--platinum-gleam);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.readonlyValue {
+  padding: 10px;
+  background-color: var(--phantom-noir);
+  border-radius: 6px;
+  color: var(--silver-whisper);
+  font-size: 14px;
+}
+
+.modalActionsRight {
+  display: flex;
+  justify-content: flex-end;
   gap: 12px;
-  background: var(--obsidian-elite);
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--gilded-shadow);
-  transition: all 0.3s ease;
-  position: relative;
-  min-width: 280px;
+  margin-top: 20px;
 }
 
-.dateRangePicker:hover {
-  border-color: var(--royal-emerald);
-}
-
-.calendarIcon {
-  color: var(--royal-emerald);
-  font-size: 18px;
-}
-
-.dateInput {
+.cancelButton,
+.submitReturnButton {
+  padding: 10px 20px;
   border: none;
-  background: transparent;
-  color: var(--platinum-gleam);
-  font-size: 14px;
-  width: 100%;
-  padding: 6px 0;
+  border-radius: 6px;
   cursor: pointer;
-}
-
-.dateInput::placeholder {
-  color: var(--palladium-mist);
-}
-
-.dateRangeDisplay {
-  color: var(--platinum-gleam);
   font-size: 14px;
-  white-space: nowrap;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cancelButton {
+  background-color: var(--palladium-mist);
+  color: var(--platinum-gleam);
+}
+
+.cancelButton:hover {
+  background-color: var(--gilded-shadow);
+  transform: translateY(-1px);
+}
+
+.submitReturnButton {
+  background-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
+}
+
+.submitReturnButton:hover {
+  background-color: #259489;
+  transform: translateY(-1px);
+}
+
+.submitReturnButton:disabled,
+.cancelButton:disabled {
+  background-color: var(--palladium-mist);
+  color: var(--silver-whisper);
+  cursor: not-allowed;
+  transform: none;
 }
 
 .calendarWrapper {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background-color: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  border-radius: 6px;
 }
 
 .datePickerPopper {
-  z-index: 1000;
+  z-index: 1001;
 }
 
-/* Анимация при открытии */
-.react-datepicker__input-container {
-  width: 100%;
+.itemsTable td:nth-child(7) {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.react-datepicker__triangle {
-  display: none;
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tabButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .searchBar {
+    min-width: 100%;
+  }
+
+  .dateFilter {
+    min-width: 100%;
+  }
+
+  .dateInput {
+    width: 100%;
+  }
+
+  .receiptsTable,
+  .returnsTable,
+  .itemsTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .modalContent {
+    width: 95%;
+    padding: 16px;
+  }
+
+  .modalHeader h2 {
+    font-size: 18px;
+  }
+
+  .actions,
+  .receiptActions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
-/* Кастомные стили для диапазона */
-.react-datepicker__day--in-range {
-  background-color: rgba(45, 175, 159, 0.2);
-  color: var(--platinum-gleam);
-}
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 
-.react-datepicker__day--in-selecting-range:not(.react-datepicker__day--in-range) {
-  background-color: rgba(45, 175, 159, 0.1);
-}
+  .header h1 {
+    font-size: 20px;
+  }
 
-.react-datepicker__day--range-start,
-.react-datepicker__day--range-end {
-  background-color: var(--royal-emerald);
-  color: white;
-}
+  .businessInfo {
+    font-size: 14px;
+  }
 
-:global(.react-datepicker__close-icon) {
-  position: absolute;      /* вырываем из потока */
-  right: 6px;              /* сдвигаем вправо */
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px; height: 18px;        /* размер и “кликабельность” */
-  cursor: pointer;
-  background: transparent; /* убираем белый фон, если есть */
-}
+  .tabButton {
+    font-size: 14px;
+    padding: 10px;
+  }
 
-/* --- сам “крестик” (рендерится псевдо-элементом) --- */
-:global(.react-datepicker__close-icon::after) {
-  /* можно задать другой символ или SVG-иконку */
-  content: "\00d7";                  /* × */
-  font-size: 16px;
-  line-height: 18px;
-  color: var(--palladium-mist);
-  transition: color .2s;
-}
+  .searchBar input,
+  .dateInput {
+    font-size: 13px;
+  }
 
-/* ховер-эффект */
-:global(.react-datepicker__close-icon:hover::after) {
-  color: var(--royal-emerald);
+  .applyButton,
+  .resetButton,
+  .viewButton,
+  .printButton,
+  .pdfButton,
+  .returnButton,
+  .cancelButton,
+  .submitReturnButton {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .pagination button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .receiptsTable th,
+  .returnsTable th,
+  .itemsTable th,
+  .receiptsTable td,
+  .returnsTable td,
+  .itemsTable td {
+    font-size: 13px;
+    padding: 8px;
+  }
 }

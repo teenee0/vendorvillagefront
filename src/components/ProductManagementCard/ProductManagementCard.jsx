@@ -26,7 +26,7 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
 
     return (
         <div className={`product-card ${styles.card}`} onClick={handleCardClick}>
-            <div className={`product-image ${styles.imageContainer}`}>
+            <div>
                 {mainImage?.image ? (
                     <img
                         src={getImageUrl(mainImage.image)}

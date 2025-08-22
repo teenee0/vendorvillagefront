@@ -86,7 +86,7 @@ const SalesPage = () => {
             console.error('Failed to fetch categories:', err);
         }
     }, [business_slug]);
-    
+
     // Calculate item price with discounts
     const calculateItemPrice = (item) => {
         let price = item.originalPrice;
@@ -136,7 +136,7 @@ const SalesPage = () => {
 
     // Add to cart function
     const addToCart = (product, variant) => {
-        const availableQty = variant.stocks.reduce((sum, stock) => sum + stock.available_quantity, 0);
+        const availableQty = variant.stocks_data.total_available_quantity;
         if (availableQty <= 0) {
             alert('Товар отсутствует на складе');
             return;
@@ -165,8 +165,8 @@ const SalesPage = () => {
                     ? Math.round(originalPrice * (1 - variant.discount / 100))
                     : originalPrice;
 
-                // Всегда устанавливаем локацию, даже если она одна
-                const availableStock = variant.stocks[0]; // Берем первую доступную локацию
+                // Use the first available stock location
+                const availableStock = variant.stocks_data.stocks[0];
 
                 return [
                     ...prevCart,
@@ -184,8 +184,8 @@ const SalesPage = () => {
                         image: product.images.find(img => img.is_main)?.image || product.images[0]?.image,
                         itemDiscountAmount: 0,
                         itemDiscountPercent: 0,
-                        location: availableStock?.location || null,
-                        locationName: availableStock?.location_name || 'Основной склад',
+                        location: availableStock?.location?.id || null,
+                        locationName: availableStock?.location?.name || 'Основной склад',
                         hasOriginalDiscount
                     }
                 ];
@@ -398,7 +398,7 @@ const SalesPage = () => {
             <div className={styles.productsGrid}>
                 {products.map(product => (
                     product.variants.map(variant => {
-                        const availableQty = variant.stocks.reduce((sum, stock) => sum + stock.available_quantity, 0);
+                        const availableQty = variant.stocks_data.total_available_quantity;
                         const mainImage = product.images.find(img => img.is_main)?.image || product.images[0]?.image;
 
                         return (
@@ -514,7 +514,7 @@ const SalesPage = () => {
                                 <small className={styles.cartItemSku}>Артикул: {item.sku}</small>
 
                                 {/* Выбор локации */}
-                                {availableLocations.length > 0 && (
+                                {selectedVariant?.stocks_data?.stocks?.length > 0 && (
                                     <div className={styles.locationSelect}>
                                         <label>Локация:</label>
                                         <select
@@ -524,18 +524,23 @@ const SalesPage = () => {
                                                 setCart(prevCart =>
                                                     prevCart.map(cartItem =>
                                                         cartItem.variantId === item.variantId
-                                                            ? { ...cartItem, location: newLocation }
+                                                            ? {
+                                                                ...cartItem,
+                                                                location: newLocation,
+                                                                locationName: selectedVariant.stocks_data.stocks
+                                                                    .find(s => s.location.id === newLocation)?.location?.name || 'Основной склад'
+                                                            }
                                                             : cartItem
                                                     )
                                                 );
                                             }}
                                         >
-                                            {availableLocations.map(stock => (
+                                            {selectedVariant.stocks_data.stocks.map(stock => (
                                                 <option
-                                                    key={stock.location_id}
-                                                    value={stock.location_id}
+                                                    key={stock.location.id}
+                                                    value={stock.location.id}
                                                 >
-                                                    {stock.location_name} (Доступно: {stock.available_quantity})
+                                                    {stock.location.name} (Доступно: {stock.available_quantity})
                                                 </option>
                                             ))}
                                         </select>
@@ -705,7 +710,7 @@ const SalesPage = () => {
             );
         }
 
-        const availableQty = selectedVariant.stocks.reduce((sum, stock) => sum + stock.available_quantity, 0);
+        const availableQty = selectedVariant.stocks_data.total_available_quantity;
         const currentImage = selectedProduct.images[currentImageIndex]?.image;
 
         return (
@@ -1206,23 +1211,23 @@ const SalesPage = () => {
                         <div className={styles.modalHeader}>
                             <h4>{saleCompleted ? 'Чек продажи' : 'Оформление продажи'}</h4>
                             <button
-    className={styles.closeButton}
-    onClick={() => {
-        // Сначала сбрасываем состояние продажи
-        if (saleCompleted) {
-            setSaleCompleted(false);
-            setReceiptData(null);
-            setCart([]);
-            setCustomerName('');
-            setCustomerPhone('');
-            setDiscountValue(0);
-        }
-        // Затем закрываем модальное окно
-        setShowPaymentModal(false);
-    }}
->
-    &times;
-</button>
+                                className={styles.closeButton}
+                                onClick={() => {
+                                    // Сначала сбрасываем состояние продажи
+                                    if (saleCompleted) {
+                                        setSaleCompleted(false);
+                                        setReceiptData(null);
+                                        setCart([]);
+                                        setCustomerName('');
+                                        setCustomerPhone('');
+                                        setDiscountValue(0);
+                                    }
+                                    // Затем закрываем модальное окно
+                                    setShowPaymentModal(false);
+                                }}
+                            >
+                                &times;
+                            </button>
                         </div>
                         <div className={styles.modalBody}>
                             {!saleCompleted ? (

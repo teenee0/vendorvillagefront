@@ -36,7 +36,7 @@ const ProductEditPage = () => {
 
     // Изображения
     const [images, setImages] = useState([]);
-    const [imagesToDelete, setImagesToDelete] = useState([]); // Новое состояние для удаляемых изображений
+    const [imagesToDelete, setImagesToDelete] = useState([]);
     const fileInputRef = useRef(null);
     const [croppingData, setCroppingData] = useState({
         files: [],
@@ -59,7 +59,7 @@ const ProductEditPage = () => {
 
                 // Загрузка локаций
                 const locationsResponse = await axios.get(`/api/business/${business_slug}/locations/`);
-                setLocations(locationsResponse.data);
+                setLocations(locationsResponse.data.results || locationsResponse.data);
 
                 // Загрузка данных товара, если это редактирование
                 if (product_id) {
@@ -73,7 +73,7 @@ const ProductEditPage = () => {
                     setIsActive(productData.is_active);
                     setIsVisibleOnMarketplace(productData.is_visible_on_marketplace);
                     setIsVisibleOnOwnSite(productData.is_visible_on_own_site);
-                    setCategoryName(productData.category_name); // Добавьте эту строку
+                    setCategoryName(productData.category_name);
 
                     // Загрузка изображений
                     setImages(productData.images.map(img => ({
@@ -83,19 +83,17 @@ const ProductEditPage = () => {
                         isExisting: true
                     })));
 
+                    // Загрузка вариантов
                     if (productData.variants && productData.variants.length > 0) {
                         const loadedVariants = productData.variants.map((variant, index) => {
                             const attributesObj = {};
-                            const attributesWithIds = {}; // Новый объект для хранения ID атрибутов
+                            const attributesWithIds = {};
 
                             variant.attributes.forEach(attr => {
-                                // Сохраняем ID атрибута
                                 attributesWithIds[String(attr.category_attribute)] = {
-                                    id: attr.id, // ID самого атрибута варианта
+                                    id: attr.id,
                                     value: attr.predefined_value ? String(attr.predefined_value) : attr.custom_value
                                 };
-
-                                // Для совместимости со старой структурой
                                 attributesObj[String(attr.category_attribute)] =
                                     attr.predefined_value ? String(attr.predefined_value) : attr.custom_value;
                             });
@@ -109,15 +107,14 @@ const ProductEditPage = () => {
                                 showThis: variant.show_this,
                                 is_available_for_sale: variant.is_available_for_sale,
                                 attributes: attributesObj,
-                                attributesWithIds, // Добавляем объект с ID атрибутов
+                                attributesWithIds,
                                 stocks: variant.stocks.map(stock => ({
-                                    id: stock.id, // Сохраняем ID склада
+                                    id: stock.id,
                                     location_id: String(stock.location),
                                     quantity: String(stock.quantity),
-                                    reserved_quantity: String(stock.reserved_quantity),
+                                    reserved_quantity: String(stock.reserved_quantity || '0'),
                                     is_available_for_sale: stock.is_available_for_sale
-                                })),
-                                location_id: variant.stocks[0]?.location ? String(variant.stocks[0].location) : ''
+                                }))
                             };
                         });
 
@@ -140,7 +137,6 @@ const ProductEditPage = () => {
         };
 
         fetchInitialData();
-
     }, [business_slug, product_id]);
 
     // Загрузка атрибутов при изменении категории
@@ -149,36 +145,26 @@ const ProductEditPage = () => {
             setIsLoadingAttributes(true);
             setAttributesError(null);
             const response = await axios.get(`/api/categories/${categoryId}/attributes/`);
-            console.log('Category attributes response:', response.data); // Добавьте эту строку для отладки
-
-            // Убедитесь, что атрибуты имеют правильную структуру
             const formattedAttributes = response.data.map(attr => ({
                 ...attr,
-                values: attr.values || [], // Добавляем пустой массив, если values отсутствует
-                has_predefined_values: attr.has_predefined_values || false // Добавляем значение по умолчанию
+                values: attr.values || [],
+                has_predefined_values: attr.has_predefined_values || false
             }));
 
             setCategoryAttributes(formattedAttributes);
 
-            // Дополнительно: обновляем variants, добавляя недостающие атрибуты
+            // Обновляем варианты, добавляя недостающие атрибуты
             setVariants(prevVariants =>
                 prevVariants.map(variant => {
                     const updatedAttributes = { ...variant.attributes };
-
                     formattedAttributes.forEach(attr => {
                         if (updatedAttributes[attr.id] === undefined) {
-                            // Если значение не задано — добавляем пустое
                             updatedAttributes[attr.id] = '';
                         }
                     });
-
-                    return {
-                        ...variant,
-                        attributes: updatedAttributes
-                    };
+                    return { ...variant, attributes: updatedAttributes };
                 })
             );
-
         } catch (err) {
             setAttributesError(err.message);
             console.error('Ошибка при загрузке атрибутов категории:', err);
@@ -205,18 +191,16 @@ const ProductEditPage = () => {
             id: variantCounter,
             price: '',
             discount: '0',
-            quantity: '0', // Это должно быть перенесено в stocks
             description: '',
             showThis: true,
-            reserved_quantity: '0', // Это должно быть перенесено в stocks
             is_available_for_sale: true,
-            location_id: locations.length > 0 ? String(locations[0].id) : '',
             attributes: categoryAttributes.reduce((acc, attr) => {
                 acc[String(attr.id)] = attr.values.length > 0 ?
                     (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
                 return acc;
             }, {}),
             stocks: [{
+                id: Date.now(),
                 location_id: locations.length > 0 ? String(locations[0].id) : '',
                 quantity: '0',
                 reserved_quantity: '0',
@@ -228,8 +212,41 @@ const ProductEditPage = () => {
         setVariantCounter(variantCounter + 1);
     };
 
-    // Изменение варианта
-    const handleVariantChange = (id, field, value, attributeId = null, stockIndex = 0) => {
+    // Добавление нового склада для варианта
+    const handleAddStock = (variantId) => {
+        setVariants(variants.map(variant => {
+            if (variant.id === variantId) {
+                return {
+                    ...variant,
+                    stocks: [
+                        ...variant.stocks,
+                        {
+                            id: Date.now() + variant.stocks.length,
+                            location_id: locations.length > 0 ? String(locations[0].id) : '',
+                            quantity: '0',
+                            reserved_quantity: '0',
+                            is_available_for_sale: true
+                        }
+                    ]
+                };
+            }
+            return variant;
+        }));
+    };
+
+    // Удаление склада из варианта
+    const handleRemoveStock = (variantId, stockId) => {
+        setVariants(variants.map(variant => {
+            if (variant.id === variantId) {
+                const newStocks = variant.stocks.filter(stock => stock.id !== stockId);
+                return { ...variant, stocks: newStocks };
+            }
+            return variant;
+        }));
+    };
+
+    // Изменение варианта или склада
+    const handleVariantChange = (id, field, value, attributeId = null, stockId = null) => {
         setVariants(variants.map(variant => {
             if (variant.id === id) {
                 if (attributeId !== null) {
@@ -240,16 +257,15 @@ const ProductEditPage = () => {
                             [String(attributeId)]: typeof value === 'number' ? String(value) : value
                         }
                     };
-                } else if (field.startsWith('stocks')) {
-                    const stockField = field.split('.')[1];
-                    const updatedStocks = [...variant.stocks];
-                    updatedStocks[stockIndex] = {
-                        ...updatedStocks[stockIndex],
-                        [stockField]: value
-                    };
+                } else if (stockId !== null) {
                     return {
                         ...variant,
-                        stocks: updatedStocks
+                        stocks: variant.stocks.map(stock => {
+                            if (stock.id === stockId) {
+                                return { ...stock, [field]: value };
+                            }
+                            return stock;
+                        })
                     };
                 } else {
                     return {
@@ -267,20 +283,17 @@ const ProductEditPage = () => {
         if (variants.length === 0) return;
 
         const lastVariant = variants[variants.length - 1];
-
-        // Преобразуем все ID в строки при копировании
         const copiedAttributes = {};
         Object.entries(lastVariant.attributes || {}).forEach(([key, value]) => {
             copiedAttributes[String(key)] = typeof value === 'number' ? String(value) : value;
         });
 
-        // Копируем stocks с преобразованием ID в строки
-        const copiedStocks = (lastVariant.stocks || []).map(stock => ({
+        const copiedStocks = lastVariant.stocks.map(stock => ({
+            id: Date.now() + Math.random(),
             location_id: String(stock.location_id),
             quantity: stock.quantity,
             reserved_quantity: stock.reserved_quantity || '0',
-            is_available_for_sale: stock.is_available_for_sale !== undefined ?
-                stock.is_available_for_sale : true
+            is_available_for_sale: stock.is_available_for_sale
         }));
 
         const newVariant = {
@@ -291,12 +304,7 @@ const ProductEditPage = () => {
             showThis: lastVariant.showThis,
             is_available_for_sale: lastVariant.is_available_for_sale,
             attributes: copiedAttributes,
-            stocks: copiedStocks.length > 0 ? copiedStocks : [{
-                location_id: locations.length > 0 ? String(locations[0].id) : '',
-                quantity: '0',
-                reserved_quantity: '0',
-                is_available_for_sale: true
-            }]
+            stocks: copiedStocks
         };
 
         setVariants([...variants, newVariant]);
@@ -337,7 +345,6 @@ const ProductEditPage = () => {
 
         setImages(prev => [...prev, newImage]);
 
-        // Если это последнее изображение, закрываем модальное окно
         if (index === croppingData.files.length - 1) {
             setIsModalOpen(false);
             document.body.classList.remove(styles.bodyNoScroll);
@@ -373,28 +380,20 @@ const ProductEditPage = () => {
         }));
     };
 
-
     const handleSetMainImage = (id) => {
         setImages(prevImages => {
-            // Если пытаемся сделать главным уже главное изображение
             const currentMain = prevImages.find(img => img.isMain);
             if (currentMain?.id === id) return prevImages;
 
-            // Создаем новый массив изображений
             const newImages = [...prevImages];
-
-            // Находим индекс изображения, которое делаем главным
             const newMainIndex = newImages.findIndex(img => img.id === id);
+            if (newMainIndex === -1) return prevImages;
 
-            if (newMainIndex === -1) return prevImages; // если не нашли изображение
-
-            // Обновляем флаги isMain у всех изображений
             const updatedImages = newImages.map(img => ({
                 ...img,
                 isMain: img.id === id
             }));
 
-            // Перемещаем новое главное изображение в начало массива
             const [newMainImage] = updatedImages.splice(newMainIndex, 1);
             return [newMainImage, ...updatedImages];
         });
@@ -402,24 +401,22 @@ const ProductEditPage = () => {
 
     const handleRemoveImage = (id) => {
         setImages(prevImages => {
-            // Находим удаляемое изображение
             const imageToRemove = prevImages.find(img => img.id === id);
-            if (imageToRemove?.isMain && images.length > 1) {
+            if (imageToRemove?.isMain && prevImages.length > 1) {
                 if (!window.confirm('Вы удаляете главное изображение. Продолжить?')) {
-                    return;
+                    return prevImages;
                 }
             }
             if (!imageToRemove) return prevImages;
 
-            // Фильтруем массив без удаленного изображения
-            const newImages = prevImages.filter(img => img.id !== id);
-
-            // Если удалили главное изображение и остались другие изображения
-            if (imageToRemove.isMain && newImages.length > 0) {
-                // Делаем первое изображение главным
-                newImages[0].isMain = true;
+            if (imageToRemove.isExisting) {
+                setImagesToDelete(prev => [...prev, imageToRemove.id]);
             }
 
+            const newImages = prevImages.filter(img => img.id !== id);
+            if (imageToRemove.isMain && newImages.length > 0) {
+                newImages[0].isMain = true;
+            }
             return newImages;
         });
     };
@@ -437,7 +434,6 @@ const ProductEditPage = () => {
 
     // Валидация формы
     const validateForm = () => {
-        // Проверка основной информации
         if (!productName.trim()) {
             return { valid: false, message: "Заполните название товара." };
         }
@@ -466,11 +462,21 @@ const ProductEditPage = () => {
             if (!variant.price) {
                 return { valid: false, message: `Вариант ${index + 1}: укажите цену.` };
             }
-            if (!variant.quantity) {
-                return { valid: false, message: `Вариант ${index + 1}: укажите количество.` };
+
+            if (variant.stocks.length === 0) {
+                return { valid: false, message: `Вариант ${index + 1}: добавьте хотя бы один склад.` };
             }
-            if (!variant.location_id) {
-                return { valid: false, message: `Вариант ${index + 1}: выберите склад/локацию.` };
+
+            for (let [stockIndex, stock] of variant.stocks.entries()) {
+                if (!stock.quantity || parseInt(stock.quantity) < 0) {
+                    return { valid: false, message: `Вариант ${index + 1}, склад ${stockIndex + 1}: укажите корректное количество.` };
+                }
+                if (!stock.location_id) {
+                    return { valid: false, message: `Вариант ${index + 1}, склад ${stockIndex + 1}: выберите склад.` };
+                }
+                if (parseInt(stock.reserved_quantity) < 0) {
+                    return { valid: false, message: `Вариант ${index + 1}, склад ${stockIndex + 1}: зарезервированное количество не может быть отрицательным.` };
+                }
             }
 
             for (let attr of categoryAttributes) {
@@ -517,20 +523,18 @@ const ProductEditPage = () => {
                         custom_value: isPredefined ? '' : value
                     };
                 }),
-                stocks: (variant.stocks || []).map(stock => ({
+                stocks: variant.stocks.map(stock => ({
                     id: stock.id,
                     location_id: stock.location_id,
                     quantity: stock.quantity,
-                    reserved_quantity: stock.reserved_quantity || 0,
-                    is_available_for_sale: stock.is_available_for_sale !== undefined
-                        ? stock.is_available_for_sale : true
+                    reserved_quantity: stock.reserved_quantity || '0',
+                    is_available_for_sale: stock.is_available_for_sale
                 }))
             }))
         };
 
         formData.append("data", JSON.stringify(jsonData));
 
-        // Новые изображения
         images.forEach((image, index) => {
             if (!image.isExisting && image.file) {
                 formData.append(`images[${index}][image]`, image.file);
@@ -539,7 +543,6 @@ const ProductEditPage = () => {
             }
         });
 
-        // Существующие изображения — тоже передаём
         images.forEach((image, index) => {
             if (image.isExisting) {
                 formData.append(`existing_images[${index}][id]`, String(image.id));
@@ -551,31 +554,20 @@ const ProductEditPage = () => {
         return formData;
     };
 
-
-
-
-
     // Отправка формы
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) {
-            console.error('Пожалуйста, заполните все обязательные поля');
+        const validation = validateForm();
+        if (!validation.valid) {
+            alert(validation.message);
             return;
         }
 
         try {
             const productData = prepareProductData();
-
-            // Для отладки: преобразуем FormData в обычный объект для вывода в консоль
-            for (let pair of productData.entries()) {
-                console.log(pair[0], pair[1]);
-            }
-
-            // Для реальной отправки раскомментируйте:
-
             const response = await axios.post(
-                `/api/business/${business_slug}/products/${product_id}/edit`, // точно твой путь?
+                `/api/business/${business_slug}/products/${product_id ? product_id + '/edit' : ''}`,
                 productData,
                 {
                     headers: {
@@ -583,11 +575,12 @@ const ProductEditPage = () => {
                     }
                 }
             );
-            console.log('Товар успешно создан:', response.data); //datalog
+            console.log('Товар успешно сохранён:', response.data);
             alert('Товар успешно сохранён');
-            navigate(-1);
+            navigate(`/business/${business_slug}/products/`);
         } catch (error) {
-            console.error('Ошибка при подготовке данных:', error.response?.data || error.message); //datalog
+            console.error('Ошибка при сохранении товара:', error.response?.data || error.message);
+            alert('Ошибка при сохранении товара: ' + (error.response?.data?.detail || error.message));
         }
     };
 
@@ -608,7 +601,7 @@ const ProductEditPage = () => {
                 )}
                 <div className={styles.content}>
                     <h2 className={styles.pageTitle}>
-                        <FaPlusCircle className={styles.titleIcon} /> Добавление нового товара
+                        <FaPlusCircle className={styles.titleIcon} /> {product_id ? 'Редактирование товара' : 'Добавление нового товара'}
                     </h2>
 
                     <form onSubmit={handleSubmit} className={styles.productForm}>
@@ -656,8 +649,6 @@ const ProductEditPage = () => {
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Секция с превью изображений */}
                                 <div className={styles.thumbnailsSection}>
                                     <h6 className={styles.thumbnailsTitle}>
                                         Загруженные фотографии ({images.length}):
@@ -706,7 +697,6 @@ const ProductEditPage = () => {
                                         />
                                     </div>
                                 </div>
-
                                 <div className={styles.formGroup}>
                                     <label htmlFor="product-description" className={styles.formLabel}>Описание товара *</label>
                                     <textarea
@@ -718,7 +708,6 @@ const ProductEditPage = () => {
                                         required
                                     />
                                 </div>
-
                                 <div className={styles.formRow}>
                                     <div className={styles.checkboxGroup}>
                                         <input
@@ -768,8 +757,7 @@ const ProductEditPage = () => {
                                 </div>
                                 <div className={styles.sectionBody}>
                                     <div className={styles.infoAlert}>
-                                        Создайте варианты товара с разными комбинациями атрибутов, ценами и количеством.
-                                        Новые атрибуты будут автоматически добавляться как колонки в таблицу.
+                                        Создайте варианты товара с разными комбинациями атрибутов, ценами и количеством на складах.
                                     </div>
 
                                     {isLoadingAttributes ? (
@@ -785,7 +773,6 @@ const ProductEditPage = () => {
                                                             <tr>
                                                                 <th className={styles.stickyColumn}>№</th>
                                                                 <th>Активность</th>
-                                                                {/* Динамические заголовки для атрибутов */}
                                                                 {categoryAttributes.map(attr => (
                                                                     <th key={attr.id}>
                                                                         {attr.name}
@@ -795,17 +782,14 @@ const ProductEditPage = () => {
                                                                 <th>Цена*</th>
                                                                 <th>Скидка %</th>
                                                                 <th>Цена со скидкой</th>
-                                                                <th>Количество*</th>
-                                                                <th>Зарезервировано</th>
-                                                                {/* <th>Доступность для продажи</th> */}
-                                                                <th>Склад*</th>
+                                                                <th>Склады*</th>
                                                                 <th className={styles.stickyColumn}>Действия</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {variants.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={categoryAttributes.length + 9} className={styles.noVariants}>
+                                                                    <td colSpan={categoryAttributes.length + 6} className={styles.noVariants}>
                                                                         Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
                                                                     </td>
                                                                 </tr>
@@ -817,16 +801,14 @@ const ProductEditPage = () => {
                                                                             <input
                                                                                 type="checkbox"
                                                                                 className={styles.formControltd}
-                                                                                checked={variant.showThis}  // Изменено с value на checked
+                                                                                checked={variant.showThis}
                                                                                 onChange={(e) => handleVariantChange(
                                                                                     variant.id,
                                                                                     'showThis',
-                                                                                    e.target.checked  // Убедитесь, что передаёте e.target.checked
+                                                                                    e.target.checked
                                                                                 )}
                                                                             />
                                                                         </td>
-
-                                                                        {/* Поля для атрибутов */}
                                                                         {categoryAttributes.map(attr => (
                                                                             <td key={attr.id}>
                                                                                 {attr.has_predefined_values ? (
@@ -843,10 +825,7 @@ const ProductEditPage = () => {
                                                                                     >
                                                                                         {!attr.required && <option value="">Не выбрано</option>}
                                                                                         {attr.values.map(value => (
-                                                                                            <option
-                                                                                                key={value.id}
-                                                                                                value={String(value.id)}
-                                                                                            >
+                                                                                            <option key={value.id} value={String(value.id)}>
                                                                                                 {value.value}
                                                                                             </option>
                                                                                         ))}
@@ -868,8 +847,6 @@ const ProductEditPage = () => {
                                                                                 )}
                                                                             </td>
                                                                         ))}
-
-
                                                                         <td>
                                                                             <input
                                                                                 type="number"
@@ -903,94 +880,108 @@ const ProductEditPage = () => {
                                                                             {calculateDiscountedPrice(variant.price, variant.discount)} ₸
                                                                         </td>
                                                                         <td>
-                                                                            <input
-                                                                                type="number"
-                                                                                className={styles.formControltd}
-                                                                                value={variant.stocks[0]?.quantity || ''}
-                                                                                onChange={(e) => handleVariantChange(
-                                                                                    variant.id,
-                                                                                    'stocks.quantity',
-                                                                                    e.target.value
-                                                                                )}
-                                                                                min="0"
-                                                                                required
-                                                                            />
-                                                                        </td>
-                                                                        <td>
-                                                                            <input
-                                                                                type="number"
-                                                                                className={styles.formControltd}
-                                                                                value={variant.stocks[0]?.reserved_quantity || ''}
-                                                                                onChange={(e) => handleVariantChange(
-                                                                                    variant.id,
-                                                                                    'stocks.reserved_quantity',
-                                                                                    e.target.value
-                                                                                )}
-                                                                                min="0"
-                                                                            />
-                                                                        </td>
-                                                                        {/* доступноть для продажи из таблицы Stock (пока что не нужно, потому чтор логика пока что, что у одного варианата - один склад) */}
-                                                                        {/* <td>
-                                    <input
-                                      type="checkbox"
-                                      className={styles.formControl}
-                                      value={variant.is_available_for_sale}
-                                      onChange={(e) => handleVariantChange(
-                                        variant.id,
-                                        'is_available_for_sale',
-                                        e.target.value
-                                      )}
-                                      min="0"
-                                      required
-                                    />
-                                  </td> */}
-                                                                        <td>
-                                                                            <select
-                                                                                className={styles.formSelect}
-                                                                                value={variant.location_id}
-                                                                                onChange={(e) => handleVariantChange(
-                                                                                    variant.id,
-                                                                                    'location_id',
-                                                                                    e.target.value
-                                                                                )}
-                                                                                required
+                                                                            <table className={styles.stockTable}>
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th>Количество*</th>
+                                                                                        <th>Зарезервировано</th>
+                                                                                        <th>Склад*</th>
+                                                                                        <th>Действия</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {variant.stocks.map(stock => (
+                                                                                        <tr key={stock.id}>
+                                                                                            <td>
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    className={styles.formControltd}
+                                                                                                    value={stock.quantity}
+                                                                                                    onChange={(e) => handleVariantChange(
+                                                                                                        variant.id,
+                                                                                                        'quantity',
+                                                                                                        e.target.value,
+                                                                                                        null,
+                                                                                                        stock.id
+                                                                                                    )}
+                                                                                                    min="0"
+                                                                                                    required
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    className={styles.formControltd}
+                                                                                                    value={stock.reserved_quantity}
+                                                                                                    onChange={(e) => handleVariantChange(
+                                                                                                        variant.id,
+                                                                                                        'reserved_quantity',
+                                                                                                        e.target.value,
+                                                                                                        null,
+                                                                                                        stock.id
+                                                                                                    )}
+                                                                                                    min="0"
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <select
+                                                                                                    className={styles.formSelect}
+                                                                                                    value={stock.location_id}
+                                                                                                    onChange={(e) => handleVariantChange(
+                                                                                                        variant.id,
+                                                                                                        'location_id',
+                                                                                                        e.target.value,
+                                                                                                        null,
+                                                                                                        stock.id
+                                                                                                    )}
+                                                                                                    required
+                                                                                                    disabled={isLoadingLocations || locations.length === 0}
+                                                                                                >
+                                                                                                    {isLoadingLocations ? (
+                                                                                                        <option>Загрузка складов...</option>
+                                                                                                    ) : locationsError ? (
+                                                                                                        <option>Ошибка загрузки складов</option>
+                                                                                                    ) : locations.length === 0 ? (
+                                                                                                        <option>Нет доступных складов</option>
+                                                                                                    ) : (
+                                                                                                        locations.map(location => (
+                                                                                                            <option key={location.id} value={String(location.id)}>
+                                                                                                                {location.name}
+                                                                                                            </option>
+                                                                                                        ))
+                                                                                                    )}
+                                                                                                </select>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    className={styles.variantButton}
+                                                                                                    onClick={() => handleRemoveStock(variant.id, stock.id)}
+                                                                                                    title="Удалить склад"
+                                                                                                    disabled={variant.stocks.length === 1}
+                                                                                                >
+                                                                                                    <FaTrash />
+                                                                                                </button>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                            <button
+                                                                                type="button"
+                                                                                className={styles.variantAddButton}
+                                                                                onClick={() => handleAddStock(variant.id)}
                                                                                 disabled={isLoadingLocations || locations.length === 0}
                                                                             >
-                                                                                {isLoadingLocations ? (
-                                                                                    <option>Загрузка складов...</option>
-                                                                                ) : locationsError ? (
-                                                                                    <option>Ошибка загрузки складов</option>
-                                                                                ) : locations.length === 0 ? (
-                                                                                    <option>Нет доступных складов</option>
-                                                                                ) : (
-                                                                                    locations.map(location => (
-                                                                                        <option key={location.id} value={location.id}>
-                                                                                            {location.name}
-                                                                                        </option>
-                                                                                    ))
-                                                                                )}
-                                                                            </select>
+                                                                                <FaPlus className={styles.buttonIcon} /> Добавить склад
+                                                                            </button>
                                                                         </td>
-                                                                        {/* если нужно буцлет добавить свое названи/ описание */}
-                                                                        {/* <td>
-                                    <textarea
-                                      className={styles.formControl}
-                                      rows="1"
-                                      value={variant.description}
-                                      onChange={(e) => handleVariantChange(
-                                        variant.id,
-                                        'description',
-                                        e.target.value
-                                      )}
-                                      placeholder="Описание варианта"
-                                    />
-                                  </td> */}
                                                                         <td className={`${styles.stickyColumn} ${styles.variantActions}`}>
                                                                             <button
                                                                                 type="button"
                                                                                 className={styles.variantButton}
                                                                                 onClick={() => handleRemoveVariant(variant.id)}
-                                                                                title="Удалить"
+                                                                                title="Удалить вариант"
                                                                             >
                                                                                 <FaTrash />
                                                                             </button>
@@ -1001,7 +992,6 @@ const ProductEditPage = () => {
                                                         </tbody>
                                                     </table>
                                                 </div>
-
                                                 <div className={styles.variantControls}>
                                                     <div>
                                                         <button
@@ -1029,7 +1019,6 @@ const ProductEditPage = () => {
                             </div>
                         )}
 
-                        {/* Кнопки отправки формы */}
                         <div className={styles.formActions}>
                             <button
                                 type="button"

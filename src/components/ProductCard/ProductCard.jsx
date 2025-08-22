@@ -39,7 +39,7 @@ const ProductCard = ({ product }) => {
     const currentPrice = variant?.current_price || product.min_price;
     const originalPrice = parseFloat(variant?.price || product.min_price);
     const priceRange = product.min_price !== product.max_price 
-        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₽`
+        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₸`
         : null;
 
     return (
@@ -79,7 +79,7 @@ const ProductCard = ({ product }) => {
             <div className="product-list-info">
                 <div className="price-section">
                     <div className="current-price">
-                        {parseFloat(currentPrice).toLocaleString('ru-RU')} ₽
+                        {parseFloat(currentPrice).toLocaleString('ru-RU')} ₸
                     </div>
                     {priceRange && (
                         <div className="price-range">
