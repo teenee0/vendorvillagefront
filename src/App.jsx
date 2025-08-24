@@ -21,7 +21,7 @@ import ProductManagement from './pages/ProductManagement/ProductManagement';
 import ProductEditPage from './pages/ProductEditPage/ProductEditPage'
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
 import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRoute.jsx';
-import ProductAddPage from './pages/ProductAddPage/ProductAddpage.jsx';
+import ProductAddPage from './pages/ProductAddPage/ProductAddPage.jsx';
 import ProductPage from './pages/ProductPage/ProductPage.jsx';
 import SalesPage from './pages/SalesPage/SalesPage.jsx';
 import SettingsPage from './pages/SettingsPage/SettingsPage.jsx';
