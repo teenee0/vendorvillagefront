@@ -1,35 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../../utils/getImageUrl';
+import { useEnvironment } from '../../hooks/useEnvironment';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
+    const { logger } = useEnvironment();
 
     const goToProductPage = () => navigate(`/marketplace/products/${product.id}`);
     
     const handleAddToFavorites = (e) => {
         e.stopPropagation();
-        console.log('Add to favorites', product.id);
+        logger.debug('Add to favorites', product.id);
     };
 
     const handleAddToCart = (e) => {
         e.stopPropagation();
-        console.log('Add to cart', product.id);
-    };
-
-    const getImageUrl = (imagePath) => {
-        if (!imagePath) return '';
-        
-        if (/^https?:\/\//i.test(imagePath)) {
-            return imagePath;
-        }
-        if (imagePath.startsWith('/media/')) {
-            return `http://localhost:8000${imagePath}`;
-        }
-        if (!imagePath.startsWith('/')) {
-            return `http://localhost:8000/media/${imagePath}`;
-        }
-        return `http://localhost:8000${imagePath}`;
+        logger.debug('Add to cart', product.id);
     };
 
     const variant = product.default_variant;

@@ -1,8 +1,11 @@
 // src/api/axios.js
 import axios_base from 'axios';
+import { ENV_CONFIG, logger } from '../config/environment';
 
-// Только прод-API:
-const API_URL = 'https://api.vendorvillage.store';
+// Используем конфигурацию из environment
+const API_URL = ENV_CONFIG.API_BASE_URL;
+
+logger.debug('API Base URL:', API_URL);
 
 const axios = axios_base.create({
   baseURL: API_URL,

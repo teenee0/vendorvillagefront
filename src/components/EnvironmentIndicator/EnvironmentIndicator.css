@@ -1,0 +1,41 @@
+.environment-indicator {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.env-badge {
+  font-weight: bold;
+  margin-bottom: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.env-development {
+  background: #28a745;
+  color: white;
+}
+
+.env-production {
+  background: #dc3545;
+  color: white;
+}
+
+.env-info {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.env-info div {
+  margin: 1px 0;
+}

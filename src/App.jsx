@@ -4,6 +4,7 @@ import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import BusinessHeader from './components/BusinessHeader/BusinessHeader.jsx';
 import BusinessFooter from './components/BusinessFooter/BusinessFooter.jsx';
+import EnvironmentIndicator from './components/EnvironmentIndicator/EnvironmentIndicator';
 import Main from './pages/Main/Main';
 import Marketplace from './pages/Marketplace/Marketplace';
 
@@ -18,7 +19,7 @@ import AccountPage from './pages/Account/AccoutPage';
 import AuthPage from './pages/Registration/Registration';
 import PublicRoute from './pages/PublicRoute/PublicRoute';
 import ProductManagement from './pages/ProductManagement/ProductManagement';
-import ProductEditPage from './pages/ProductEditPage/ProductEditPage'
+import ProductEditPage from './pages/ProductEditPage/ProductEditPage';
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
 import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRoute.jsx';
 import ProductAddPage from './pages/ProductAddPage/ProductAddPage.jsx';
@@ -39,6 +40,7 @@ function App() {
     // Рендеринг для бизнес-страниц
     return (
       <>
+        <EnvironmentIndicator />
         <BusinessHeader />
         <div className="content-wrapper-business">
           <AnimatePresence mode='wait'>
@@ -75,6 +77,7 @@ function App() {
     // Рендеринг для обычных страниц
     return (
       <>
+        <EnvironmentIndicator />
         <Header />
         <div className="content-wrapper">
           <AnimatePresence mode='wait'>
