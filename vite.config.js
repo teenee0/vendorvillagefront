@@ -10,7 +10,24 @@ export default defineConfig(({ command, mode }) => {
     base: '/',          // прод на корне домена
     build: { 
       outDir: 'dist', 
-      sourcemap: false 
+      sourcemap: false,
+      // Заменяем localhost на production URL в production сборке
+      rollupOptions: mode === 'production' ? {
+        plugins: [{
+          name: 'replace-localhost',
+          generateBundle(options, bundle) {
+            Object.keys(bundle).forEach(fileName => {
+              if (fileName.endsWith('.js')) {
+                const file = bundle[fileName];
+                if (file.type === 'chunk') {
+                  file.code = file.code.replace(/http:\/\/localhost:8000/g, 'https://api.vendorvillage.store');
+                  file.code = file.code.replace(/http:\/\/127\.0\.0\.1:8000/g, 'https://api.vendorvillage.store');
+                }
+              }
+            });
+          }
+        }]
+      } : {}
     },
     // Определяем переменные окружения
     define: {

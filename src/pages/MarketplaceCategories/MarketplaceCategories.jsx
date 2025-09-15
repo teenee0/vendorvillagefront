@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 // import axios from 'axios';
 import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
+import { useFileUtils } from '../../hooks/useFileUtils';
 import './MarketplaceCategories.css';
 
 const MarketplaceCategories = () => {
+  const { getBackgroundImageUrl } = useFileUtils();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ const MarketplaceCategories = () => {
             className="category-card"
             style={{
               backgroundImage: category.big_image 
-                ? `url(http://localhost:8000${category.big_image})`
+                ? getBackgroundImageUrl(category.big_image)
                 : 'none'
             }}
           >

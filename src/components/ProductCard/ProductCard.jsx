@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getImageUrl } from '../../utils/getImageUrl';
+import { useFileUtils } from '../../hooks/useFileUtils';
 import { useEnvironment } from '../../hooks/useEnvironment';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
+    const { getImageUrl } = useFileUtils();
     const { logger } = useEnvironment();
 
     const goToProductPage = () => navigate(`/marketplace/products/${product.id}`);

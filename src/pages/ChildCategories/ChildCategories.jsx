@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 // import axios from 'axios';
 import axios from "../../api/axiosDefault.js";
+import { useFileUtils } from '../../hooks/useFileUtils';
 import './ChildCategories.css'; // Используем тот же CSS
 
 const ChildCategories = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
+  const { getBackgroundImageUrl } = useFileUtils();
   const [category, setCategory] = useState(null);
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +96,7 @@ const ChildCategories = () => {
                 onClick={() => navigate(`/marketplace/categories/${child.id}`)}
                 style={{
                   backgroundImage: child.big_image
-                    ? `url(http://localhost:8000${child.big_image})`
+                    ? getBackgroundImageUrl(child.big_image)
                     : 'none'
                 }}
               >
@@ -132,7 +134,7 @@ const ChildCategories = () => {
               className="category-card"
               style={{
                 backgroundImage: child.big_image
-                  ? `url(http://localhost:8000${child.big_image})`
+                  ? getBackgroundImageUrl(child.big_image)
                   : 'none'
               }}
             >

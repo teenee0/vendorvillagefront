@@ -3,6 +3,7 @@ import axios from "../../api/axiosDefault.js";
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductManagementCard from '../../components/ProductManagementCard/ProductManagementCard.jsx';
+import { useFileUtils } from '../../hooks/useFileUtils';
 import styles from './ProductManagement.module.css';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import FiltersSection from '/src/components/FiltersSection/FiltersSection.jsx';
@@ -11,6 +12,7 @@ const ProductManagement = () => {
     const { business_slug } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
+    const { getFileUrl } = useFileUtils();
 
     const [data, setData] = useState({
         products: [],
@@ -259,20 +261,7 @@ const ProductManagement = () => {
         }
     };
 
-    const getImageUrl = (imagePath) => {
-        if (!imagePath) return '';
-
-        if (/^https?:\/\//i.test(imagePath)) {
-            return imagePath;
-        }
-        if (imagePath.startsWith('/media/')) {
-            return `http://localhost:8000${imagePath}`;
-        }
-        if (!imagePath.startsWith('/')) {
-            return `http://localhost:8000/media/${imagePath}`;
-        }
-        return `http://localhost:8000${imagePath}`;
-    };
+    // Используем централизованную утилиту из хука
 
 
 
@@ -372,7 +361,7 @@ const ProductManagement = () => {
                                         <td>
                                             {variant.mainImage && (
                                                 <img
-                                                    src={getImageUrl(variant.mainImage.image)}
+                                                    src={getFileUrl(variant.mainImage.image)}
                                                     alt={variant.productName}
                                                     className={styles.tableImage}
                                                 />

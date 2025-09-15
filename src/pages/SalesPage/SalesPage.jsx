@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
+import { useFileUtils } from '../../hooks/useFileUtils';
 import {
     FaSearch,
     FaBarcode,
@@ -23,6 +24,7 @@ import styles from './SalesPage.module.css';
 
 const SalesPage = () => {
     const { business_slug } = useParams();
+    const { getFileUrl } = useFileUtils();
     const [cart, setCart] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedVariant, setSelectedVariant] = useState(null);
@@ -379,13 +381,7 @@ const SalesPage = () => {
 
         await openReceiptPdf(receiptData.receipt_pdf_file);
     };
-    const getFileUrl = (imagePath) => {
-        if (!imagePath) return '';
-        if (/^https?:\/\//i.test(imagePath)) return imagePath;
-        if (imagePath.startsWith('/media/')) return `http://localhost:8000${imagePath}`;
-        if (!imagePath.startsWith('/')) return `http://localhost:8000/media/${imagePath}`;
-        return `http://localhost:8000${imagePath}`;
-    };
+    // Используем централизованную утилиту из хука
 
     // Render product cards
     const renderProductCards = () => {

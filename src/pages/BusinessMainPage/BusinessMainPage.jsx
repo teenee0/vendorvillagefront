@@ -3,6 +3,7 @@ import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaEx
 import { FcLineChart } from "react-icons/fc";
 import { Chart } from 'chart.js/auto';
 import axios from '../../api/axiosDefault';
+import { useFileUtils } from '../../hooks/useFileUtils';
 import styles from './BusinessMainPage.module.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -56,6 +57,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const BusinessMainPage = () => {
+  const { getFileUrl } = useFileUtils();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -332,13 +334,7 @@ const BusinessMainPage = () => {
     setTransactionDetails(null);
   };
 
-  const getFileUrl = (imagePath) => {
-    if (!imagePath) return '';
-    if (/^https?:\/\//i.test(imagePath)) return imagePath;
-    if (imagePath.startsWith('/media/')) return `http://localhost:8000${imagePath}`;
-    if (!imagePath.startsWith('/')) return `http://localhost:8000/media/${imagePath}`;
-    return `http://localhost:8000${imagePath}`;
-  };
+  // Используем централизованную утилиту из хука
 
   const TransactionModal = ({ transaction, details, onClose, loading }) => {
     if (!transaction) return null;
