@@ -375,6 +375,12 @@ const AuthPage = () => {
           } else if (key === 'email' && errorMessage.includes('не найден')) {
             showNotification('error', 'Пользователь с таким email не найден');
             hasGeneralError = true;
+          } else if (key === 'error' && errorMessage.includes('не существует')) {
+            showNotification('error', 'Аккаунт с таким email не существует');
+            hasGeneralError = true;
+          } else if (key === 'error' && errorMessage.includes('Неверный пароль')) {
+            showNotification('error', 'Неверный пароль');
+            hasGeneralError = true;
           } else if (key === 'detail' && errorMessage.includes('Неверный код')) {
             showNotification('error', 'Неверный код подтверждения');
             hasGeneralError = true;
