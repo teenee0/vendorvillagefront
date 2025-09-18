@@ -1,173 +1,300 @@
 /* Основной контейнер */
 .filtersContainer {
-    backdrop-filter: blur(10px);
-    margin-bottom: 2vh;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Состояние загрузки */
+.filtersLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin: 16px;
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Секция фильтра */
+.attributeSection {
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.attributeSection:last-child {
+  border-bottom: none;
+}
+
+.attributeSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.attributeSection:hover::before {
+  opacity: 1;
+}
+
+/* Заголовок фильтра */
+.filterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.filterHeader::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.filterHeader:hover::after {
+  left: 100%;
+}
+
+.filterHeader:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  transform: translateY(-1px);
+}
+
+.filterTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Иконка переключения */
+.filterToggleIcon {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filterHeader:hover .filterToggleIcon {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.attributeSection.expanded .filterToggleIcon {
+  transform: rotate(180deg) scale(1.1);
+  background: var(--accent-color);
+  color: white;
+}
+
+/* Контейнер значений */
+.attributeValuesContainer {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.attributeSection.expanded .attributeValuesContainer {
+  max-height: 600px;
+}
+
+/* Значения атрибутов */
+.attributeValues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 24px;
+}
+
+/* Кнопки значений */
+.attributeValueButton {
+  position: relative;
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.attributeValueButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.attributeValueButton:hover::before {
+  left: 100%;
+}
+
+.attributeValueButton:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%);
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.attributeValueButton.selected {
+  background: linear-gradient(135deg, var(--accent-color) 0%, #4a9eff 100%);
+  color: white;
+  border-color: var(--accent-color);
+  padding-right: 48px;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(100, 108, 255, 0.4);
+}
+
+.attributeValueButton.selected:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(100, 108, 255, 0.5);
+}
+
+.checkmark {
+  position: absolute;
+  right: 16px;
+  display: flex;
+  animation: checkmarkAppear 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkmarkAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-180deg);
   }
-  
-  /* Состояние загрузки */
-  .filtersLoading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: var(--text-primary);
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
   }
-  
-  .loadingSpinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: var(--accent-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 12px;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  /* Секция фильтра */
-  .attributeSection {
-    margin-bottom: 8px;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-  
-  /* Заголовок фильтра */
-  .filterHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    transition: all 0.2s ease;
-  }
-  
-  .filterHeader:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  
-  .filterTitle {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-  
-  /* Иконка переключения */
-  .filterToggleIcon {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--text-primary);
-  }
-  
-  .attributeSection.expanded .filterToggleIcon {
-    transform: rotate(180deg);
-  }
-  
-  /* Контейнер значений */
-  .attributeValuesContainer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .attributeSection.expanded .attributeValuesContainer {
-    max-height: 500px; /* Достаточно большое значение для плавности */
-  }
-  
-  /* Значения атрибутов */
-  .attributeValues {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 8px 0px 8px;
-  }
-  
-  /* Кнопки значений */
-  .attributeValueButton {
-    position: relative;
-    padding: 8px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-  }
-  
-  .attributeValueButton:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
-  }
-  
-  .attributeValueButton.selected {
-    background: var(--accent-color);
-    color: var(--text-primary);
-    border-color: var(--accent-color);
-    padding-right: 36px;
-  }
-  
-  .checkmark {
-    position: absolute;
-    right: 12px;
-    display: flex;
-  }
-  
-  /* Кнопка "Показать больше/меньше" */
-  .showMoreFilters {
-    width: 100%;
-    padding: 12px;
-    margin-top: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border: none;
-    border-radius: 8px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-  }
-  
-  .showMoreFilters:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  
-  /* Стрелка */
-  .chevron {
-    display: inline-block;
-    margin-left: 8px;
-    width: 12px;
-    height: 12px;
-    transition: transform 0.3s ease;
-  }
-  
-  .chevron::before {
-    content: "";
-    display: block;
-    width: 8px;
-    height: 8px;
-    border-right: 2px solid var(--text-primary);
-    border-bottom: 2px solid var(--text-primary);
-    transform: rotate(45deg);
-    margin-top: -2px;
-  }
-  
-  .chevron.down::before {
-    transform: rotate(45deg);
-    margin-top: -4px;
-  }
-  
-  .chevron.up::before {
-    transform: rotate(-135deg);
-    margin-top: 0;
-  }
+}
+
+/* Кнопка "Показать больше/меньше" */
+.showMoreFilters {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.showMoreFilters::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.showMoreFilters:hover::before {
+  left: 100%;
+}
+
+.showMoreFilters:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  transform: translateY(-1px);
+  border-top-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Стрелка */
+.chevron {
+  display: inline-block;
+  margin-left: 12px;
+  width: 14px;
+  height: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chevron::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--text-primary);
+  border-bottom: 2px solid var(--text-primary);
+  transform: rotate(45deg);
+  margin-top: -2px;
+  transition: all 0.3s ease;
+}
+
+.chevron.down::before {
+  transform: rotate(45deg);
+  margin-top: -4px;
+}
+
+.chevron.up::before {
+  transform: rotate(-135deg);
+  margin-top: 0;
+}
+
+.showMoreFilters:hover .chevron {
+  transform: scale(1.1);
+}

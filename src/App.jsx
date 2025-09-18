@@ -17,6 +17,7 @@ import ProductDetail from './pages/ProductDetail/ProductDetail';
 import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
 import AccountPage from './pages/Account/AccoutPage';
 import AuthPage from './pages/Registration/Registration';
+import PasswordReset from './pages/PasswordReset/PasswordReset';
 import PublicRoute from './pages/PublicRoute/PublicRoute';
 import ProductManagement from './pages/ProductManagement/ProductManagement';
 import ProductEditPage from './pages/ProductEditPage/ProductEditPage';
@@ -93,6 +94,7 @@ function App() {
                 <Route element={<PublicRoute />}>
                   <Route path="/" element={<Main />} />
                   <Route path="/registration-login" element={<AuthPage />} />
+                  <Route path="/password-reset" element={<PasswordReset />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path='/marketplace/categories' element={<MarketplaceCategories />} />
                   <Route path="/marketplace/categories/:pk" element={<ChildCategories />} />
