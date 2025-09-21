@@ -69,7 +69,7 @@ const ProductsPage = () => {
   
         const initialExpanded = {};
         filtersData.forEach(filter => {
-          initialExpanded[filter.id] = false;
+          initialExpanded[filter.id] = true; // Фильтры раскрыты по умолчанию
         });
         setExpandedFilters(initialExpanded);
   

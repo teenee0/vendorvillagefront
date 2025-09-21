@@ -7,6 +7,7 @@ import { useFileUtils } from '../../hooks/useFileUtils';
 import styles from './ProductManagement.module.css';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import FiltersSection from '/src/components/FiltersSection/FiltersSection.jsx';
+import DeleteProductModal from '../../components/DeleteProductModal/DeleteProductModal.jsx';
 
 const ProductManagement = () => {
     const { business_slug } = useParams();
@@ -36,6 +37,10 @@ const ProductManagement = () => {
     const [expandedFilters, setExpandedFilters] = useState({});
     const [visibleFiltersCount, setVisibleFiltersCount] = useState(3);
     const [isFiltersOpen, setIsFiltersOpen] = useState(true);
+    
+    // Delete modal states
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
 
     // Initialize from URL params
     useEffect(() => {
@@ -56,29 +61,51 @@ const ProductManagement = () => {
         setTempFilters(initialFilters);
     }, [location.search]);
 
-    const handleDeleteProduct = async (productId) => {
-        try {
-            const confirmDelete = window.confirm('Вы уверены, что хотите удалить этот товар?');
-            if (!confirmDelete) return;
+    const handleDeleteProduct = (productId, productName) => {
+        setProductToDelete({ id: productId, name: productName });
+        setDeleteModalOpen(true);
+    };
 
-            await axios.delete(`/api/business/${business_slug}/products/${productId}/delete`);
+    const confirmDeleteProduct = async (deleteType) => {
+        if (!productToDelete) return;
+
+        try {
+            let apiEndpoint;
+            
+            if (deleteType === 'soft') {
+                apiEndpoint = `/api/business/${business_slug}/products/${productToDelete.id}/soft-delete`;
+            } else {
+                apiEndpoint = `/api/business/${business_slug}/products/${productToDelete.id}/hard-delete`;
+            }
+
+            const method = deleteType === 'soft' ? 'post' : 'delete';
+            const response = await axios[method](apiEndpoint);
 
             // Обновляем список товаров после удаления
             setData(prev => ({
                 ...prev,
-                products: prev.products.filter(product => product.id !== productId),
+                products: prev.products.filter(product => product.id !== productToDelete.id),
                 pagination: {
                     ...prev.pagination,
                     total_items: prev.pagination.total_items - 1
                 }
             }));
 
-            // Можно добавить уведомление об успешном удалении
-            alert('Товар успешно удален');
+            // Показываем уведомление об успехе
+            const message = deleteType === 'soft' 
+                ? `Товар "${productToDelete.name}" успешно архивирован`
+                : `Товар "${productToDelete.name}" полностью удален`;
+            
+            alert(message);
         } catch (error) {
             console.error('Ошибка при удалении товара:', error);
-            alert('Не удалось удалить товар');
+            alert('Не удалось удалить товар: ' + (error.response?.data?.detail || error.message));
         }
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setProductToDelete(null);
     };
 
     const handleToggleStatus = async (productId, currentStatus) => {
@@ -133,7 +160,7 @@ const ProductManagement = () => {
             // Initialize expanded filters
             const initialExpanded = {};
             response.data.filters?.filters?.forEach(filter => {
-                initialExpanded[filter.id] = false;
+                initialExpanded[filter.id] = true;
             });
             setExpandedFilters(initialExpanded);
 
@@ -439,8 +466,9 @@ const ProductManagement = () => {
                                                 className={`${styles.actionButton} ${styles.deleteButton}`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleDeleteProduct(variant.productId);
+                                                    handleDeleteProduct(variant.productId, variant.productName);
                                                 }}
+                                                title="Удалить товар"
                                             >
                                                 <i className="fa fa-trash"></i>
                                             </button>
@@ -495,7 +523,13 @@ const ProductManagement = () => {
                         <div className={styles.categoriesList}>
                             <button
                                 className={`${styles.categoryButton} ${!selectedCategory ? styles.active : ''}`}
-                                onClick={() => setSelectedCategory(null)}
+                                onClick={() => {
+                                    setSelectedCategory(null);
+                                    const queryParams = new URLSearchParams(location.search);
+                                    queryParams.delete('category');
+                                    queryParams.set('page', 1);
+                                    navigate(`?${queryParams.toString()}`);
+                                }}
                             >
                                 Все товары
                             </button>
@@ -503,7 +537,13 @@ const ProductManagement = () => {
                                 <button
                                     key={category.id}
                                     className={`${styles.categoryButton} ${selectedCategory === category.id ? styles.active : ''}`}
-                                    onClick={() => setSelectedCategory(category.id)}
+                                    onClick={() => {
+                                        setSelectedCategory(category.id);
+                                        const queryParams = new URLSearchParams(location.search);
+                                        queryParams.set('category', category.id);
+                                        queryParams.set('page', 1);
+                                        navigate(`?${queryParams.toString()}`);
+                                    }}
                                 >
                                     {category.name}
                                 </button>
@@ -608,6 +648,8 @@ const ProductManagement = () => {
                                 <option value="-price">По убыванию цены</option>
                                 <option value="name">По названию (А-Я)</option>
                                 <option value="-name">По названию (Я-А)</option>
+                                <option value="category">По категории (А-Я)</option>
+                                <option value="-category">По категории (Я-А)</option>
                             </select>
                         </div>
                     </div>
@@ -644,6 +686,14 @@ const ProductManagement = () => {
                     ) : viewMode === 'cards' ? renderCardsView() : renderTableView()}
                 </main>
             </div>
+            
+            {/* Модальное окно удаления */}
+            <DeleteProductModal
+                isOpen={deleteModalOpen}
+                onClose={closeDeleteModal}
+                onConfirm={confirmDeleteProduct}
+                productName={productToDelete?.name}
+            />
         </div>
     );
 };

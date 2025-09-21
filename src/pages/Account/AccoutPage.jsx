@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from "../../api/axiosDefault.js";
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../hooks/useAuth';
 import './AccountPage.css';
 
 const AccountPage = () => {
@@ -10,6 +11,7 @@ const AccountPage = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   useEffect(() => {
     const fetchAccountInfo = async () => {
@@ -32,12 +34,7 @@ const AccountPage = () => {
   }, [navigate]);
 
   const handleLogout = async () => {
-    try {
-      await axios.post('accounts/api/auth/logout/', {}, { withCredentials: true });
-      window.location.href = '/registration-login';
-    } catch (error) {
-      console.error('Ошибка при выходе');
-    }
+    await logout();
   };
 
   if (loading) {
@@ -329,6 +326,7 @@ const AccountPage = () => {
               </div>
             </motion.div>
           )}
+
         </div>
       </div>
     </div>

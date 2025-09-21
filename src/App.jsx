@@ -5,6 +5,7 @@ import Footer from './components/Footer/Footer';
 import BusinessHeader from './components/BusinessHeader/BusinessHeader.jsx';
 import BusinessFooter from './components/BusinessFooter/BusinessFooter.jsx';
 import EnvironmentIndicator from './components/EnvironmentIndicator/EnvironmentIndicator';
+import TokenRefreshManager from './components/TokenRefreshManager/TokenRefreshManager';
 import Main from './pages/Main/Main';
 import Marketplace from './pages/Marketplace/Marketplace';
 
@@ -42,6 +43,7 @@ function App() {
     return (
       <>
         <EnvironmentIndicator />
+        <TokenRefreshManager />
         <BusinessHeader />
         <div className="content-wrapper-business">
           <AnimatePresence mode='wait'>
@@ -79,6 +81,7 @@ function App() {
     return (
       <>
         <EnvironmentIndicator />
+        <TokenRefreshManager />
         <Header />
         <div className="content-wrapper">
           <AnimatePresence mode='wait'>
