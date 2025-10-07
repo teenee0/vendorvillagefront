@@ -23,6 +23,7 @@ import styles from './TransactionsPage.module.css';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import Loader from '../../components/Loader';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -312,7 +313,11 @@ const TransactionsPage = () => {
   }, [business_slug, activeTab]);
 
   if (loading && !selectedReceipt) {
-    return <div className={styles.loading}>Загрузка...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader size="large" />
+      </div>
+    );
   }
 
   if (error && !selectedReceipt) {

@@ -26,6 +26,7 @@ import {
   FaEye
 } from 'react-icons/fa';
 import styles from './SettingsPage.module.css';
+import Loader from '../../components/Loader';
 
 const BusinessSettings = () => {
   const { business_slug } = useParams();
@@ -223,14 +224,9 @@ const savePrinterSettings = () => {
 
   if (loading) {
     return (
-      <motion.div
-        className={styles.loadingContainer}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <FaSpinner className={styles.spinner} />
-        <span>Загрузка данных...</span>
-      </motion.div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader size="large" />
+      </div>
     );
   }
 

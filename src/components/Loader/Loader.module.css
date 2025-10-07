@@ -1,0 +1,118 @@
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.loader {
+  position: relative;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+/* Размеры лоадера */
+.loader-small {
+  width: 80px;
+  height: 80px;
+}
+
+.loader-medium {
+  width: 140px;
+  height: 140px;
+}
+
+.loader-large {
+  width: 200px;
+  height: 200px;
+}
+
+.segment {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+  border-radius: 50%;
+}
+
+.yellow { 
+  background: linear-gradient(135deg, #fcd72d 0%, #ffeb3b 100%);
+  transform: rotate(0deg);
+}
+
+.orange { 
+  background: linear-gradient(135deg, #ffa600 0%, #ffb347 100%);
+  transform: rotate(72deg);
+}
+
+.red { 
+  background: linear-gradient(135deg, #ff4b4b 0%, #ff6b6b 100%);
+  transform: rotate(144deg);
+}
+
+.purple { 
+  background: linear-gradient(135deg, #b45bff 0%, #c77dff 100%);
+  transform: rotate(216deg);
+}
+
+.blue { 
+  background: linear-gradient(135deg, #2bb3ff 0%, #4fc3f7 100%);
+  transform: rotate(288deg);
+}
+
+.centerGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Адаптивные размеры центрального свечения */
+.loader-small .centerGlow {
+  width: 30px;
+  height: 30px;
+}
+
+.loader-large .centerGlow {
+  width: 70px;
+  height: 70px;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Варианты для полноэкранной загрузки */
+.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+}
+
+/* Варианты для центрирования в родительском контейнере */
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Инлайн вариант */
+.inline {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+}

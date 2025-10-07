@@ -5,6 +5,7 @@ import './ProductsPage.css';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
 import FiltersSection from '/src/components/FiltersSection/FiltersSection.jsx';
+import Loader from '../../components/Loader';
 
 const ProductsPage = () => {
   const { pk } = useParams();
@@ -187,9 +188,8 @@ const ProductsPage = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loader"></div>
-        <p>Загружаем товары...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader size="large" />
       </div>
     );
   }

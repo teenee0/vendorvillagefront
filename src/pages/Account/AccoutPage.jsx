@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
 import './AccountPage.css';
+import Loader from '../../components/Loader';
 
 const AccountPage = () => {
   const [userData, setUserData] = useState(null);
@@ -39,9 +40,8 @@ const AccountPage = () => {
 
   if (loading) {
     return (
-      <div className="account-loading">
-        <div className="spinner"></div>
-        <p>Загрузка профиля...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader size="large" />
       </div>
     );
   }

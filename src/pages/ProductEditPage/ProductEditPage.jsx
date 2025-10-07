@@ -7,6 +7,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams, useNavigate } from 'react-router-dom';
 import ImageCropper from '../../components/ImageCropper/ImageCropper.jsx';
+import Loader from '../../components/Loader';
 
 const ProductEditPage = () => {
     const { business_slug, product_id } = useParams();
@@ -584,6 +585,14 @@ const ProductEditPage = () => {
         }
     };
 
+    if (isLoadingCategories) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Loader size="large" />
+            </div>
+        );
+    }
+
     return (
         <DndProvider backend={HTML5Backend}>
             <div className={styles.container}>
@@ -761,7 +770,9 @@ const ProductEditPage = () => {
                                     </div>
 
                                     {isLoadingAttributes ? (
-                                        <div>Загрузка атрибутов категории...</div>
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                                            <Loader size="medium" />
+                                        </div>
                                     ) : attributesError ? (
                                         <div className={styles.errorAlert}>Ошибка загрузки атрибутов: {attributesError}</div>
                                     ) : (

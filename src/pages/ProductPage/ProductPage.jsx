@@ -9,6 +9,7 @@ import { FaCalendarAlt } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import Loader from '../../components/Loader';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -310,7 +311,9 @@ const SalesTab = ({ product, businessSlug }) => {
                 </div>
             </div>
             {loading ? (
-                <div className={styles.loading}>Загрузка продаж...</div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                    <Loader size="medium" />
+                </div>
             ) : error ? (
                 <div className={styles.error}>{error}</div>
             ) : salesData ? (
@@ -650,7 +653,11 @@ const ProductPage = () => {
         }, 500);
     };
 
-    if (loading) return <div className={styles.loading}>Загрузка...</div>;
+    if (loading) return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+            <Loader size="large" />
+        </div>
+    );
     if (error) return <div className={styles.error}>{error}</div>;
     if (!product) return null;
 

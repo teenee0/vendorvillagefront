@@ -8,6 +8,7 @@ import styles from './ProductManagement.module.css';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import FiltersSection from '/src/components/FiltersSection/FiltersSection.jsx';
 import DeleteProductModal from '../../components/DeleteProductModal/DeleteProductModal.jsx';
+import Loader from '../../components/Loader';
 
 const ProductManagement = () => {
     const { business_slug } = useParams();
@@ -298,7 +299,7 @@ const ProductManagement = () => {
             dataLength={data.products.length}
             next={loadMoreProducts}
             hasMore={data.pagination?.has_next || false}
-            loader={<div className={styles.loadingMore}>Загрузка...</div>}
+            loader={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}><Loader size="small" /></div>}
             className={styles.productsGrid}
         >
             {/* Add product card */}
@@ -350,7 +351,7 @@ const ProductManagement = () => {
                         dataLength={allVariants.length}
                         next={loadMoreProducts}
                         hasMore={data.pagination?.has_next || false}
-                        loader={<div className={styles.loadingMore}>Загрузка...</div>}
+                        loader={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}><Loader size="small" /></div>}
                     >
                         <table className={styles.productsTable}>
                             <thead>
@@ -485,7 +486,11 @@ const ProductManagement = () => {
     };
 
     if (loading && !data.products.length) {
-        return <div className={styles.loading}>Загрузка товаров...</div>;
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Loader size="large" />
+            </div>
+        );
     }
 
     if (error) {

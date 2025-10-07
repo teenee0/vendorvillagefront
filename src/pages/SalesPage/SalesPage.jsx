@@ -21,6 +21,7 @@ import {
 } from 'react-icons/fa';
 import { openReceiptPdf, printReceiptPdf } from '../../utils/printUtils';
 import styles from './SalesPage.module.css';
+import Loader from '../../components/Loader';
 
 const SalesPage = () => {
     const { business_slug } = useParams();
@@ -385,7 +386,11 @@ const SalesPage = () => {
 
     // Render product cards
     const renderProductCards = () => {
-        if (loading) return <div className={styles.loading}>Загрузка товаров...</div>;
+        if (loading) return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                <Loader size="medium" />
+            </div>
+        );
         if (error) return <div className={styles.error}>Ошибка: {error}</div>;
         if (products.length === 0) return <div className={styles.empty}>Товары не найдены</div>;
 

@@ -10,6 +10,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
 import GlareHover from '../../components/GlareHover/GlareHover.jsx';
+import Loader from '../../components/Loader';
 
 
 
@@ -104,7 +105,11 @@ const ProductDetail = () => {
     });
   };
 
-  if (loading) return <div className="product-loading">Загрузка товара...</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Loader size="large" />
+    </div>
+  );
   if (error) return <div className="product-error">{error}</div>;
   if (!productData) return <div className="product-not-found">Товар не найден</div>;
 

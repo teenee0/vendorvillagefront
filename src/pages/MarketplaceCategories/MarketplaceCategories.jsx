@@ -4,6 +4,7 @@ import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
 import { useFileUtils } from '../../hooks/useFileUtils';
 import './MarketplaceCategories.css';
+import Loader from '../../components/Loader';
 
 const MarketplaceCategories = () => {
   const { getBackgroundImageUrl } = useFileUtils();
@@ -26,8 +27,8 @@ const MarketplaceCategories = () => {
   }, []);
 
   if (loading) return (
-    <div className="loading-spinner">
-      <div className="spinner"></div>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <Loader size="large" />
     </div>
   );
 

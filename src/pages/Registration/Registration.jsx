@@ -3,6 +3,7 @@ import { FaGoogle, FaTelegram, FaEnvelope, FaLock, FaUser, FaExclamationCircle, 
 import axios from "../../api/axiosDefault.js";
 import { useNavigate, Link } from 'react-router-dom';
 import styles from './Registration.module.css';
+import Loader from '../../components/Loader';
 
 const AuthPage = () => {
   const [isLoginView, setIsLoginView] = useState(true);
@@ -739,7 +740,9 @@ const AuthPage = () => {
               disabled={isLoading}
             >
               {isLoading ? (
-                <span className={styles.spinner}></span>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Loader size="small" />
+                </div>
               ) : passwordResetStep === 0 ? (
                 isLoginView ? 'Войти' : 
                 registrationStep === 1 ? 'Зарегистрироваться' : 'Подтвердить email'

@@ -3,6 +3,7 @@ import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
 import styles from './PasswordReset.module.css';
+import Loader from '../../components/Loader';
 
 const PasswordReset = () => {
   const [step, setStep] = useState(1); // 1 - ввод email, 2 - ввод кода и нового пароля
@@ -280,7 +281,9 @@ const PasswordReset = () => {
               disabled={isLoading}
             >
               {isLoading ? (
-                <span className={styles.spinner}></span>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Loader size="small" />
+                </div>
               ) : step === 1 ? (
                 'Отправить код'
               ) : (
