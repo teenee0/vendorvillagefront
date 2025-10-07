@@ -1,0 +1,124 @@
+.switcher {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.switchButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 12px;
+  color: var(--platinum-gleam);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 200px;
+}
+
+.switchButton:hover {
+  background: var(--royal-emerald);
+  border-color: var(--royal-emerald);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(45, 175, 159, 0.4);
+}
+
+.switchButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.locationInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.locationIcon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.locationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.locationName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.locationType {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.switchIcon {
+  font-size: 1rem;
+  opacity: 0.7;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.switchButton:hover .switchIcon {
+  transform: rotate(180deg);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .switcher {
+    bottom: 10px;
+    left: 10px;
+  }
+  
+  .switchButton {
+    padding: 10px 12px;
+    min-width: 160px;
+  }
+  
+  .locationName {
+    font-size: 0.85rem;
+  }
+  
+  .locationType {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .switchButton {
+    min-width: 140px;
+    padding: 8px 10px;
+  }
+  
+  .locationIcon {
+    font-size: 1rem;
+  }
+  
+  .locationName {
+    font-size: 0.8rem;
+  }
+  
+  .locationType {
+    font-size: 0.7rem;
+  }
+}

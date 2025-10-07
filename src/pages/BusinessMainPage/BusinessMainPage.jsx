@@ -4,6 +4,7 @@ import { FcLineChart } from "react-icons/fc";
 import { Chart } from 'chart.js/auto';
 import axios from '../../api/axiosDefault';
 import { useFileUtils } from '../../hooks/useFileUtils';
+import { useLocation } from '../../hooks/useLocation';
 import styles from './BusinessMainPage.module.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -58,6 +59,7 @@ dayjs.extend(timezone);
 
 const BusinessMainPage = () => {
   const { getFileUrl } = useFileUtils();
+  const { selectedLocation, getLocationParam } = useLocation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -92,7 +94,8 @@ const BusinessMainPage = () => {
       const params = {
         start: startUtc,
         end: endUtc,
-        tz
+        tz,
+        ...getLocationParam()
       };
 
       const response = await axios.get(
@@ -120,10 +123,10 @@ const BusinessMainPage = () => {
   }, [period, tz]);
 
   useEffect(() => {
-    if (startDate && endDate) {
+    if (startDate && endDate && selectedLocation) {
       fetchData(startDate, endDate);
     }
-  }, [startDate, endDate, business_slug]);
+  }, [startDate, endDate, business_slug, selectedLocation]);
 
   const handleDateChange = (dates) => {
     const [start, end] = dates;

@@ -24,6 +24,8 @@ import ProductManagement from './pages/ProductManagement/ProductManagement';
 import ProductEditPage from './pages/ProductEditPage/ProductEditPage';
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
 import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRoute.jsx';
+import LocationWrapper from './components/LocationWrapper/LocationWrapper.jsx';
+import LocationSelectPage from './pages/LocationSelectPage/LocationSelectPage.jsx';
 import ProductAddPage from './pages/ProductAddPage/ProductAddPage.jsx';
 import ProductPage from './pages/ProductPage/ProductPage.jsx';
 import SalesPage from './pages/SalesPage/SalesPage.jsx';
@@ -58,15 +60,17 @@ function App() {
               <Routes location={location}>
                 <Route element={<PrivateRoute />}>
                   <Route element={<BusinessOwnerRoute />}>
-                    <Route path="/business/:business_slug/main" element={<BusinessMainPage />} />
-                    <Route path="/business/:business_slug/products" element={<ProductManagement />} />
-                    <Route path="/business/:business_slug/products/create" element={<ProductAddPage />} />
-                    <Route path="/business/:business_slug/products/:product_id" element={<ProductPage />} />
-                    <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
-                    <Route path="/business/:business_slug/sale-products" element={<SalesPage />} />
-                    <Route path="/business/:business_slug/transactions" element={<TransactionsPage />} />
-                    <Route path="/business/:business_slug/settings" element={<SettingsPage />} />
-
+                    <Route element={<LocationWrapper />}>
+                      <Route path="/business/:business_slug/location-select" element={<LocationSelectPage />} />
+                      <Route path="/business/:business_slug/main" element={<BusinessMainPage />} />
+                      <Route path="/business/:business_slug/products" element={<ProductManagement />} />
+                      <Route path="/business/:business_slug/products/create" element={<ProductAddPage />} />
+                      <Route path="/business/:business_slug/products/:product_id" element={<ProductPage />} />
+                      <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
+                      <Route path="/business/:business_slug/sale-products" element={<SalesPage />} />
+                      <Route path="/business/:business_slug/transactions" element={<TransactionsPage />} />
+                      <Route path="/business/:business_slug/settings" element={<SettingsPage />} />
+                    </Route>
                   </Route>
                 </Route>
               </Routes>
