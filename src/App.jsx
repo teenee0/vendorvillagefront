@@ -31,6 +31,7 @@ import ProductPage from './pages/ProductPage/ProductPage.jsx';
 import SalesPage from './pages/SalesPage/SalesPage.jsx';
 import SettingsPage from './pages/SettingsPage/SettingsPage.jsx';
 import TransactionsPage from './pages/Transactions/Transactions.jsx';
+import EmployeeInvite from './pages/EmployeeInvite/EmployeeInvite.jsx';
 
 function App() {
   const location = useLocation();
@@ -108,6 +109,7 @@ function App() {
                   <Route path="/marketplace/categories/:pk/products" element={<ProductsPage />} />
                   <Route path="/marketplace/products/:pk" element={<ProductDetail />} />
                   <Route path='/business-categories' element={<BusinessCategories />} />
+                  <Route path="/invite/employee/:token" element={<EmployeeInvite />} />
                 </Route>
                 <Route element={<PrivateRoute />}>
                   <Route path="/account" element={<AccountPage />} />

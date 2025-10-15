@@ -61,7 +61,7 @@
   border: none;
   background: transparent;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--blue-dark);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;

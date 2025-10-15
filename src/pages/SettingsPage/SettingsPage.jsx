@@ -27,6 +27,7 @@ import {
 } from 'react-icons/fa';
 import styles from './SettingsPage.module.css';
 import Loader from '../../components/Loader';
+import EmployeesManagement from '../../components/EmployeesManagement/EmployeesManagement';
 
 const BusinessSettings = () => {
   const { business_slug } = useParams();
@@ -291,13 +292,18 @@ const savePrinterSettings = () => {
         {/* Основное содержимое */}
         <div className={styles.accountContent}>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           >
             {/* Вкладка "Основные" */}
             {activeTab === 'general' && (
-              <div className={styles.settingsTab}>
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
                 <h1>
                   <FaBuilding /> Основные настройки
                 </h1>
@@ -331,7 +337,12 @@ const savePrinterSettings = () => {
                   </div>
 
                   {editing ? (
-                    <div className={styles.settingsGrid}>
+                    <motion.div 
+                      className={styles.settingsGrid}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <div className={styles.formGroup}>
                         <label>Название бизнеса</label>
                         <input
@@ -382,9 +393,14 @@ const savePrinterSettings = () => {
                           </label>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ) : (
-                    <div className={styles.settingsGrid}>
+                    <motion.div 
+                      className={styles.settingsGrid}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <div className={styles.settingsItem}>
                         <div className={styles.settingsIcon}>
                           <FaBuilding />
@@ -421,15 +437,20 @@ const savePrinterSettings = () => {
                           <p>{business.address || 'Не указан'}</p>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Вкладка "Точки и склады" */}
             {activeTab === 'locations' && (
-              <div className={styles.settingsTab}>
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
                 <h1>
                   <FaMapMarkerAlt /> Точки и склады
                 </h1>
@@ -446,12 +467,24 @@ const savePrinterSettings = () => {
 
                 <div className={styles.listContainer}>
                   {locations.length === 0 ? (
-                    <div className={styles.emptyMessage}>
+                    <motion.div 
+                      className={styles.emptyMessage}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                    >
                       Нет добавленных точек или складов
-                    </div>
+                    </motion.div>
                   ) : (
-                    locations.map(location => (
-                      <div key={location.id} className={styles.listItem}>
+                    locations.map((location, index) => (
+                      <motion.div 
+                        key={location.id} 
+                        className={styles.listItem}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02 }}
+                      >
                         <div className={styles.itemInfo}>
                           <h4>
                             {location.name}
@@ -485,16 +518,21 @@ const savePrinterSettings = () => {
                             <FaTrashAlt />
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))
                   )}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Вкладка "Шаблоны чеков" */}
             {activeTab === 'receipts' && (
-              <div className={styles.settingsTab}>
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
                 <h1>
                   <FaReceipt /> Шаблоны чеков
                 </h1>
@@ -581,45 +619,55 @@ const savePrinterSettings = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
 
             {/* Вкладка "Принтеры" */}
             {activeTab === 'printers' && (
-              <div className={styles.settingsTab}>
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
                 <h1>
                   <FaUserCog /> Управление Принтерами
                 </h1>
                 <div className={styles.infoAlert}>
                   <FaInfoCircle /> Раздел в разработке
                 </div>
-              </div>
+              </motion.div>
             )}
 
 
             {/* Вкладка "Сотрудники" */}
             {activeTab === 'employees' && (
-              <div className={styles.settingsTab}>
-                <h1>
-                  <FaUserCog /> Управление сотрудниками
-                </h1>
-                <div className={styles.infoAlert}>
-                  <FaInfoCircle /> Раздел в разработке
-                </div>
-              </div>
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <EmployeesManagement businessSlug={business_slug} />
+              </motion.div>
             )}
 
             {/* Вкладка "Товары" */}
             {activeTab === 'products' && (
-              <div className={styles.settingsTab}>
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
                 <h1>
                   <FaTags /> Настройки товаров
                 </h1>
                 <div className={styles.infoAlert}>
                   <FaInfoCircle /> Раздел в разработке
                 </div>
-              </div>
+              </motion.div>
             )}
           </motion.div>
         </div>
@@ -631,8 +679,20 @@ const savePrinterSettings = () => {
           className={styles.dialogOverlay}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => {
+            setLocationDialog(false);
+            setCurrentLocation(null);
+          }}
         >
-          <div className={styles.dialog}>
+          <motion.div 
+            className={styles.dialog}
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.dialogHeader}>
               <h3>
                 {currentLocation ? 'Редактирование локации' : 'Добавление новой локации'}
@@ -733,7 +793,7 @@ const savePrinterSettings = () => {
                 <FaSave /> Сохранить
               </button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </div>

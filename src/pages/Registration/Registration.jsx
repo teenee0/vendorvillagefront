@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaGoogle, FaTelegram, FaEnvelope, FaLock, FaUser, FaExclamationCircle, FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
 import axios from "../../api/axiosDefault.js";
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import styles from './Registration.module.css';
 import Loader from '../../components/Loader';
 
@@ -25,6 +25,10 @@ const AuthPage = () => {
   const [pendingUser, setPendingUser] = useState(null);
   const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Получаем URL для редиректа из query параметров
+  const redirectUrl = searchParams.get('redirect') || '/account';
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
@@ -85,7 +89,7 @@ const AuthPage = () => {
       const res = await axios.post('/accounts/api/auth/google/', {
         token: response.credential
       }, { withCredentials: true });
-      navigate('/account');
+      navigate(redirectUrl);
     } catch (error) {
       setErrors({ auth: "Ошибка входа через Google" });
     } finally {
@@ -99,7 +103,7 @@ const AuthPage = () => {
       const res = await axios.post('/accounts/api/auth/telegram/', user, {
         withCredentials: true,
       });
-      navigate('/account');
+      navigate(redirectUrl);
     } catch (error) {
       setErrors({ auth: "Ошибка входа через Telegram" });
     } finally {
@@ -302,7 +306,7 @@ const AuthPage = () => {
             email: formData.email,
             password: formData.password
           }, { withCredentials: true });
-          navigate('/account');
+          navigate(redirectUrl);
         } else if (registrationStep === 1) {
           // Первый этап - отправка данных регистрации
           const response = await axios.post('accounts/api/auth/register/', {
@@ -324,7 +328,7 @@ const AuthPage = () => {
             code: formData.verificationCode
           }, { withCredentials: true });
           
-          navigate('/account');
+          navigate(redirectUrl);
         }
       } else if (passwordResetStep === 1) {
         // Запрос сброса пароля
