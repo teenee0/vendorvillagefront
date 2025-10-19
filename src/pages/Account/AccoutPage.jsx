@@ -11,6 +11,8 @@ const AccountPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
+  const [employments, setEmployments] = useState([]);
+  const [employmentsLoading, setEmploymentsLoading] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -33,6 +35,24 @@ const AccountPage = () => {
 
     fetchAccountInfo();
   }, [navigate]);
+
+  // Загрузка мест работы при открытии вкладки
+  useEffect(() => {
+    if (activeTab === 'work') {
+      const fetchEmployments = async () => {
+        try {
+          setEmploymentsLoading(true);
+          const response = await axios.get('api/my-employments/');
+          setEmployments(response.data);
+        } catch (err) {
+          console.error('Ошибка загрузки мест работы:', err);
+        } finally {
+          setEmploymentsLoading(false);
+        }
+      };
+      fetchEmployments();
+    }
+  }, [activeTab]);
 
   const handleLogout = async () => {
     await logout();
@@ -91,6 +111,12 @@ const AccountPage = () => {
               <i className="fas fa-user"></i> Профиль
             </button>
             <button 
+              className={activeTab === 'work' ? 'active' : ''}
+              onClick={() => setActiveTab('work')}
+            >
+              <i className="fas fa-briefcase"></i> Работа
+            </button>
+            <button 
               className={activeTab === 'security' ? 'active' : ''}
               onClick={() => setActiveTab('security')}
             >
@@ -101,7 +127,7 @@ const AccountPage = () => {
                 className={activeTab === 'business' ? 'active' : ''}
                 onClick={() => setActiveTab('business')}
               >
-                <i className="fas fa-briefcase"></i> Бизнес-панель
+                <i className="fas fa-building"></i> Мои бизнесы
               </button>
             )}
             <button 
@@ -170,6 +196,107 @@ const AccountPage = () => {
               <button className="edit-profile-btn" disabled >
                 <i className="fas fa-edit"></i> Редактировать профиль
               </button>
+            </motion.div>
+          )}
+
+          {activeTab === 'work' && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="work-tab"
+            >
+              <h1>Мои места работы</h1>
+              
+              {employmentsLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+                  <Loader size="medium" />
+                </div>
+              ) : employments.length > 0 ? (
+                <div className="businesses-grid">
+                  {employments.map(employment => (
+                    <motion.div
+                      key={employment.id}
+                      whileHover={{ y: -5 }}
+                      className="employment-card"
+                    >
+                      <div className="business-card-header">
+                        {employment.business.business_logo && (
+                          <img 
+                            src={employment.business.business_logo} 
+                            alt={`${employment.business.name} logo`} 
+                            className="business-logo" 
+                          />
+                        )}
+                        <h3>{employment.business.name}</h3>
+                        {employment.employee_name && (
+                          <span className="employee-name-badge">
+                            <i className="fas fa-id-badge"></i> {employment.employee_name}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="business-card-body">
+                        {employment.business.description && (
+                          <p className="business-description">
+                            {employment.business.description}
+                          </p>
+                        )}
+                        
+                        {employment.hired_date && (
+                          <div className="employment-info">
+                            <i className="fas fa-calendar-check"></i>
+                            <span>Работаю с: {new Date(employment.hired_date).toLocaleDateString('ru-RU')}</span>
+                          </div>
+                        )}
+
+                        {employment.locations.length > 0 && (
+                          <div className="employment-locations">
+                            <h4><i className="fas fa-map-marker-alt"></i> Мои локации:</h4>
+                            <div className="locations-list">
+                              {employment.locations.map(loc => (
+                                <div key={loc.id} className="location-item">
+                                  <div className="location-info">
+                                    <strong>{loc.location_name}</strong>
+                                    {loc.position && (
+                                      <span className="position-badge">
+                                        <i className="fas fa-user-tie"></i> {loc.position}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {loc.location_address && (
+                                    <p className="location-address">{loc.location_address}</p>
+                                  )}
+                                  {loc.permissions_count > 0 && (
+                                    <span className="permissions-badge">
+                                      <i className="fas fa-key"></i> {loc.permissions_count} прав доступа
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="business-card-footer">
+                        <Link 
+                          to={`/business/${employment.business.slug}/main`} 
+                          className="dashboard-btn"
+                        >
+                          <i className="fas fa-door-open"></i> Перейти к работе
+                        </Link>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-businesses">
+                  <i className="fas fa-briefcase"></i>
+                  <h3>Вы пока нигде не работаете</h3>
+                  <p>Когда вас пригласят в бизнес, здесь появится информация о вашей работе</p>
+                </div>
+              )}
             </motion.div>
           )}
 
