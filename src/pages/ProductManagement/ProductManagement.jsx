@@ -42,6 +42,13 @@ const ProductManagement = () => {
     // Delete modal states
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
+    
+    // Mobile filters states
+    const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+    const [mobileTempFilters, setMobileTempFilters] = useState({});
+    const [mobilePriceMin, setMobilePriceMin] = useState('');
+    const [mobilePriceMax, setMobilePriceMax] = useState('');
+    const [mobileSelectedCategory, setMobileSelectedCategory] = useState(null);
 
     // Initialize from URL params
     useEffect(() => {
@@ -61,6 +68,66 @@ const ProductManagement = () => {
         });
         setTempFilters(initialFilters);
     }, [location.search]);
+
+    // Mobile filters functions
+    const openMobileFilters = () => {
+        // Копируем текущие значения в мобильные состояния
+        setMobileTempFilters({ ...tempFilters });
+        setMobilePriceMin(priceMin);
+        setMobilePriceMax(priceMax);
+        setMobileSelectedCategory(selectedCategory);
+        setIsMobileFiltersOpen(true);
+    };
+
+    const closeMobileFilters = () => {
+        setIsMobileFiltersOpen(false);
+    };
+
+    const applyMobileFilters = () => {
+        // Применяем мобильные фильтры к основным состояниям
+        setTempFilters({ ...mobileTempFilters });
+        setPriceMin(mobilePriceMin);
+        setPriceMax(mobilePriceMax);
+        setSelectedCategory(mobileSelectedCategory);
+        
+        // Обновляем URL с новыми фильтрами
+        updateURLWithFilters(mobileTempFilters, mobilePriceMin, mobilePriceMax, mobileSelectedCategory);
+        
+        // Закрываем мобильное меню
+        closeMobileFilters();
+        
+        // Перезагружаем данные
+        fetchProducts();
+    };
+
+    const resetMobileFilters = () => {
+        setMobileTempFilters({});
+        setMobilePriceMin('');
+        setMobilePriceMax('');
+        setMobileSelectedCategory(null);
+    };
+
+    const updateURLWithFilters = (filters, priceMin, priceMax, category) => {
+        const params = new URLSearchParams();
+        
+        if (searchQuery) params.set('search', searchQuery);
+        if (sortOption) params.set('sort', sortOption);
+        if (priceMin) params.set('price_min', priceMin);
+        if (priceMax) params.set('price_max', priceMax);
+        if (category) params.set('category', category);
+        
+        // Добавляем атрибуты
+        Object.entries(filters).forEach(([key, values]) => {
+            if (Array.isArray(values)) {
+                values.forEach(value => params.append(key, value));
+            } else if (values) {
+                params.set(key, values);
+            }
+        });
+        
+        const newUrl = `${location.pathname}?${params.toString()}`;
+        navigate(newUrl, { replace: true });
+    };
 
     const handleDeleteProduct = (productId, productName) => {
         setProductToDelete({ id: productId, name: productName });
@@ -520,6 +587,15 @@ const ProductManagement = () => {
                 </div>
             </div>
 
+            {/* Mobile Filters Button */}
+            <button 
+                className={styles.mobileFiltersButton}
+                onClick={openMobileFilters}
+            >
+                <i className="fa fa-filter"></i>
+                Фильтры
+            </button>
+
             <div className={styles.contentWrapper}>
                 <aside className={styles.sidebar}>
                     {/* Categories filter */}
@@ -690,6 +766,134 @@ const ProductManagement = () => {
                         </div>
                     ) : viewMode === 'cards' ? renderCardsView() : renderTableView()}
                 </main>
+            </div>
+            
+            {/* Mobile Filters Menu */}
+            <div className={`${styles.mobileFiltersOverlay} ${isMobileFiltersOpen ? styles.active : ''}`} onClick={closeMobileFilters}>
+                <div className={`${styles.mobileFiltersPanel} ${isMobileFiltersOpen ? styles.active : ''}`} onClick={(e) => e.stopPropagation()}>
+                    <div className={styles.mobileFiltersHeader}>
+                        <h3 className={styles.mobileFiltersTitle}>Фильтры</h3>
+                        <button className={styles.mobileFiltersClose} onClick={closeMobileFilters}>
+                            <i className="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div className={styles.mobileFiltersContent}>
+                        {/* Categories filter */}
+                        <div className={styles.filterSection}>
+                            <h4 className={styles.filterTitle}>Категории</h4>
+                            <div className={styles.categoriesList}>
+                                <button
+                                    className={`${styles.categoryButton} ${!mobileSelectedCategory ? styles.active : ''}`}
+                                    onClick={() => setMobileSelectedCategory(null)}
+                                >
+                                    Все товары
+                                </button>
+                                {data.categories.map(category => (
+                                    <button
+                                        key={category.id}
+                                        className={`${styles.categoryButton} ${mobileSelectedCategory === category.id ? styles.active : ''}`}
+                                        onClick={() => setMobileSelectedCategory(category.id)}
+                                    >
+                                        {category.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Attributes filters */}
+                        <div className={styles.filterSection}>
+                            <FiltersSection
+                                filtersLoading={loading}
+                                filters={data.filters?.filters || []}
+                                visibleFiltersCount={visibleFiltersCount}
+                                expandedFilters={expandedFilters}
+                                toggleFilter={(filterId, attributeId) => {
+                                    const newFilters = { ...mobileTempFilters };
+                                    const key = `attr_${filterId}`;
+                                    
+                                    if (!newFilters[key]) {
+                                        newFilters[key] = [];
+                                    }
+                                    
+                                    if (newFilters[key].includes(attributeId)) {
+                                        newFilters[key] = newFilters[key].filter(id => id !== attributeId);
+                                        if (newFilters[key].length === 0) {
+                                            delete newFilters[key];
+                                        }
+                                    } else {
+                                        newFilters[key].push(attributeId);
+                                    }
+                                    
+                                    setMobileTempFilters(newFilters);
+                                }}
+                                isAttributeSelected={(filterId, attributeId) => {
+                                    const key = `attr_${filterId}`;
+                                    return mobileTempFilters[key]?.includes(attributeId) || false;
+                                }}
+                                handleAttributeSelect={(filterId, attributeId) => {
+                                    const newFilters = { ...mobileTempFilters };
+                                    const key = `attr_${filterId}`;
+                                    
+                                    if (!newFilters[key]) {
+                                        newFilters[key] = [];
+                                    }
+                                    
+                                    if (newFilters[key].includes(attributeId)) {
+                                        newFilters[key] = newFilters[key].filter(id => id !== attributeId);
+                                        if (newFilters[key].length === 0) {
+                                            delete newFilters[key];
+                                        }
+                                    } else {
+                                        newFilters[key].push(attributeId);
+                                    }
+                                    
+                                    setMobileTempFilters(newFilters);
+                                }}
+                                setVisibleFiltersCount={setVisibleFiltersCount}
+                            />
+                        </div>
+
+                        {/* Price filter */}
+                        <div className={styles.filterSection}>
+                            <h4 className={styles.filterTitle}>Цена</h4>
+                            <div className={styles.priceInputs}>
+                                <input
+                                    type="number"
+                                    placeholder="от"
+                                    className={styles.priceInput}
+                                    value={mobilePriceMin}
+                                    onChange={(e) => setMobilePriceMin(e.target.value)}
+                                    min="0"
+                                />
+                                <span className={styles.priceSeparator}>-</span>
+                                <input
+                                    type="number"
+                                    placeholder="до"
+                                    className={styles.priceInput}
+                                    value={mobilePriceMax}
+                                    onChange={(e) => setMobilePriceMax(e.target.value)}
+                                    min="0"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className={styles.mobileFiltersActions}>
+                        <button
+                            className={styles.mobileApplyButton}
+                            onClick={applyMobileFilters}
+                        >
+                            Применить
+                        </button>
+                        <button
+                            className={styles.mobileResetButton}
+                            onClick={resetMobileFilters}
+                        >
+                            Сбросить
+                        </button>
+                    </div>
+                </div>
             </div>
             
             {/* Модальное окно удаления */}

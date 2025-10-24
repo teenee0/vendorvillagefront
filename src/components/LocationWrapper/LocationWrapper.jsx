@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Outlet, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import LocationSwitcher from '../LocationSwitcher/LocationSwitcher';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import styles from './LocationWrapper.module.css';
 
 const LocationWrapper = () => {
   const { business_slug } = useParams();
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
+  const isMobile = useIsMobile();
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isChecking, setIsChecking] = useState(true);
 
@@ -40,15 +42,17 @@ const LocationWrapper = () => {
     return <Outlet />;
   }
 
-  // Если локация выбрана, показываем контент с переключателем
+  // Если локация выбрана, показываем контент с переключателем (только на десктопе)
   return (
     <div className={styles.container}>
       <Outlet />
-      <LocationSwitcher 
-        businessSlug={business_slug}
-        selectedLocation={selectedLocation}
-        onLocationChange={handleChangeLocation}
-      />
+      {!isMobile && (
+        <LocationSwitcher 
+          businessSlug={business_slug}
+          selectedLocation={selectedLocation}
+          onLocationChange={handleChangeLocation}
+        />
+      )}
     </div>
   );
 };

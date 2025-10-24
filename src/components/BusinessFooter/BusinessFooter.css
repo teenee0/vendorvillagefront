@@ -1,4 +1,22 @@
 /* src/components/Footer.css */
+
+/* Отступы для контента чтобы не перекрывался с футером */
+.content-wrapper-business {
+  padding-bottom: 120px; /* Отступ для обычного Dock */
+}
+
+/* Адаптивные отступы */
+@media (max-width: 768px) {
+  .content-wrapper-business {
+    padding-bottom: 160px; /* Больший отступ на мобильных для MobileDock */
+  }
+}
+
+/* Дополнительные отступы для страниц с длинным контентом */
+.page-content-business {
+  min-height: calc(100vh - 200px); /* Минимальная высота с учетом футера */
+}
+
 .footer {
     background-color: #2a2e35;
     color: #fff;

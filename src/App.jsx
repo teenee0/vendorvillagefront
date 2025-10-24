@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import BusinessHeader from './components/BusinessHeader/BusinessHeader.jsx';
@@ -21,8 +22,11 @@ import AuthPage from './pages/Registration/Registration';
 import PasswordReset from './pages/PasswordReset/PasswordReset';
 import PublicRoute from './pages/PublicRoute/PublicRoute';
 import ProductManagement from './pages/ProductManagement/ProductManagement';
+import ProductManagementMobile from './pages/ProductManagement/ProductManagementMobile';
 import ProductEditPage from './pages/ProductEditPage/ProductEditPage';
+import ResponsiveRoute from './components/ResponsiveRoute/ResponsiveRoute';
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
+import BusinessMainPageMobile from './pages/BusinessMainPage/BusinessMainPageMobile.jsx';
 import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRoute.jsx';
 import LocationWrapper from './components/LocationWrapper/LocationWrapper.jsx';
 import LocationSelectPage from './pages/LocationSelectPage/LocationSelectPage.jsx';
@@ -41,11 +45,25 @@ function App() {
     location.pathname.startsWith('/business/')
   );
 
+  // Управление классом body для бизнес-темы
+  useEffect(() => {
+    if (isBusinessRoute) {
+      document.body.classList.add('business-theme');
+    } else {
+      document.body.classList.remove('business-theme');
+    }
+
+    // Очистка при размонтировании
+    return () => {
+      document.body.classList.remove('business-theme');
+    };
+  }, [isBusinessRoute]);
+
   if (isBusinessRoute) {
     // Рендеринг для бизнес-страниц
     return (
       <>
-        <EnvironmentIndicator />
+        {/* <EnvironmentIndicator /> */}
         <TokenRefreshManager />
         <BusinessHeader />
         <div className="content-wrapper-business">
@@ -63,8 +81,24 @@ function App() {
                   <Route element={<BusinessOwnerRoute />}>
                     <Route element={<LocationWrapper />}>
                       <Route path="/business/:business_slug/location-select" element={<LocationSelectPage />} />
-                      <Route path="/business/:business_slug/main" element={<BusinessMainPage />} />
-                      <Route path="/business/:business_slug/products" element={<ProductManagement />} />
+                      <Route 
+                        path="/business/:business_slug/main" 
+                        element={
+                          <ResponsiveRoute 
+                            desktopComponent={BusinessMainPage}
+                            mobileComponent={BusinessMainPageMobile}
+                          />
+                        } 
+                      />
+                      <Route 
+                        path="/business/:business_slug/products" 
+                        element={
+                          <ResponsiveRoute 
+                            desktopComponent={ProductManagement}
+                            mobileComponent={ProductManagementMobile}
+                          />
+                        } 
+                      />
                       <Route path="/business/:business_slug/products/create" element={<ProductAddPage />} />
                       <Route path="/business/:business_slug/products/:product_id" element={<ProductPage />} />
                       <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
@@ -125,3 +159,5 @@ function App() {
 }
 
 export default App;
+
+

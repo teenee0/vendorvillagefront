@@ -524,8 +524,15 @@
 
 .filterSection {
     margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filterTitle {
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
 }
 
 .applyFilterButton {
@@ -560,6 +567,149 @@
 }
 
 
+/* Mobile Filters Menu */
+.mobileFiltersButton {
+    display: none;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, var(--accent-color), #2daf9f);
+    border: 1px solid var(--accent-color);
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+    margin-bottom: 1rem;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobileFiltersButton:hover {
+    background: linear-gradient(135deg, #2daf9f, var(--accent-color));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(45, 175, 159, 0.4);
+}
+
+.mobileFiltersOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobileFiltersOverlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobileFiltersPanel {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 320px;
+    max-width: 85vw;
+    height: 100vh;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    z-index: 1001;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobileFiltersPanel.active {
+    left: 0;
+}
+
+.mobileFiltersHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 1rem 1rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+    background: linear-gradient(135deg, var(--phantom-noir), #1a1a1a);
+}
+
+.mobileFiltersTitle {
+    color: var(--platinum-gleam);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.mobileFiltersClose {
+    background: none;
+    border: none;
+    color: var(--silver-whisper);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.mobileFiltersClose:hover {
+    background: var(--velvet-ruby);
+    color: white;
+}
+
+.mobileFiltersContent {
+    padding: 1rem;
+}
+
+.mobileFiltersActions {
+    position: sticky;
+    bottom: 0;
+    padding: 1rem;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-top: 1px solid var(--gilded-shadow);
+    display: flex;
+    gap: 0.75rem;
+}
+
+.mobileApplyButton,
+.mobileResetButton {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+}
+
+.mobileApplyButton {
+    background: linear-gradient(135deg, var(--accent-color), #2daf9f);
+    border: 1px solid var(--accent-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.mobileApplyButton:hover {
+    background: linear-gradient(135deg, #2daf9f, var(--accent-color));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(45, 175, 159, 0.4);
+}
+
+.mobileResetButton {
+    background: linear-gradient(145deg, var(--phantom-noir), #1a1a1a);
+    border: 1px solid var(--velvet-ruby);
+    color: var(--velvet-ruby);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mobileResetButton:hover {
+    background: linear-gradient(135deg, var(--velvet-ruby), #c0392b);
+    border-color: var(--velvet-ruby);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+}
+
 /* Responsive styles */
 @media (max-width: 1200px) {
     .contentWrapper {
@@ -572,6 +722,23 @@
     
     .productsGrid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Показываем кнопку мобильных фильтров на планшетах */
+    .mobileFiltersButton {
+        display: flex;
+    }
+    
+    /* Скрываем обычный сайдбар */
+    .sidebar {
+        display: none;
+    }
+    
+    .mainContentFlex,
+    .mainContentGrid {
+        padding-left: 0;
     }
 }
 
@@ -598,6 +765,31 @@
     .sortContainer {
         width: 100%;
         justify-content: space-between;
+    }
+    
+    .productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobileFiltersPanel {
+        width: 100vw;
+        max-width: 100vw;
+    }
+    
+    .mobileFiltersContent {
+        padding: 0.75rem;
+    }
+    
+    .mobileFiltersActions {
+        padding: 0.75rem;
+    }
+    
+    .productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 0.5rem;
     }
 }
 .priceCell {

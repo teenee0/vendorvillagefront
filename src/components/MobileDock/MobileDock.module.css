@@ -1,0 +1,287 @@
+/* Футер */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  position: relative;
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Верхний блок */
+.topBox {
+  background: rgba(121, 175, 211, 0.17);
+  color: #fff;
+  padding: 12px 30px;
+  border-radius: 15px 15px 0 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+  box-shadow: 
+    0 0 20px rgba(0,0,0,0.7),
+    inset 0 1px 2px rgba(255,255,255,0.1);
+  width: fit-content;
+  margin: 0 auto;
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  z-index: 10;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Эффекты при наведении и клике */
+.topBox:hover {
+  background: rgba(121, 175, 211, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 4px 25px rgba(0,0,0,0.8),
+    inset 0 1px 2px rgba(255,255,255,0.15);
+}
+
+.topBox:active {
+  transform: translateY(0px) scale(0.98);
+  background: rgba(121, 175, 211, 0.3);
+}
+
+/* Стили для названия локации */
+.locationName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+/* Стили для подсказки (вторая строка) */
+.locationHint {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.1px;
+  margin-top: 2px;
+}
+
+.topBox::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 8px solid #181d22;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.topBox::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 6px solid #121518;
+}
+
+/* Нижняя панель - мобильная версия */
+.dock {
+  background: rgba(121, 175, 211, 0.17);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 20px 15px;
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,0.05),
+    0 10px 25px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  margin-top: -1px;
+  border-radius: 15px 15px 0 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dock::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255,255,255,0.1) 20%, 
+    rgba(255,255,255,0.2) 50%, 
+    rgba(255,255,255,0.1) 80%, 
+    transparent 100%);
+}
+
+/* Иконки - мобильная версия */
+.icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: #1a1a1a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    inset 0 0 8px rgba(255,255,255,0.03),
+    0 4px 15px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(255,255,255,0.05);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.iconEmoji {
+  font-size: 20px;
+  opacity: 0.8;
+  transition: all 0.25s ease;
+}
+
+/* Лейбл для иконок */
+.iconLabel {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Эффект при наведении */
+.icon:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 
+    0 8px 25px rgba(0,0,0,0.5),
+    0 0 0 2px rgba(255,255,255,0.1);
+}
+
+.icon:hover .iconLabel {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.icon:hover .iconEmoji {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Активная иконка */
+.icon.active {
+  background: linear-gradient(180deg, #2a333a 0%, #1f262b 100%);
+  box-shadow: 
+    0 0 0 2px rgba(255, 138, 0, 0.5),
+    0 8px 20px rgba(255, 138, 0, 0.2),
+    inset 0 1px 2px rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+.icon.active .iconEmoji {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 138, 0, 0.8));
+  transform: scale(1.05);
+}
+
+/* Индикатор уведомлений */
+.icon.notification {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 2px 8px rgba(255, 32, 112, 0.4),
+      0 0 0 2px rgba(255,255,255,0.1);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 
+      0 4px 12px rgba(255, 32, 112, 0.6),
+      0 0 0 3px rgba(255,255,255,0.2);
+  }
+}
+
+/* Мобильная оптимизация */
+@media (max-width: 480px) {
+  .dock {
+    padding: 15px 10px;
+  }
+  
+  .icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .iconEmoji {
+    font-size: 18px;
+  }
+  
+  .topBox {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+}
+
+/* Анимации появления */
+.footer {
+  animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topBox {
+  animation: slideDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

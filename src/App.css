@@ -7,6 +7,11 @@ html, body {
   height: 100%;
 }
 
+/* Стили для бизнес-страниц */
+body.business-theme {
+  background-color: var(--onyx-midnight);
+}
+
 /* Основная структура */
 .content-wrapper {
   display: flex;
@@ -21,8 +26,15 @@ html, body {
   margin-left: 0;
   margin-right: 0;
   padding: 0;
-  background-color: var(--onyx-midnight);
   height: 100%;
+  padding-bottom: 120px; /* Отступ для обычного Dock */
+}
+
+/* Адаптивные отступы для мобильных устройств */
+@media (max-width: 768px) {
+  .content-wrapper-business {
+    padding-bottom: 160px; /* Больший отступ на мобильных для MobileDock */
+  }
 }
 
 .page-content {
