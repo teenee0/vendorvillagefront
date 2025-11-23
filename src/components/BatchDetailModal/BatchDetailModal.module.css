@@ -1,0 +1,1069 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+  position: sticky;
+  top: 0;
+  background: var(--obsidian-elite);
+  z-index: 10;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.content {
+  padding: 1.5rem;
+}
+
+.statusBadge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.status_draft {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status_completed {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.completedInfo {
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+}
+
+.infoSection,
+.stocksSection {
+  margin-bottom: 2rem;
+}
+
+.stocksList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stockRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.selectedProductCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--royal-emerald);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.selectedProductImage {
+  width: 70px;
+  height: 98px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.selectedNoImage {
+  width: 70px;
+  height: 98px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--palladium-mist);
+  flex-shrink: 0;
+}
+
+.selectedProductInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selectedProductName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+}
+
+.selectedProductVariant {
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.selectedAttributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attributeBadge {
+  background: rgba(45, 175, 159, 0.1);
+  color: var(--royal-emerald);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgba(45, 175, 159, 0.2);
+}
+
+.stockControls {
+  display: grid;
+  grid-template-columns: 1.5fr 100px 120px 100px auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.inputWithLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  color: var(--silver-whisper);
+  font-weight: 500;
+  text-align: center;
+}
+
+.stockInfoReadonly {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--obsidian-elite);
+  border-radius: 4px;
+}
+
+.infoLabel {
+  color: var(--silver-whisper);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.infoValue {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+}
+
+.select {
+  width: 100%;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+}
+
+.quantityInput {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+  text-align: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  white-space: nowrap;
+  justify-content: center;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.removeButton {
+  background: transparent;
+  border: 1px solid var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeButton:hover {
+  background: var(--velvet-ruby);
+  color: white;
+}
+
+.emptyStocks {
+  text-align: center;
+  padding: 2rem;
+  color: var(--palladium-mist);
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background: #2a9f8f;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionHeader h3 {
+  font-size: 1.25rem;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover:not(:disabled) {
+  background: #2a9f8f;
+}
+
+.editButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.infoItemFull {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.infoItem label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--silver-whisper);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.infoItem span,
+.infoItemFull span {
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+}
+
+.infoItem input,
+.infoItem select,
+.infoItemFull textarea {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--platinum-gleam);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.infoItem input:focus,
+.infoItem select:focus,
+.infoItemFull textarea:focus {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 2px rgba(45, 175, 159, 0.2);
+}
+
+.summarySection {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--royal-emerald);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.summaryLabel {
+  color: var(--silver-whisper);
+  font-weight: 500;
+}
+
+.summaryValue {
+  color: var(--platinum-gleam);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.stocksSection h3 {
+  font-size: 1.25rem;
+  color: var(--platinum-gleam);
+  margin: 0 0 1rem 0;
+}
+
+.stocksTable {
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 100px 120px 120px 120px 120px auto 100px;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  color: var(--silver-whisper);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 100px 120px 120px 120px 120px auto 100px;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--gilded-shadow);
+  transition: all 0.2s ease;
+}
+
+.tableRow:hover {
+  background: rgba(45, 175, 159, 0.05);
+}
+
+.colProduct {
+  color: var(--platinum-gleam);
+  font-weight: 500;
+}
+
+.colLocation {
+  color: var(--silver-whisper);
+}
+
+.colQuantity,
+.colReserved,
+.colDefect,
+.colAvailable {
+  text-align: center;
+  color: var(--platinum-gleam);
+  font-weight: 600;
+}
+
+.statusActive,
+.statusInactive {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.statusActive {
+  background: rgba(45, 175, 159, 0.2);
+  color: var(--royal-emerald);
+}
+
+.statusInactive {
+  background: rgba(168, 58, 58, 0.2);
+  color: var(--velvet-ruby);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--palladium-mist);
+  gap: 1rem;
+}
+
+.emptyState svg {
+  font-size: 3rem;
+  opacity: 0.3;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.deleteBatchButton {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deleteBatchButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.deleteBatchButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.completeButton {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.completeButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.completeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.closeBtn {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: var(--gilded-shadow);
+}
+
+.documentsSection {
+  border-top: 1px solid var(--gilded-shadow);
+  padding-top: 1.5rem;
+}
+
+.documentUploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.documentUploadForm input,
+.documentUploadForm textarea {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--platinum-gleam);
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.documentUploadForm input:focus,
+.documentUploadForm textarea:focus {
+  border-color: var(--royal-emerald);
+}
+
+.documentUploadActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.documentUploadActions button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.documentUploadActions button:first-child {
+  background: var(--royal-emerald);
+  color: white;
+}
+
+.documentUploadActions button:first-child:hover:not(:disabled) {
+  background: #2a9f8f;
+}
+
+.documentUploadActions button:first-child:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.documentUploadActions button:last-child {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+}
+
+.documentUploadActions button:last-child:hover {
+  background: var(--gilded-shadow);
+}
+
+.documentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.documentCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.documentIcon {
+  font-size: 2rem;
+  color: var(--royal-emerald);
+}
+
+.documentInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.documentName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+}
+
+.documentDescription {
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.documentMeta {
+  color: var(--palladium-mist);
+  font-size: 0.8rem;
+}
+
+.documentActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewButton,
+.downloadButton,
+.deleteButton {
+  background: transparent;
+  border: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewButton:hover {
+  border-color: var(--luminous-sapphire);
+  color: var(--luminous-sapphire);
+  background: rgba(58, 93, 168, 0.1);
+}
+
+.downloadButton:hover {
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+  background: rgba(45, 175, 159, 0.1);
+}
+
+.deleteButton:hover {
+  border-color: var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  background: rgba(168, 58, 58, 0.1);
+}
+
+.addDocumentButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addDocumentButton:hover {
+  background: #2a9f8f;
+}
+
+@media (max-width: 768px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stockControls {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .infoRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  
+
+ }
+
+.colStatus {
+  text-align: center;
+}
+
+.colActions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.deleteStockButton {
+  background: transparent;
+  border: 1px solid var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteStockButton:hover {
+  background: var(--velvet-ruby);
+  color: white;
+}
+
+.addStockButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.addStockButton:hover {
+  background: #2a9f8f;
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.actionButton {
+  background: transparent;
+  border: 1px solid var(--royal-emerald);
+  color: var(--royal-emerald);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  margin: 0 0.25rem;
+}
+
+.actionButton:hover {
+  background: var(--royal-emerald);
+  color: white;
+}
+
+.editControls {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.smallInput {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.25rem;
+  border-radius: 4px;
+  width: 60px;
+  font-size: 0.85rem;
+}
+
+.editableValue {
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.editableValue:hover {
+  background: rgba(45, 175, 159, 0.1);
+  border: 1px solid rgba(45, 175, 159, 0.3);
+}
+
+.saveBtn {
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.saveBtn:hover {
+  background: #2a9f8f;
+}
+
+.cancelBtn {
+  background: var(--velvet-ruby);
+  border: none;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background: #c41e3a;
+}
+
+.defectSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.addDefectButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addDefectButton:hover {
+  background: linear-gradient(135deg, #f57c00, #e65100);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.defectForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--royal-emerald);
+  border-radius: 8px;
+}
+
+.defectFormRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
+
+.defectFormActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.addDefectBtn {
+  flex: 1;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border: none;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addDefectBtn:hover {
+  background: linear-gradient(135deg, #45a049, #388e3c);
+}
+
+.cancelDefectBtn {
+  flex: 1;
+  background: var(--velvet-ruby);
+  border: none;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.cancelDefectBtn:hover {
+  background: #c41e3a;
+}
+
+.defectsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.defectItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--obsidian-elite);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 6px;
+}
+
+.defectQuantity {
+  color: #ff9800;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.defectReason {
+  flex: 1;
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.removeDefectBtn {
+  background: transparent;
+  border: 1px solid var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeDefectBtn:hover {
+  background: var(--velvet-ruby);
+  color: white;
+}
+
+.textInput {
+  width: 100%;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .stockControls {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .infoItemFull {
+    grid-column: 1;
+  }
+}

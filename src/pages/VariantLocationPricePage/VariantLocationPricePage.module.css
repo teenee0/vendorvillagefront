@@ -1,0 +1,375 @@
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--phantom-noir);
+    min-height: 100vh;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.backButton {
+    background: none;
+    border: 2px solid var(--imperial-gold);
+    color: var(--imperial-gold);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.backButton:hover {
+    background: var(--imperial-gold);
+    color: var(--phantom-noir);
+}
+
+.header h2 {
+    color: var(--imperial-gold);
+    margin: 0;
+}
+
+.filters {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--obsidian-elite);
+    border-radius: 12px;
+}
+
+.filterGroup {
+    flex: 1;
+}
+
+.filterGroup label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--silver-whisper);
+    font-weight: 500;
+}
+
+.locationSelect {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    background: var(--onyx-midnight);
+    color: var(--silver-whisper);
+}
+
+.saveButton {
+    background: var(--sage-green);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.saveButton:hover:not(:disabled) {
+    background: #2d7a4e;
+    transform: translateY(-2px);
+}
+
+.saveButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.loading,
+.emptyState {
+    text-align: center;
+    padding: 4rem;
+    color: var(--silver-whisper);
+    font-size: 1.25rem;
+}
+
+.productsList {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.productCard {
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.productCard:hover {
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
+    transform: translateY(-4px);
+    border-color: var(--imperial-gold);
+}
+
+.productHeader {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(
+        135deg,
+        var(--sage-green),
+        #2d7a4e
+    );
+    color: white;
+}
+
+.productImage {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.productInfo h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.category {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.variantsList {
+    padding: 1.5rem;
+    background: var(--obsidian-elite);
+}
+
+.variantsList h4 {
+    margin: 0 0 1rem 0;
+    color: var(--imperial-gold);
+    font-size: 1.1rem;
+}
+
+.variantRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--onyx-midnight);
+    border-radius: 8px;
+    gap: 1rem;
+    transition: all 0.2s;
+}
+
+.variantRow:hover {
+    background: #2a2a35;
+}
+
+.variantInfo {
+    flex: 1;
+}
+
+.variantSku {
+    display: block;
+    font-weight: 600;
+    color: var(--silver-whisper);
+    margin-bottom: 0.5rem;
+}
+
+.priceRange {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: var(--obsidian-elite);
+    border-radius: 6px;
+    border-left: 3px solid var(--imperial-gold);
+}
+
+.priceRangeText {
+    font-size: 0.85rem;
+    color: var(--silver-whisper);
+    display: block;
+}
+
+.priceRangeText strong {
+    color: var(--imperial-gold);
+    font-weight: 600;
+}
+
+.variantAttributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.attributeTag {
+    background: var(--obsidian-elite);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: var(--imperial-gold);
+    border: 1px solid var(--sage-green);
+}
+
+.priceInput {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.priceField {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid var(--sage-green);
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 120px;
+    text-align: right;
+    background: var(--phantom-noir);
+    color: var(--silver-whisper);
+}
+
+.priceField:focus {
+    outline: none;
+    border-color: var(--imperial-gold);
+}
+
+.currency {
+    color: var(--imperial-gold);
+    font-weight: 600;
+}
+
+.viewModeToggle {
+    display: flex;
+    gap: 0.5rem;
+    border-radius: 8px;
+    background: var(--onyx-midnight);
+    padding: 0.25rem;
+}
+
+.toggleButton {
+    padding: 0.5rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--silver-whisper);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.toggleButton:hover {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--imperial-gold);
+}
+
+.toggleButtonActive {
+    background: var(--imperial-gold);
+    color: var(--phantom-noir);
+    font-weight: 600;
+}
+
+.toggleButtonActive:hover {
+    background: var(--imperial-gold);
+    color: var(--phantom-noir);
+}
+
+.boundVariantActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.boundPrice {
+    display: flex;
+    align-items: center;
+}
+
+.boundPriceValue {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--sage-green);
+    padding: 0.5rem 1rem;
+    background: var(--obsidian-elite);
+    border-radius: 8px;
+    border: 2px solid var(--sage-green);
+}
+
+.unbindButton {
+    padding: 0.5rem 1.5rem;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    background: transparent;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.unbindButton:hover:not(:disabled) {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.unbindButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .variantRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .priceInput {
+        width: 100%;
+    }
+
+    .priceField {
+        width: 100%;
+    }
+
+    .viewModeToggle {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .toggleButton {
+        flex: 1;
+    }
+
+    .boundVariantActions {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .boundPrice,
+    .unbindButton {
+        width: 100%;
+    }
+}
+

@@ -1,0 +1,403 @@
+.container {
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    color: var(--platinum-gleam);
+}
+
+.error {
+    color: var(--velvet-ruby);
+    padding: 1.25rem;
+    text-align: center;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 12px;
+    border: 1px solid var(--velvet-ruby);
+}
+
+/* Статистика */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.statCard {
+    background: var(--onyx-midnight);
+    padding: 1.25rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--imperial-gold);
+    border: 1px solid var(--gilded-shadow);
+}
+
+.statLabel {
+    font-size: 0.9rem;
+    color: var(--silver-whisper);
+    margin-bottom: 0.5rem;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--imperial-gold);
+}
+
+/* Фильтры */
+.filtersContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    flex: 1;
+}
+
+.filterInput {
+    padding: 0.6rem 0.8rem;
+    background: var(--onyx-midnight);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--platinum-gleam);
+    transition: border-color 0.2s ease;
+}
+
+.filterInput:focus {
+    outline: none;
+    border-color: var(--imperial-gold);
+}
+
+.clearButton {
+    padding: 0.6rem 1.25rem;
+    background: transparent;
+    color: var(--platinum-gleam);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+    border-color: var(--imperial-gold);
+    color: var(--imperial-gold);
+}
+
+.exportButton {
+    padding: 0.6rem 1.25rem;
+    background: var(--imperial-gold);
+    color: var(--obsidian-elite);
+    border: 1px solid var(--imperial-gold);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.exportButton:hover:not(:disabled) {
+    background: var(--sage-green);
+    border-color: var(--sage-green);
+    color: var(--platinum-gleam);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.exportButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.exportButton i {
+    font-size: 1rem;
+}
+
+/* Секции */
+.section {
+    margin-bottom: 2rem;
+    background: var(--onyx-midnight);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid var(--gilded-shadow);
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--imperial-gold);
+}
+
+.noData {
+    text-align: center;
+    padding: 2.5rem;
+    color: var(--silver-whisper);
+    font-style: italic;
+    border: 1px dashed var(--sage-green);
+    border-radius: 12px;
+}
+
+/* Таблицы */
+.table {
+    overflow-x: auto;
+}
+
+.table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: var(--onyx-midnight);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--silver-whisper);
+    border-bottom: 2px solid var(--gilded-shadow);
+}
+
+.table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--platinum-gleam);
+}
+
+.table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.linkButton {
+    background: none;
+    border: none;
+    color: var(--imperial-gold);
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    padding: 0;
+    transition: color 0.2s ease;
+    font-weight: 500;
+}
+
+.linkButton:hover {
+    color: var(--platinum-gleam);
+}
+
+/* Карточки продаж */
+.salesList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.saleCard {
+    background: var(--onyx-midnight);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.saleCard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--sage-green);
+}
+
+.saleHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.saleDate {
+    font-weight: 600;
+    color: var(--platinum-gleam);
+}
+
+.saleReceipt {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--silver-whisper);
+}
+
+.saleBody {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.25rem;
+    padding: 1.25rem;
+}
+
+.saleInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.infoRow {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--platinum-gleam);
+}
+
+.sku {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+}
+
+.batchInfo {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+}
+
+.salePricing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.priceRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--platinum-gleam);
+}
+
+.discount {
+    color: var(--velvet-ruby);
+    font-weight: 500;
+}
+
+.total {
+    color: var(--sage-green);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Возвраты */
+.returnsSection {
+    padding: 1rem 1.25rem;
+    background: rgba(255, 152, 0, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.returnsHeader {
+    font-weight: 600;
+    color: var(--imperial-gold);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.returnItem {
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.returnInfo {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--platinum-gleam);
+    flex-wrap: wrap;
+}
+
+.defectBadge {
+    background: var(--velvet-ruby);
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.returnAmount {
+    color: var(--velvet-ruby);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.returnReason {
+    font-size: 0.85rem;
+    color: var(--silver-whisper);
+    font-style: italic;
+}
+
+/* Информация о покупателе */
+.customerInfo {
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.9rem;
+    color: var(--silver-whisper);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .statCard {
+        padding: 1rem;
+    }
+
+    .saleBody {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .filtersContainer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filters {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filterInput, .clearButton, .exportButton {
+        width: 100%;
+    }
+
+    .saleHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+

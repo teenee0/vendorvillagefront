@@ -274,6 +274,59 @@
     font-size: clamp(18px, 2.2vw, 22px);
 }
 
+.locationPrices {
+    grid-column: 1 / -1;
+    background: #161616;
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.locationPrices .priceLabel {
+    display: block;
+    margin-bottom: var(--gap-xs);
+}
+
+.locationPricesList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-xs);
+}
+
+.locationPricesList li {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 8px;
+    background: var(--obsidian-elite);
+    border-radius: 6px;
+    border: 1px solid var(--gilded-shadow);
+}
+
+.locationPricesList li span:first-child {
+    color: var(--silver-whisper);
+    font-size: 13px;
+}
+
+.locationPricesList li span:last-child {
+    color: var(--imperial-gold);
+    font-weight: 600;
+}
+
+.inactive {
+    color: var(--velvet-ruby) !important;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.noPrice {
+    color: var(--velvet-ruby);
+    font-weight: 600;
+    font-style: italic;
+}
+
 .oldPrice {
     color: #ffdddd;
     opacity: .7;

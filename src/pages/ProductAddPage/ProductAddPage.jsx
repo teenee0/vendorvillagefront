@@ -171,6 +171,9 @@ const ProductAddPage = () => {
   // Варианты товара
   const [variants, setVariants] = useState([]);
   const [variantCounter, setVariantCounter] = useState(1);
+  
+  // Состояние отправки формы
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Загрузка данных при монтировании
   useEffect(() => {
@@ -233,64 +236,20 @@ const ProductAddPage = () => {
   const handleAddVariant = () => {
     const newVariant = {
       id: variantCounter,
-      price: '',
-      discount: '0',
-      description: '',
       showThis: true,
-      is_available_for_sale: true,
       attributes: categoryAttributes.reduce((acc, attr) => {
         acc[String(attr.id)] = attr.values.length > 0 ?
           (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
         return acc;
-      }, {}),
-      stocks: [{
-        id: Date.now(),
-        location_id: locations.length > 0 ? String(locations[0].id) : '',
-        quantity: '0',
-        reserved_quantity: '0',
-        is_available_for_sale: true
-      }]
+      }, {})
     };
 
     setVariants([...variants, newVariant]);
     setVariantCounter(variantCounter + 1);
   };
 
-  // Добавление нового склада для варианта
-  const handleAddStock = (variantId) => {
-    setVariants(variants.map(variant => {
-      if (variant.id === variantId) {
-        return {
-          ...variant,
-          stocks: [
-            ...variant.stocks,
-            {
-              id: Date.now() + variant.stocks.length,
-              location_id: locations.length > 0 ? String(locations[0].id) : '',
-              quantity: '0',
-              reserved_quantity: '0',
-              is_available_for_sale: true
-            }
-          ]
-        };
-      }
-      return variant;
-    }));
-  };
-
-  // Удаление склада из варианта
-  const handleRemoveStock = (variantId, stockId) => {
-    setVariants(variants.map(variant => {
-      if (variant.id === variantId) {
-        const newStocks = variant.stocks.filter(stock => stock.id !== stockId);
-        return { ...variant, stocks: newStocks };
-      }
-      return variant;
-    }));
-  };
-
-  // Изменение варианта или склада
-  const handleVariantChange = (id, field, value, attributeId = null, stockId = null) => {
+  // Изменение варианта
+  const handleVariantChange = (id, field, value, attributeId = null) => {
     setVariants(variants.map(variant => {
       if (variant.id === id) {
         if (attributeId !== null) {
@@ -300,16 +259,6 @@ const ProductAddPage = () => {
               ...variant.attributes,
               [String(attributeId)]: typeof value === 'number' ? String(value) : value
             }
-          };
-        } else if (stockId !== null) {
-          return {
-            ...variant,
-            stocks: variant.stocks.map(stock => {
-              if (stock.id === stockId) {
-                return { ...stock, [field]: value };
-              }
-              return stock;
-            })
           };
         } else {
           return { ...variant, [field]: value };
@@ -329,23 +278,10 @@ const ProductAddPage = () => {
       copiedAttributes[String(key)] = typeof value === 'number' ? String(value) : value;
     });
 
-    const copiedStocks = lastVariant.stocks.map(stock => ({
-      id: Date.now() + Math.random(),
-      location_id: String(stock.location_id),
-      quantity: stock.quantity,
-      reserved_quantity: stock.reserved_quantity || '0',
-      is_available_for_sale: stock.is_available_for_sale
-    }));
-
     const newVariant = {
       id: variantCounter,
-      price: lastVariant.price,
-      discount: lastVariant.discount,
-      description: lastVariant.description,
       showThis: lastVariant.showThis,
-      is_available_for_sale: lastVariant.is_available_for_sale,
-      attributes: copiedAttributes,
-      stocks: copiedStocks
+      attributes: copiedAttributes
     };
 
     setVariants([...variants, newVariant]);
@@ -462,13 +398,6 @@ const ProductAddPage = () => {
     setImages(newImages);
   };
 
-  // Расчет цены со скидкой
-  const calculateDiscountedPrice = (price, discount) => {
-    const priceNum = parseFloat(price) || 0;
-    const discountNum = parseFloat(discount) || 0;
-    return (priceNum * (1 - discountNum / 100)).toFixed(2);
-  };
-
   // Валидация формы
   const validateForm = () => {
     if (!productName.trim()) {
@@ -496,26 +425,6 @@ const ProductAddPage = () => {
     }
 
     for (let [index, variant] of variants.entries()) {
-      if (!variant.price) {
-        return { valid: false, message: `Вариант ${index + 1}: укажите цену.` };
-      }
-
-      if (variant.stocks.length === 0) {
-        return { valid: false, message: `Вариант ${index + 1}: добавьте хотя бы один склад.` };
-      }
-
-      for (let [stockIndex, stock] of variant.stocks.entries()) {
-        if (!stock.quantity || parseInt(stock.quantity) < 0) {
-          return { valid: false, message: `Вариант ${index + 1}, склад ${stockIndex + 1}: укажите корректное количество.` };
-        }
-        if (!stock.location_id) {
-          return { valid: false, message: `Вариант ${index + 1}, склад ${stockIndex + 1}: выберите склад.` };
-        }
-        if (parseInt(stock.reserved_quantity) < 0) {
-          return { valid: false, message: `Вариант ${index + 1}, склад ${stockIndex + 1}: зарезервированное количество не может быть отрицательным.` };
-        }
-      }
-
       for (let attr of categoryAttributes) {
         if (attr.required) {
           const val = variant.attributes[attr.id];
@@ -544,10 +453,7 @@ const ProductAddPage = () => {
       is_visible_on_marketplace: isVisibleOnMarketplace,
       is_visible_on_own_site: isVisibleOnOwnSite,
       variants: variants.map(variant => ({
-        price: variant.price,
-        discount: variant.discount || '0',
         show_this: variant.showThis,
-        description: variant.description || '',
         attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
           const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
           return {
@@ -555,13 +461,7 @@ const ProductAddPage = () => {
             predefined_value: attribute?.has_predefined_values ? Number(value) : null,
             custom_value: attribute?.has_predefined_values ? '' : String(value)
           };
-        }),
-        stocks: variant.stocks.map(stock => ({
-          location: Number(stock.location_id),
-          quantity: Number(stock.quantity),
-          reserved_quantity: Number(stock.reserved_quantity || '0'),
-          is_available_for_sale: !!stock.is_available_for_sale
-        }))
+        })
       }))
     };
 
@@ -580,11 +480,18 @@ const ProductAddPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Проверяем, не идет ли уже отправка
+    if (isSubmitting) {
+      return;
+    }
+
     const validation = validateForm();
     if (!validation.valid) {
       alert(validation.message);
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       const productData = prepareProductData();
@@ -607,6 +514,7 @@ const ProductAddPage = () => {
     } catch (error) {
       console.error('Ошибка при создании товара:', error.response?.data || error.message);
       alert('Ошибка при создании товара: ' + (error.response?.data?.detail || error.message));
+      setIsSubmitting(false); // Разблокируем кнопку только при ошибке
     }
   };
 
@@ -786,7 +694,7 @@ const ProductAddPage = () => {
                 </div>
                 <div className={styles.sectionBody}>
                   <div className={styles.infoAlert}>
-                    Создайте варианты товара с разными комбинациями атрибутов, ценами и количеством на складах.
+                    Создайте варианты товара с разными комбинациями атрибутов. Цены и остатки вы сможете добавить позже при работе с товаром.
                   </div>
 
                   {isLoadingAttributes ? (
@@ -808,17 +716,13 @@ const ProductAddPage = () => {
                                     {attr.required && <span className={styles.requiredStar}>*</span>}
                                   </th>
                                 ))}
-                                <th>Цена*</th>
-                                <th>Скидка %</th>
-                                <th>Цена со скидкой</th>
-                                <th>Склады*</th>
                                 <th className={styles.stickyColumn}>Действия</th>
                               </tr>
                             </thead>
                             <tbody>
                               {variants.length === 0 ? (
                                 <tr>
-                                  <td colSpan={categoryAttributes.length + 6} className={styles.noVariants}>
+                                  <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
                                     Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
                                   </td>
                                 </tr>
@@ -876,135 +780,6 @@ const ProductAddPage = () => {
                                         )}
                                       </td>
                                     ))}
-                                    <td>
-                                      <input
-                                        type="number"
-                                        className={styles.formControltd}
-                                        value={variant.price}
-                                        onChange={(e) => handleVariantChange(
-                                          variant.id,
-                                          'price',
-                                          e.target.value
-                                        )}
-                                        step="0.01"
-                                        min="0"
-                                        required
-                                      />
-                                    </td>
-                                    <td>
-                                      <input
-                                        type="number"
-                                        className={styles.formControltd}
-                                        value={variant.discount}
-                                        onChange={(e) => handleVariantChange(
-                                          variant.id,
-                                          'discount',
-                                          e.target.value
-                                        )}
-                                        min="0"
-                                        max="100"
-                                      />
-                                    </td>
-                                    <td>
-                                      {calculateDiscountedPrice(variant.price, variant.discount)} ₸
-                                    </td>
-                                    <td>
-                                      <table className={styles.stockTable}>
-                                        <thead>
-                                          <tr>
-                                            <th>Количество*</th>
-                                            <th>Зарезервировано</th>
-                                            <th>Склад*</th>
-                                            <th>Действия</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {variant.stocks.map(stock => (
-                                            <tr key={stock.id}>
-                                              <td>
-                                                <input
-                                                  type="number"
-                                                  className={styles.formControltd}
-                                                  value={stock.quantity}
-                                                  onChange={(e) => handleVariantChange(
-                                                    variant.id,
-                                                    'quantity',
-                                                    e.target.value,
-                                                    null,
-                                                    stock.id
-                                                  )}
-                                                  min="0"
-                                                  required
-                                                />
-                                              </td>
-                                              <td>
-                                                <input
-                                                  type="number"
-                                                  className={styles.formControltd}
-                                                  value={stock.reserved_quantity}
-                                                  onChange={(e) => handleVariantChange(
-                                                    variant.id,
-                                                    'reserved_quantity',
-                                                    e.target.value,
-                                                    null,
-                                                    stock.id
-                                                  )}
-                                                  min="0"
-                                                />
-                                              </td>
-                                              <td>
-                                                <select
-                                                  className={styles.formSelect}
-                                                  value={stock.location_id}
-                                                  onChange={(e) => handleVariantChange(
-                                                    variant.id,
-                                                    'location_id',
-                                                    e.target.value,
-                                                    null,
-                                                    stock.id
-                                                  )}
-                                                  required
-                                                  disabled={isLoadingLocations || locations.length === 0}
-                                                >
-                                                  {isLoadingLocations ? (
-                                                    <option>Загрузка складов...</option>
-                                                  ) : locationsError ? (
-                                                    <option>Ошибка загрузки складов</option>
-                                                  ) : locations.length === 0 ? (
-                                                    <option>Нет доступных складов</option>
-                                                  ) : (
-                                                    locations.map(location => (
-                                                      <option key={location.id} value={String(location.id)}>
-                                                        {location.name}
-                                                      </option>
-                                                    ))
-                                                  )}
-                                                </select>
-                                              </td>
-                                              <td>
-                                                <button
-                                                  type="button"
-                                                  className={styles.variantButton}
-                                                  onClick={() => handleRemoveStock(variant.id, stock.id)}
-                                                  title="Удалить склад"
-                                                  disabled={variant.stocks.length === 1}
-                                                >
-                                                  <FaTrash />
-                                                </button>
-                                              </td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                      <button
-                                        type="button"
-                                        className={styles.variantAddButton}
-                                        onClick={() => handleAddStock(variant.id)}
-                                        disabled={isLoadingLocations || locations.length === 0}
-                                      >
-                                        <FaPlus className={styles.buttonIcon} /> Добавить склад
-                                      </button>
-                                    </td>
                                     <td className={`${styles.stickyColumn} ${styles.variantActions}`}>
                                       <button
                                         type="button"
@@ -1059,8 +834,18 @@ const ProductAddPage = () => {
               <button
                 type="submit"
                 className={styles.submitButton}
+                disabled={isSubmitting}
+                style={{ opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
               >
-                <FaSave className={styles.buttonIcon} /> Сохранить товар
+                {isSubmitting ? (
+                  <>
+                    <span style={{ marginRight: '8px' }}>⏳</span> Сохранение...
+                  </>
+                ) : (
+                  <>
+                    <FaSave className={styles.buttonIcon} /> Сохранить товар
+                  </>
+                )}
               </button>
             </div>
           </form>

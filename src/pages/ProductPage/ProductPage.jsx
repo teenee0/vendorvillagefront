@@ -631,11 +631,14 @@ const ProductPage = () => {
                 <div class="name">${variant.name}</div>
                 <img class="barcode-img" src="${barcodeUrl}" alt="barcode" />
                 <div class="price">
-                    ${parseFloat(variant.discount) > 0
-                ? `<strike class="old-price-barcode">${parseFloat(variant.price).toLocaleString('ru-RU')} ₸</strike>
-                   <span class="current-price-barcode">${parseFloat(variant.current_price).toLocaleString('ru-RU')} ₸</span>`
-                : `${parseFloat(variant.price).toLocaleString('ru-RU')} ₸`
-            }
+                    ${variant.min_price
+                        ? `${parseFloat(variant.min_price).toLocaleString('ru-RU')} ₸` + 
+                           (variant.max_price && variant.min_price !== variant.max_price
+                               ? ` - ${parseFloat(variant.max_price).toLocaleString('ru-RU')} ₸`
+                               : ''
+                           )
+                        : 'Цена не установлена'
+                    }
                 </div>
               </div>
             </body>
@@ -663,7 +666,7 @@ const ProductPage = () => {
 
     const selectedVariant = product.variants[selectedVariantIndex];
     const mainImage = product.images.find(img => img.is_main) || product.images[0];
-    const selectedStock = selectedVariant.stocks_data.stocks[selectedStockIndex];
+    const selectedStock = selectedVariant?.stocks_data?.stocks?.[selectedStockIndex];
 
     return (
         <div className={styles.pageWrapper}>
@@ -710,7 +713,11 @@ const ProductPage = () => {
                             >
                                 {product.variants.map((v, i) => (
                                     <option key={v.id} value={i}>
-                                        {v.name} — {parseFloat(v.price).toLocaleString('ru-RU')} ₸
+                                        {v.name} — {v.min_price && parseFloat(v.min_price).toLocaleString('ru-RU') || 'Нет цены'} ₸
+                                        {v.min_price && v.max_price && v.min_price !== v.max_price 
+                                            ? ` - ${parseFloat(v.max_price).toLocaleString('ru-RU')} ₸`
+                                            : ''
+                                        }
                                     </option>
                                 ))}
                             </select>
@@ -726,27 +733,38 @@ const ProductPage = () => {
                                 ))}
                             </ul>
                             <div className={styles.priceSection}>
-                                <div className={styles.priceBlock}>
-                                    <span className={styles.priceLabel}>Цена:</span>
-                                    <span className={styles.priceValue}>
-                                        {parseFloat(selectedVariant.current_price).toLocaleString('ru-RU')} ₸
-                                    </span>
-                                </div>
-                                {parseFloat(selectedVariant.discount) > 0 && (
+                                {selectedVariant.min_price ? (
                                     <>
                                         <div className={styles.priceBlock}>
-                                            <span className={styles.priceLabel}>Цена без скидки:</span>
-                                            <span className={styles.oldPrice}>
-                                                {parseFloat(selectedVariant.price).toLocaleString('ru-RU')} ₸
+                                            <span className={styles.priceLabel}>Диапазон цен:</span>
+                                            <span className={styles.priceValue}>
+                                                {parseFloat(selectedVariant.min_price).toLocaleString('ru-RU')} ₸
+                                                {selectedVariant.max_price && selectedVariant.min_price !== selectedVariant.max_price
+                                                    ? ` - ${parseFloat(selectedVariant.max_price).toLocaleString('ru-RU')} ₸`
+                                                    : ''
+                                                }
                                             </span>
                                         </div>
-                                        <div className={styles.priceBlock}>
-                                            <span className={styles.priceLabel}>Скидка:</span>
-                                            <span className={styles.discountValue}>
-                                                {selectedVariant.discount}%
-                                            </span>
-                                        </div>
+                                        {selectedVariant.location_prices && selectedVariant.location_prices.length > 0 && (
+                                            <div className={styles.locationPrices}>
+                                                <span className={styles.priceLabel}>Цены по локациям:</span>
+                                                <ul className={styles.locationPricesList}>
+                                                    {selectedVariant.location_prices.map(locationPrice => (
+                                                        <li key={locationPrice.id}>
+                                                            <span>{locationPrice.location_name}:</span>
+                                                            <span>{parseFloat(locationPrice.selling_price).toLocaleString('ru-RU')} ₸</span>
+                                                            {!locationPrice.is_active && <span className={styles.inactive}> (неактивна)</span>}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </>
+                                ) : (
+                                    <div className={styles.priceBlock}>
+                                        <span className={styles.priceLabel}>Цена:</span>
+                                        <span className={styles.noPrice}>Не установлена</span>
+                                    </div>
                                 )}
                             </div>
                             <div className={styles.stockInfo}>
@@ -764,24 +782,32 @@ const ProductPage = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className={styles.stockStats}>
-                                    <div className={styles.stockStat}>
-                                        <span className={styles.statLabel}>Всего на складе:</span>
-                                        <span>{selectedStock.quantity} шт.</span>
+                                {selectedStock ? (
+                                    <div className={styles.stockStats}>
+                                        <div className={styles.stockStat}>
+                                            <span className={styles.statLabel}>Всего на складе:</span>
+                                            <span>{selectedStock.quantity} шт.</span>
+                                        </div>
+                                        <div className={styles.stockStat}>
+                                            <span className={styles.statLabel}>Доступно для продажи:</span>
+                                            <span>{selectedStock.available_quantity} шт.</span>
+                                        </div>
+                                        <div className={styles.stockStat}>
+                                            <span className={styles.statLabel}>Зарезервировано:</span>
+                                            <span>{selectedStock.reserved_quantity} шт.</span>
+                                        </div>
+                                        <div className={styles.stockStat}>
+                                            <span className={styles.statLabel}>Браковано:</span>
+                                            <span>{selectedStock.defect_quantity} шт.</span>
+                                        </div>
                                     </div>
-                                    <div className={styles.stockStat}>
-                                        <span className={styles.statLabel}>Доступно для продажи:</span>
-                                        <span>{selectedStock.available_quantity} шт.</span>
+                                ) : (
+                                    <div className={styles.stockStats}>
+                                        <div className={styles.stockStat}>
+                                            <span className={styles.statLabel}>Нет данных о складе</span>
+                                        </div>
                                     </div>
-                                    <div className={styles.stockStat}>
-                                        <span className={styles.statLabel}>Зарезервировано:</span>
-                                        <span>{selectedStock.reserved_quantity} шт.</span>
-                                    </div>
-                                    <div className={styles.stockStat}>
-                                        <span className={styles.statLabel}>Браковано:</span>
-                                        <span>{selectedStock.defect_quantity} шт.</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                             <div className={styles.barcodeSection}>
                                 <h4>Баркод</h4>
@@ -911,19 +937,21 @@ const StockManagementTab = ({
             </div>
             {activeTab === 'defects' && (
                 <div className={styles.defectsSection}>
-                    <h3>Добавить брак</h3>
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label>Количество:</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max={selectedStock.quantity}
-                                value={defectQuantity}
-                                onChange={(e) => setDefectQuantity(e.target.value)}
-                                className={styles.input}
-                            />
-                        </div>
+                    {selectedStock ? (
+                        <>
+                            <h3>Добавить брак</h3>
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}>
+                                    <label>Количество:</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={selectedStock.quantity}
+                                        value={defectQuantity}
+                                        onChange={(e) => setDefectQuantity(e.target.value)}
+                                        className={styles.input}
+                                    />
+                                </div>
                         <div className={styles.formGroup}>
                             <label>Причина:</label>
                             <input
@@ -976,32 +1004,38 @@ const StockManagementTab = ({
                     ) : (
                         <p className={styles.noItems}>Браков нет</p>
                     )}
+                        </>
+                    ) : (
+                        <p className={styles.noItems}>Выберите склад для работы с браками</p>
+                    )}
                 </div>
             )}
             {activeTab === 'reserves' && (
                 <div className={styles.reservesSection}>
-                    <h3>Резервирование товара</h3>
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <label>Количество для резерва:</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max={selectedStock.available_quantity}
-                                value={reserveQuantity}
-                                onChange={(e) => setReserveQuantity(e.target.value)}
-                                className={styles.input}
-                            />
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => handleAddReserve(selectedStock.id)}
-                        className={styles.actionButton}
-                        disabled={!reserveQuantity}
-                    >
-                        Зарезервировать
-                    </button>
-                    {selectedStock.reserved_quantity > 0 && (
+                    {selectedStock ? (
+                        <>
+                            <h3>Резервирование товара</h3>
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}>
+                                    <label>Количество для резерва:</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={selectedStock.available_quantity}
+                                        value={reserveQuantity}
+                                        onChange={(e) => setReserveQuantity(e.target.value)}
+                                        className={styles.input}
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleAddReserve(selectedStock.id)}
+                                className={styles.actionButton}
+                                disabled={!reserveQuantity}
+                            >
+                                Зарезервировать
+                            </button>
+                            {selectedStock.reserved_quantity > 0 && (
                         <div className={styles.currentReserve}>
                             <h3>Текущий резерв</h3>
                             <div className={styles.formRow}>
@@ -1025,6 +1059,10 @@ const StockManagementTab = ({
                                 Снять с резерва
                             </button>
                         </div>
+                            )}
+                        </>
+                    ) : (
+                        <p className={styles.noItems}>Выберите склад для работы с резервами</p>
                     )}
                 </div>
             )}

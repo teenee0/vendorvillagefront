@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from "../../api/axiosDefault.js";
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductManagementCard from '../../components/ProductManagementCard/ProductManagementCard.jsx';
 import { useFileUtils } from '../../hooks/useFileUtils';
+import { useLocation } from '../../hooks/useLocation';
 import styles from './ProductManagement.module.css';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import FiltersSection from '/src/components/FiltersSection/FiltersSection.jsx';
@@ -13,8 +14,9 @@ import Loader from '../../components/Loader';
 const ProductManagement = () => {
     const { business_slug } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
+    const location = useRouterLocation();
     const { getFileUrl } = useFileUtils();
+    const { getLocationParam, selectedLocation, updateLocation } = useLocation();
 
     const [data, setData] = useState({
         products: [],
@@ -26,7 +28,8 @@ const ProductManagement = () => {
     const [loading, setLoading] = useState(true);
     const [filtersLoading, setFiltersLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [viewMode, setViewMode] = useState('cards');
+    const [locations, setLocations] = useState([]);
+    const [locationsLoading, setLocationsLoading] = useState(true);
 
     // Filter states
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -34,6 +37,8 @@ const ProductManagement = () => {
     const [priceMax, setPriceMax] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOption, setSortOption] = useState('-created_at');
+    const [locationBinding, setLocationBinding] = useState('all'); // all, bound, unbound
+    const [inStockOnly, setInStockOnly] = useState(false); // Фильтр "Есть в наличии"
     const [tempFilters, setTempFilters] = useState({});
     const [expandedFilters, setExpandedFilters] = useState({});
     const [visibleFiltersCount, setVisibleFiltersCount] = useState(3);
@@ -49,6 +54,28 @@ const ProductManagement = () => {
     const [mobilePriceMin, setMobilePriceMin] = useState('');
     const [mobilePriceMax, setMobilePriceMax] = useState('');
     const [mobileSelectedCategory, setMobileSelectedCategory] = useState(null);
+    const [mobileSelectedLocation, setMobileSelectedLocation] = useState(null);
+    const [mobileLocationBinding, setMobileLocationBinding] = useState('all');
+    const [mobileInStockOnly, setMobileInStockOnly] = useState(false);
+
+    // Fetch locations
+    useEffect(() => {
+        const fetchLocations = async () => {
+            try {
+                setLocationsLoading(true);
+                const response = await axios.get(`/api/business/${business_slug}/locations/`);
+                setLocations(response.data || []);
+            } catch (err) {
+                console.error('Ошибка загрузки локаций:', err);
+            } finally {
+                setLocationsLoading(false);
+            }
+        };
+
+        if (business_slug) {
+            fetchLocations();
+        }
+    }, [business_slug]);
 
     // Initialize from URL params
     useEffect(() => {
@@ -58,6 +85,8 @@ const ProductManagement = () => {
         setPriceMin(queryParams.get('price_min') || '');
         setPriceMax(queryParams.get('price_max') || '');
         setSelectedCategory(queryParams.get('category') || null);
+        setLocationBinding(queryParams.get('location_binding') || 'all');
+        setInStockOnly(queryParams.get('in_stock') === '1');
 
         const initialFilters = {};
         queryParams.forEach((value, key) => {
@@ -76,6 +105,9 @@ const ProductManagement = () => {
         setMobilePriceMin(priceMin);
         setMobilePriceMax(priceMax);
         setMobileSelectedCategory(selectedCategory);
+        setMobileSelectedLocation(selectedLocation || 'all');
+        setMobileLocationBinding(locationBinding);
+        setMobileInStockOnly(inStockOnly);
         setIsMobileFiltersOpen(true);
     };
 
@@ -89,15 +121,31 @@ const ProductManagement = () => {
         setPriceMin(mobilePriceMin);
         setPriceMax(mobilePriceMax);
         setSelectedCategory(mobileSelectedCategory);
+        setLocationBinding(mobileLocationBinding);
+        setInStockOnly(mobileInStockOnly);
+        
+        // Обновляем локацию через хук
+        if (mobileSelectedLocation && mobileSelectedLocation !== 'all') {
+            updateLocation(mobileSelectedLocation);
+        } else {
+            updateLocation('all');
+        }
         
         // Обновляем URL с новыми фильтрами
-        updateURLWithFilters(mobileTempFilters, mobilePriceMin, mobilePriceMax, mobileSelectedCategory);
+        updateURLWithFilters(
+            mobileTempFilters,
+            mobilePriceMin,
+            mobilePriceMax,
+            mobileSelectedCategory,
+            mobileLocationBinding,
+            mobileInStockOnly
+        );
         
         // Закрываем мобильное меню
         closeMobileFilters();
         
         // Перезагружаем данные
-        fetchProducts();
+        fetchData();
     };
 
     const resetMobileFilters = () => {
@@ -105,9 +153,12 @@ const ProductManagement = () => {
         setMobilePriceMin('');
         setMobilePriceMax('');
         setMobileSelectedCategory(null);
+        setMobileSelectedLocation('all');
+        setMobileLocationBinding('all');
+        setMobileInStockOnly(false);
     };
 
-    const updateURLWithFilters = (filters, priceMin, priceMax, category) => {
+    const updateURLWithFilters = (filters, priceMin, priceMax, category, locationBinding = 'all', inStock = false) => {
         const params = new URLSearchParams();
         
         if (searchQuery) params.set('search', searchQuery);
@@ -115,6 +166,8 @@ const ProductManagement = () => {
         if (priceMin) params.set('price_min', priceMin);
         if (priceMax) params.set('price_max', priceMax);
         if (category) params.set('category', category);
+        if (locationBinding && locationBinding !== 'all') params.set('location_binding', locationBinding);
+        if (inStock) params.set('in_stock', '1');
         
         // Добавляем атрибуты
         Object.entries(filters).forEach(([key, values]) => {
@@ -219,6 +272,22 @@ const ProductManagement = () => {
                 queryParams.set('sort', '-created_at');
             }
 
+            // Добавляем параметр location из хука (если != 'all')
+            const locationParam = getLocationParam();
+            if (locationParam && locationParam.location) {
+                queryParams.set('location', locationParam.location);
+            }
+            
+            // Добавляем параметр location_binding
+            if (locationBinding && locationBinding !== 'all') {
+                queryParams.set('location_binding', locationBinding);
+            }
+
+            // Добавляем фильтр "Есть в наличии"
+            if (inStockOnly) {
+                queryParams.set('in_stock', '1');
+            }
+
             const response = await axios.get(
                 `/api/business/${business_slug}/products/?${queryParams.toString()}`
             );
@@ -239,7 +308,7 @@ const ProductManagement = () => {
             setLoading(false);
             setFiltersLoading(false);
         }
-    }, [business_slug, location.search]);
+    }, [business_slug, location.search, selectedLocation, locationBinding, inStockOnly]);
 
     useEffect(() => {
         fetchData();
@@ -286,6 +355,8 @@ const ProductManagement = () => {
         if (priceMin) queryParams.set('price_min', priceMin);
         if (priceMax) queryParams.set('price_max', priceMax);
         if (selectedCategory) queryParams.set('category', selectedCategory);
+        if (locationBinding && locationBinding !== 'all') queryParams.set('location_binding', locationBinding);
+        if (inStockOnly) queryParams.set('in_stock', '1');
         queryParams.set('sort', sortOption);
         queryParams.set('page', 1);
 
@@ -307,6 +378,9 @@ const ProductManagement = () => {
         setSelectedCategory(null);
         setSortOption('-created_at');
         setTempFilters({});
+        setLocationBinding('all');
+        setInStockOnly(false);
+        updateLocation('all');
         navigate(`/business/${business_slug}/products`);
     };
 
@@ -341,6 +415,22 @@ const ProductManagement = () => {
             const nextPage = data.pagination.current_page + 1;
             const queryParams = new URLSearchParams(location.search);
             queryParams.set('page', nextPage);
+
+            // Добавляем параметр location из хука
+            const locationParam = getLocationParam();
+            if (locationParam && locationParam.location) {
+                queryParams.set('location', locationParam.location);
+            }
+            
+            // Добавляем параметр location_binding
+            if (locationBinding && locationBinding !== 'all') {
+                queryParams.set('location_binding', locationBinding);
+            }
+
+            // Добавляем фильтр "Есть в наличии"
+            if (inStockOnly) {
+                queryParams.set('in_stock', '1');
+            }
 
             const response = await axios.get(
                 `/api/business/${business_slug}/products/?${queryParams.toString()}`
@@ -397,160 +487,6 @@ const ProductManagement = () => {
         </InfiniteScroll>
     );
 
-    // Render table view with variants
-    const renderTableView = () => {
-        const allVariants = data.products.flatMap(product =>
-            product.variants.map(variant => ({
-                ...variant,
-                productId: product.id,
-                productName: product.name,
-                productDescription: product.description,
-                categoryName: product.category_name,
-                mainImage: product.main_image,
-                isActive: product.is_active
-            }))
-        );
-
-        return (
-            <div className={styles.tableWrapper}>
-                <div className={styles.tableScrollContainer}>
-                    <InfiniteScroll
-                        dataLength={allVariants.length}
-                        next={loadMoreProducts}
-                        hasMore={data.pagination?.has_next || false}
-                        loader={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}><Loader size="small" /></div>}
-                    >
-                        <table className={styles.productsTable}>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Фото</th>
-                                    <th>Название</th>
-                                    <th>Категория</th>
-                                    <th>Цена</th>
-                                    <th>Артикул</th>
-                                    <th>Склад</th>
-                                    <th>Всего</th>
-                                    <th>Зарезервировано</th>
-                                    <th>Доступно</th>
-                                    <th>Атрибуты</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {/* Add product row */}
-                                <tr
-                                    className={styles.addProductRow}
-                                    onClick={() => navigate(`/business/${business_slug}/products/create`)}
-                                >
-                                    <td colSpan="12">
-                                        <i className={`fa fa-plus-circle-fill ${styles.addRowIcon}`}></i>
-                                        <span>Добавить новый товар</span>
-                                    </td>
-                                </tr>
-
-                                {/* Variant rows */}
-                                {allVariants.map((variant, index) => (
-                                    <tr key={`${variant.productId}-${variant.id}`} className={styles.productRow}>
-                                        <td>{index + 1}</td>
-                                        <td>
-                                            {variant.mainImage && (
-                                                <img
-                                                    src={getFileUrl(variant.mainImage.image)}
-                                                    alt={variant.productName}
-                                                    className={styles.tableImage}
-                                                />
-                                            )}
-                                        </td>
-                                        <td className={styles.productNameCell}>
-                                            <div className={styles.productNameWrapper}>
-                                                {variant.productName.substring(0, 20)}...
-                                                {variant.has_custom_name && variant.custom_name && (
-                                                    <div className={styles.customName}>
-                                                        <small>Кастомное имя: {variant.custom_name}</small>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td>{variant.categoryName}</td>
-                                        <td className={styles.priceCell}>
-                                            <div className={styles.priceWrapper}>
-                                                <div className={styles.priceRow}>
-                                                    <span className={styles.priceLabel}>Цена:</span>
-                                                    <span className={styles.priceValue}>{variant.price}</span>
-                                                </div>
-                                                {variant.discount && variant.discount > 0 && (
-                                                    <>
-                                                        <div className={styles.priceRow}>
-                                                            <span className={styles.priceLabel}>Скидка:</span>
-                                                            <span className={styles.discountBadge}>-{variant.discount}%</span>
-                                                        </div>
-                                                        <div className={styles.priceRow}>
-                                                            <span className={styles.priceLabel}>Итог:</span>
-                                                            <span className={styles.finalPrice}>{variant.current_price}</span>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className={styles.skuCell}>
-                                            <div className={styles.skuWrapper}>
-                                                {variant.sku}
-                                            </div>
-                                        </td>
-                                        <td>{variant.stocks[0].location_name}</td>
-                                        <td>{variant.stocks[0].quantity}</td>
-                                        <td>{variant.stocks[0].reserved_quantity}</td>
-                                        <td>{variant.stocks[0].available_quantity}</td>
-                                        <td className={styles.attributesCell}>
-                                            <div className={styles.attributesList}>
-                                                {variant.attributes.map(attr => (
-                                                    <div key={attr.id} className={styles.attributeItem}>
-                                                        <strong>{attr.attribute_name}:</strong>
-                                                        <span
-                                                            className={styles.attributeValue}
-                                                            title={attr.display_value}
-                                                        >
-                                                            {attr.display_value.length > 15
-                                                                ? `${attr.display_value.substring(0, 15)}...`
-                                                                : attr.display_value}
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </td>
-
-                                        <td className={styles.actionsCell}>
-                                            <button
-                                                className={styles.actionButton}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigate(`/business/${business_slug}/products/${variant.productId}/edit`);
-                                                }}
-                                            >
-                                                <i className="fa fa-pencil"></i>
-                                            </button>
-                                            <button
-                                                className={`${styles.actionButton} ${styles.deleteButton}`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteProduct(variant.productId, variant.productName);
-                                                }}
-                                                title="Удалить товар"
-                                            >
-                                                <i className="fa fa-trash"></i>
-                                            </button>
-                                        </td>
-
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </InfiniteScroll>
-                </div>
-            </div>
-        );
-    };
 
     if (loading && !data.products.length) {
         return (
@@ -578,6 +514,12 @@ const ProductManagement = () => {
                     >
                         Добавить Товар
                     </button>
+                    <button
+                        className={styles.attachLocationButton}
+                        onClick={() => navigate(`/business/${business_slug}/variants-location-price`)}
+                    >
+                        <i className="fa fa-link"></i> Привязать к локации
+                    </button>
                     <button className={styles.exportButton}>
                         <i className="fa fa-download"></i> Экспорт
                     </button>
@@ -598,6 +540,79 @@ const ProductManagement = () => {
 
             <div className={styles.contentWrapper}>
                 <aside className={styles.sidebar}>
+                    {/* Locations filter */}
+                    <div className={styles.filterSection}>
+                        <h4 className={styles.filterTitle}>Локации</h4>
+                        {locationsLoading ? (
+                            <div className={styles.loadingText}>Загрузка локаций...</div>
+                        ) : (
+                            <div className={styles.categoriesList}>
+                                <button
+                                    className={`${styles.categoryButton} ${(!selectedLocation || selectedLocation === 'all') ? styles.active : ''}`}
+                                    onClick={() => {
+                                        updateLocation('all');
+                                    }}
+                                >
+                                    По всем точкам
+                                </button>
+                                {locations.map(loc => (
+                                    <button
+                                        key={loc.id}
+                                        className={`${styles.categoryButton} ${selectedLocation === String(loc.id) ? styles.active : ''}`}
+                                        onClick={() => {
+                                            updateLocation(String(loc.id));
+                                        }}
+                                    >
+                                        {loc.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Location binding filter */}
+                    <div className={styles.filterSection}>
+                        <h4 className={styles.filterTitle}>Привязка к локациям</h4>
+                        <div className={styles.categoriesList}>
+                            <button
+                                className={`${styles.categoryButton} ${locationBinding === 'all' ? styles.active : ''}`}
+                                onClick={() => {
+                                    setLocationBinding('all');
+                                    const queryParams = new URLSearchParams(location.search);
+                                    queryParams.delete('location_binding');
+                                    queryParams.set('page', 1);
+                                    navigate(`?${queryParams.toString()}`);
+                                }}
+                            >
+                                Все товары
+                            </button>
+                            <button
+                                className={`${styles.categoryButton} ${locationBinding === 'bound' ? styles.active : ''}`}
+                                onClick={() => {
+                                    setLocationBinding('bound');
+                                    const queryParams = new URLSearchParams(location.search);
+                                    queryParams.set('location_binding', 'bound');
+                                    queryParams.set('page', 1);
+                                    navigate(`?${queryParams.toString()}`);
+                                }}
+                            >
+                                Привязанные
+                            </button>
+                            <button
+                                className={`${styles.categoryButton} ${locationBinding === 'unbound' ? styles.active : ''}`}
+                                onClick={() => {
+                                    setLocationBinding('unbound');
+                                    const queryParams = new URLSearchParams(location.search);
+                                    queryParams.set('location_binding', 'unbound');
+                                    queryParams.set('page', 1);
+                                    navigate(`?${queryParams.toString()}`);
+                                }}
+                            >
+                                Не привязанные
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Categories filter */}
                     <div className={styles.filterSection}>
                         <h4 className={styles.filterTitle}>Категории</h4>
@@ -668,6 +683,20 @@ const ProductManagement = () => {
                                 min="0"
                             />
                         </div>
+                    </div>
+
+                    {/* In stock filter */}
+                    <div className={styles.filterSection}>
+                        <div className={styles.checkboxFilter}>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={inStockOnly}
+                                    onChange={(e) => setInStockOnly(e.target.checked)}
+                                />
+                                <span>Только товары в наличии</span>
+                            </label>
+                        </div>
                         <button
                             className={styles.applyFilterButton}
                             onClick={applyFilters}
@@ -683,7 +712,7 @@ const ProductManagement = () => {
                     </button>
                 </aside>
 
-                <main className={viewMode === 'cards' ? styles.mainContentFlex : styles.mainContentGrid}>
+                <main className={styles.mainContentFlex}>
                     {/* Search and sort */}
                     <div className={styles.productsHeader}>
                         <div className={styles.searchContainer}>
@@ -735,22 +764,6 @@ const ProductManagement = () => {
                         </div>
                     </div>
 
-                    {/* View mode toggle */}
-                    <div className={styles.viewToggle}>
-                        <button
-                            className={`${styles.viewToggleButton} ${viewMode === 'cards' ? styles.active : ''}`}
-                            onClick={() => setViewMode('cards')}
-                        >
-                            <i className="fa fa-grid-3x3-gap"></i> Карточки
-                        </button>
-                        <button
-                            className={`${styles.viewToggleButton} ${viewMode === 'table' ? styles.active : ''}`}
-                            onClick={() => setViewMode('table')}
-                        >
-                            <i className="fa fa-list-ul"></i> Таблица
-                        </button>
-                    </div>
-
                     {/* Products display */}
                     {data.products.length === 0 ? (
                         <div className={styles.emptyState}>
@@ -764,7 +777,7 @@ const ProductManagement = () => {
                                 Сбросить фильтры
                             </button>
                         </div>
-                    ) : viewMode === 'cards' ? renderCardsView() : renderTableView()}
+                    ) : renderCardsView()}
                 </main>
             </div>
             
@@ -779,6 +792,57 @@ const ProductManagement = () => {
                     </div>
                     
                     <div className={styles.mobileFiltersContent}>
+                        {/* Locations filter */}
+                        <div className={styles.filterSection}>
+                            <h4 className={styles.filterTitle}>Локации</h4>
+                            {locationsLoading ? (
+                                <div className={styles.loadingText}>Загрузка локаций...</div>
+                            ) : (
+                                <div className={styles.categoriesList}>
+                                    <button
+                                        className={`${styles.categoryButton} ${(!mobileSelectedLocation || mobileSelectedLocation === 'all') ? styles.active : ''}`}
+                                        onClick={() => setMobileSelectedLocation('all')}
+                                    >
+                                        По всем точкам
+                                    </button>
+                                    {locations.map(loc => (
+                                        <button
+                                            key={loc.id}
+                                            className={`${styles.categoryButton} ${mobileSelectedLocation === String(loc.id) ? styles.active : ''}`}
+                                            onClick={() => setMobileSelectedLocation(String(loc.id))}
+                                        >
+                                            {loc.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Location binding filter */}
+                        <div className={styles.filterSection}>
+                            <h4 className={styles.filterTitle}>Привязка к локациям</h4>
+                            <div className={styles.categoriesList}>
+                                <button
+                                    className={`${styles.categoryButton} ${mobileLocationBinding === 'all' ? styles.active : ''}`}
+                                    onClick={() => setMobileLocationBinding('all')}
+                                >
+                                    Все товары
+                                </button>
+                                <button
+                                    className={`${styles.categoryButton} ${mobileLocationBinding === 'bound' ? styles.active : ''}`}
+                                    onClick={() => setMobileLocationBinding('bound')}
+                                >
+                                    Привязанные
+                                </button>
+                                <button
+                                    className={`${styles.categoryButton} ${mobileLocationBinding === 'unbound' ? styles.active : ''}`}
+                                    onClick={() => setMobileLocationBinding('unbound')}
+                                >
+                                    Не привязанные
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Categories filter */}
                         <div className={styles.filterSection}>
                             <h4 className={styles.filterTitle}>Категории</h4>
@@ -875,6 +939,20 @@ const ProductManagement = () => {
                                     onChange={(e) => setMobilePriceMax(e.target.value)}
                                     min="0"
                                 />
+                            </div>
+                        </div>
+
+                        {/* In stock filter */}
+                        <div className={styles.filterSection}>
+                            <div className={styles.checkboxFilter}>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={mobileInStockOnly}
+                                        onChange={(e) => setMobileInStockOnly(e.target.checked)}
+                                    />
+                                    <span>Только товары в наличии</span>
+                                </label>
                             </div>
                         </div>
                     </div>

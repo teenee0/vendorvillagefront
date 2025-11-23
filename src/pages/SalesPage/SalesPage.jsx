@@ -23,6 +23,157 @@ import { openReceiptPdf, printReceiptPdf } from '../../utils/printUtils';
 import styles from './SalesPage.module.css';
 import Loader from '../../components/Loader';
 
+// Компонент поиска для селектора
+const SearchableSelect = ({
+    options = [],
+    value,
+    onChange,
+    disabled,
+    placeholder = 'Выберите опцию или начните ввод...',
+    icon: Icon,
+    label,
+    getOptionLabel,
+    getOptionSubLabel,
+    required = false
+}) => {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    const [highlight, setHighlight] = useState(0);
+    const rootRef = useRef(null);
+
+    // Найдём выбранную опцию
+    const selected = options.find(opt => String(opt.id) === String(value)) || null;
+
+    // Фильтрация
+    const q = query.trim().toLowerCase();
+    const filtered = q
+        ? options.filter(opt =>
+            getOptionLabel(opt).toLowerCase().includes(q) ||
+            (getOptionSubLabel && getOptionSubLabel(opt).toLowerCase().includes(q))
+        )
+        : options;
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (rootRef.current && !rootRef.current.contains(e.target)) {
+                setOpen(false);
+                setQuery('');
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    useEffect(() => {
+        if (open) setHighlight(0);
+    }, [open, q]);
+
+    const handleKeyDown = (e) => {
+        if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+            setOpen(true);
+            return;
+        }
+        if (!open) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setHighlight(h => Math.min(h + 1, filtered.length - 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setHighlight(h => Math.max(h - 1, 0));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const pick = filtered[highlight];
+            if (pick) {
+                onChange(pick.id);
+                setQuery('');
+                setOpen(false);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setOpen(false);
+            setQuery('');
+        }
+    };
+
+    const pickItem = (opt) => {
+        onChange(opt.id);
+        setQuery('');
+        setOpen(false);
+    };
+
+    return (
+        <div className={styles.searchableSelectWrapper}>
+            {label && (
+                <label className={styles.searchableLabel}>
+                    {Icon && <Icon />} {label}
+                    {required && <span className={styles.requiredMark}> *</span>}
+                </label>
+            )}
+            <div className={styles.searchableSelect} ref={rootRef}>
+                <div
+                    className={`${styles.searchableControl} ${disabled ? styles.disabled : ''}`}
+                    onClick={() => !disabled && setOpen(o => !o)}
+                    onKeyDown={handleKeyDown}
+                    tabIndex={disabled ? -1 : 0}
+                >
+                    <div className={styles.searchableValue}>
+                        {selected ? (
+                            <>
+                                <div className={styles.selectedName}>{getOptionLabel(selected)}</div>
+                                {getOptionSubLabel && (
+                                    <div className={styles.selectedSubLabel}>
+                                        {getOptionSubLabel(selected)}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className={styles.searchablePlaceholder}>{placeholder}</div>
+                        )}
+                    </div>
+                    <div className={styles.searchableCaret} />
+                </div>
+
+                {open && (
+                    <div className={styles.searchableDropdown} onKeyDown={handleKeyDown}>
+                        <input
+                            autoFocus
+                            className={styles.searchableSearch}
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                            placeholder="Поиск..."
+                        />
+                        <div className={styles.searchableList} role="listbox" tabIndex={0}>
+                            {filtered.length === 0 ? (
+                                <div className={styles.searchableEmpty}>Ничего не найдено</div>
+                            ) : (
+                                filtered.map((opt, idx) => (
+                                    <div
+                                        key={opt.id}
+                                        role="option"
+                                        aria-selected={String(opt.id) === String(value)}
+                                        className={`${styles.searchableItem} ${idx === highlight ? styles.searchableItemActive : ''}`}
+                                        onMouseEnter={() => setHighlight(idx)}
+                                        onClick={() => pickItem(opt)}
+                                    >
+                                        <div className={styles.searchableItemName}>{getOptionLabel(opt)}</div>
+                                        {getOptionSubLabel && (
+                                            <div className={styles.searchableItemSubLabel}>
+                                                {getOptionSubLabel(opt)}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const SalesPage = () => {
     const { business_slug } = useParams();
     const { getFileUrl } = useFileUtils();
@@ -31,6 +182,7 @@ const SalesPage = () => {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [inStockOnly, setInStockOnly] = useState(true); // Фильтр "Есть в наличии"
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [customerName, setCustomerName] = useState('');
@@ -53,24 +205,65 @@ const SalesPage = () => {
     const [receiptData, setReceiptData] = useState(null);
     const [scannerActive, setScannerActive] = useState(false); // подсветка режима
     const searchInputRef = useRef(null); // ссылка на поле ввода
+    
+    // Состояния для локаций
+    const [locations, setLocations] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [locationsLoading, setLocationsLoading] = useState(true);
+    
+    // Состояния для партий и FIFO - теперь для каждого товара
+    const [itemFifoStates, setItemFifoStates] = useState({}); // {variantId: boolean}
+    const [showFifoTooltip, setShowFifoTooltip] = useState(null); // variantId товара для которого показываем тултип
+
+    // Fetch locations
+    const fetchLocations = useCallback(async () => {
+        try {
+            setLocationsLoading(true);
+            const response = await axios.get(`/api/business/${business_slug}/locations/`);
+            // API возвращает массив локаций напрямую
+            const locationsList = Array.isArray(response.data) ? response.data : response.data.locations || [];
+            setLocations(locationsList);
+            // Автоматически выбираем первую локацию или основную
+            if (locationsList.length > 0) {
+                const primaryLocation = locationsList.find(loc => loc.is_primary);
+                setSelectedLocation(primaryLocation?.id || locationsList[0].id);
+            }
+            setLocationsLoading(false);
+        } catch (err) {
+            console.error('Failed to fetch locations:', err);
+            setError('Не удалось загрузить локации');
+            setLocationsLoading(false);
+        }
+    }, [business_slug]);
 
     // Fetch products from API
     const fetchProducts = useCallback(async () => {
+        if (!selectedLocation) {
+            return; // Не загружаем товары без выбранной локации
+        }
+        
         try {
             setLoading(true);
-            const params = {};
+            const params = {
+                location: selectedLocation // Обязательный параметр
+            };
             if (searchQuery) params.search = searchQuery;
             if (selectedCategory) params.category = selectedCategory;
+            if (inStockOnly) params.in_stock = 'true'; // Фильтр "Есть в наличии"
 
             const response = await axios.get(`/api/business/${business_slug}/sales-products/`, { params });
             setProducts(response.data.products);
             setLoading(false);
             if (scannerActive) setSearchQuery('');
         } catch (err) {
-            setError(err.message);
+            if (err.response?.data?.error === 'location_required') {
+                setError('Пожалуйста, выберите локацию');
+            } else {
+                setError(err.message);
+            }
             setLoading(false);
         }
-    }, [business_slug, searchQuery, selectedCategory]);
+    }, [business_slug, searchQuery, selectedCategory, selectedLocation, scannerActive, inStockOnly]);
 
     const handleSearch = async () => {
         await fetchProducts();
@@ -124,10 +317,17 @@ const SalesPage = () => {
     }, []);
 
     useEffect(() => {
-        fetchProducts();
+        fetchLocations();
         fetchCategories();
         fetchPaymentMethods();
-    }, []);
+    }, [fetchLocations, fetchCategories, fetchPaymentMethods]);
+
+    // Загружаем товары когда выбрана локация
+    useEffect(() => {
+        if (selectedLocation) {
+            fetchProducts();
+        }
+    }, [selectedLocation, fetchProducts]);
 
 
     const handleActivateScanner = () => {
@@ -139,9 +339,17 @@ const SalesPage = () => {
 
     // Add to cart function
     const addToCart = (product, variant) => {
-        const availableQty = variant.stocks_data.total_available_quantity;
+        // Используем доступное количество в выбранной локации
+        // Используем ?? вместо || чтобы 0 не считался falsy значением
+        const availableQty = variant.available_quantity_in_location ?? 0;
         if (availableQty <= 0) {
-            alert('Товар отсутствует на складе');
+            alert('Товар отсутствует в выбранной локации');
+            return;
+        }
+
+        // Проверяем наличие цены для выбранной локации
+        if (!variant.price && variant.price !== 0) {
+            alert('Цена товара не установлена для выбранной локации');
             return;
         }
 
@@ -158,18 +366,23 @@ const SalesPage = () => {
                             : item
                     );
                 } else {
-                    alert('Недостаточно товара на складе');
+                    alert('Недостаточно товара в выбранной локации');
                     return prevCart;
                 }
             } else {
                 const hasOriginalDiscount = variant.discount > 0;
-                const originalPrice = parseFloat(variant.price);
+                const originalPrice = parseFloat(variant.price); // Цена уже для выбранной локации
                 const price = hasOriginalDiscount
                     ? Math.round(originalPrice * (1 - variant.discount / 100))
                     : originalPrice;
 
-                // Use the first available stock location
-                const availableStock = variant.stocks_data.stocks[0];
+                const selectedLocationData = locations.find(loc => loc.id === selectedLocation);
+
+                // Инициализируем FIFO для нового товара как true (по умолчанию)
+                setItemFifoStates(prev => ({
+                    ...prev,
+                    [variant.id]: true
+                }));
 
                 return [
                     ...prevCart,
@@ -187,9 +400,12 @@ const SalesPage = () => {
                         image: product.images.find(img => img.is_main)?.image || product.images[0]?.image,
                         itemDiscountAmount: 0,
                         itemDiscountPercent: 0,
-                        location: availableStock?.location?.id || null,
-                        locationName: availableStock?.location?.name || 'Основной склад',
-                        hasOriginalDiscount
+                        location: selectedLocation,
+                        locationName: selectedLocationData?.name || 'Выбранная локация',
+                        hasOriginalDiscount,
+                        useFifo: true, // По умолчанию FIFO включен
+                        batchId: null, // Партия не выбрана
+                        batchInfo: null
                     }
                 ];
             }
@@ -197,8 +413,16 @@ const SalesPage = () => {
     };
 
     // Remove from cart
-    const removeFromCart = (variantId) => {
-        setCart(prevCart => prevCart.filter(item => item.variantId !== variantId));
+    const removeFromCart = (variantId, batchId = null) => {
+        setCart(prevCart => prevCart.filter(item => 
+            !(item.variantId === variantId && (batchId === null || item.batchId === batchId))
+        ));
+        // Очищаем состояния FIFO для удаленного товара
+        setItemFifoStates(prev => {
+            const newState = { ...prev };
+            delete newState[variantId];
+            return newState;
+        });
     };
 
     // Update quantity
@@ -257,16 +481,32 @@ const SalesPage = () => {
     // Complete sale
     const completeSale = async () => {
         if (salePosting) return;        // уже жмут второй раз
+        
+        // Проверяем, что для всех товаров с выключенным FIFO выбрана партия
+        const itemsWithoutBatch = cart.filter(item => item.useFifo === false && !item.batchId);
+        if (itemsWithoutBatch.length > 0) {
+            alert('Для товаров с выключенным FIFO необходимо выбрать партию');
+            return;
+        }
+        
         setSalePosting(true);
         try {
             const saleData = {
-                items: cart.map(item => ({
-                    variant: item.variantId,
-                    location: item.location,
-                    quantity: item.quantity,
-                    discount_amount: item.itemDiscountAmount || 0,
-                    discount_percent: item.itemDiscountPercent || 0
-                })),
+                items: cart.map(item => {
+                    const itemData = {
+                        variant: item.variantId,
+                        location: item.location,
+                        quantity: item.quantity,
+                        discount_amount: item.itemDiscountAmount || 0,
+                        discount_percent: item.itemDiscountPercent || 0,
+                        use_fifo: item.useFifo !== false
+                    };
+                    // Добавляем batch_id только если FIFO выключен и партия выбрана
+                    if (item.useFifo === false && item.batchId) {
+                        itemData.batch_id = item.batchId;
+                    }
+                    return itemData;
+                }),
                 payment_method: paymentMethod,
                 customer: null,
                 customer_name: customerName || null,
@@ -285,6 +525,7 @@ const SalesPage = () => {
             setSaleCompleted(true);
             await fetchProducts();
             setCart([]);
+            setItemFifoStates({}); // Очищаем состояния FIFO
         } catch (err) {
             console.error('Sale error:', err.response?.data || err.message); // Улучшенное логирование ошибок
             alert('Ошибка при оформлении продажи: ' + (err.response?.data?.message || err.message));
@@ -394,13 +635,35 @@ const SalesPage = () => {
         if (error) return <div className={styles.error}>Ошибка: {error}</div>;
         if (products.length === 0) return <div className={styles.empty}>Товары не найдены</div>;
 
+        // Создаем массив всех вариантов с их продуктами для сортировки
+        const allVariants = products.flatMap(product => 
+            product.variants.map(variant => ({
+                product,
+                variant,
+                availableQty: variant.available_quantity_in_location ?? 0
+            }))
+        );
+
+        // Сортируем: сначала товары в наличии (по убыванию количества), потом остальные
+        allVariants.sort((a, b) => {
+            if (a.availableQty > 0 && b.availableQty === 0) return -1;
+            if (a.availableQty === 0 && b.availableQty > 0) return 1;
+            // Если оба в наличии - сортируем по количеству (больше первыми)
+            if (a.availableQty > 0 && b.availableQty > 0) {
+                return b.availableQty - a.availableQty;
+            }
+            return 0; // Если оба отсутствуют - оставляем как есть
+        });
+
         return (
 
             <div className={styles.productsGrid}>
-                {products.map(product => (
-                    product.variants.map(variant => {
-                        const availableQty = variant.stocks_data.total_available_quantity;
+                {allVariants.map(({ product, variant }) => {
+                        // Используем количество в выбранной локации
+                        // Используем ?? вместо || чтобы 0 не считался falsy значением
+                        const availableQty = variant.available_quantity_in_location ?? 0;
                         const mainImage = product.images.find(img => img.is_main)?.image || product.images[0]?.image;
+                        const hasPrice = variant.price !== null && variant.price !== undefined;
 
                         return (
                             <div
@@ -431,18 +694,22 @@ const SalesPage = () => {
                                         ))}
                                     </div>
                                     <div className={styles.priceSection}>
-                                        {variant.discount > 0 ? (
-                                            <>
-                                                <span className={styles.discountedPrice}>
-                                                    {Math.round(variant.price * (1 - variant.discount / 100)).toLocaleString()} ₸
-                                                </span>
-                                                <span className={styles.originalPrice}>
-                                                    {parseFloat(variant.price).toLocaleString()} ₸
-                                                </span>
-                                                <span className={styles.discountBadge}>-{variant.discount}%</span>
-                                            </>
+                                        {hasPrice ? (
+                                            variant.discount > 0 ? (
+                                                <>
+                                                    <span className={styles.discountedPrice}>
+                                                        {Math.round(variant.price * (1 - variant.discount / 100)).toLocaleString()} ₸
+                                                    </span>
+                                                    <span className={styles.originalPrice}>
+                                                        {parseFloat(variant.price).toLocaleString()} ₸
+                                                    </span>
+                                                    <span className={styles.discountBadge}>-{variant.discount}%</span>
+                                                </>
+                                            ) : (
+                                                <span>{parseFloat(variant.price).toLocaleString()} ₸</span>
+                                            )
                                         ) : (
-                                            <span>{parseFloat(variant.price).toLocaleString()} ₸</span>
+                                            <span className={styles.noPrice}>Цена не установлена</span>
                                         )}
                                     </div>
                                     <div className={styles.stockInfo}>
@@ -456,15 +723,14 @@ const SalesPage = () => {
                                             e.stopPropagation();
                                             addToCart(product, variant);
                                         }}
-                                        disabled={availableQty <= 0}
+                                        disabled={availableQty <= 0 || !hasPrice}
                                     >
                                         <FaPlus /> В корзину
                                     </button>
                                 </div>
                             </div>
                         );
-                    })
-                ))}
+                    })}
             </div>
         );
     };
@@ -490,7 +756,6 @@ const SalesPage = () => {
                     const hasAdditionalDiscount = item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0;
                     const selectedProduct = products.find(p => p.id === item.productId);
                     const selectedVariant = selectedProduct?.variants.find(v => v.id === item.variantId);
-                    const availableLocations = selectedVariant?.stocks || [];
 
                     return (
                         <div key={item.variantId} className={styles.cartItem}>
@@ -514,37 +779,100 @@ const SalesPage = () => {
                                 </div>
                                 <small className={styles.cartItemSku}>Артикул: {item.sku}</small>
 
-                                {/* Выбор локации */}
-                                {selectedVariant?.stocks_data?.stocks?.length > 0 && (
-                                    <div className={styles.locationSelect}>
-                                        <label>Локация:</label>
-                                        <select
-                                            value={item.location || ''}
-                                            onChange={(e) => {
-                                                const newLocation = e.target.value;
-                                                setCart(prevCart =>
-                                                    prevCart.map(cartItem =>
-                                                        cartItem.variantId === item.variantId
-                                                            ? {
-                                                                ...cartItem,
-                                                                location: newLocation,
-                                                                locationName: selectedVariant.stocks_data.stocks
-                                                                    .find(s => s.location.id === newLocation)?.location?.name || 'Основной склад'
-                                                            }
-                                                            : cartItem
-                                                    )
-                                                );
-                                            }}
-                                        >
-                                            {selectedVariant.stocks_data.stocks.map(stock => (
-                                                <option
-                                                    key={stock.location.id}
-                                                    value={stock.location.id}
+                                {/* FIFO и выбор партии для товара */}
+                                {selectedVariant?.stocks_data?.stocks && (
+                                    <div className={styles.itemBatchSelection}>
+                                        <div className={styles.fifoCheckboxGroup}>
+                                            <label className={styles.fifoCheckboxLabel}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.useFifo !== false}
+                                                    onChange={(e) => {
+                                                        const useFifo = e.target.checked;
+                                                        setCart(prevCart =>
+                                                            prevCart.map(cartItem =>
+                                                                cartItem.variantId === item.variantId
+                                                                    ? {
+                                                                        ...cartItem,
+                                                                        useFifo: useFifo,
+                                                                        batchId: useFifo ? null : cartItem.batchId,
+                                                                        batchInfo: useFifo ? null : cartItem.batchInfo
+                                                                    }
+                                                                    : cartItem
+                                                            )
+                                                        );
+                                                    }}
+                                                    className={styles.fifoCheckbox}
+                                                />
+                                                <span className={styles.fifoLabel}>
+                                                    FIFO 
+                                                    <span className={styles.availableQtyBadge}>
+                                                        (в наличии: {selectedVariant?.available_quantity_in_location ?? item.stock ?? 0})
+                                                    </span>
+                                                </span>
+                                                <div 
+                                                    className={styles.fifoTooltipIcon}
+                                                    onMouseEnter={() => setShowFifoTooltip(item.variantId)}
+                                                    onMouseLeave={() => setShowFifoTooltip(null)}
                                                 >
-                                                    {stock.location.name} (Доступно: {stock.available_quantity})
-                                                </option>
-                                            ))}
-                                        </select>
+                                                    ?
+                                                    {showFifoTooltip === item.variantId && (
+                                                        <div className={styles.fifoTooltip}>
+                                                            FIFO (First In, First Out) — метод списания товара, при котором 
+                                                            товары из более ранних партий продаются в первую очередь. 
+                                                            Это помогает избежать просрочки и устаревания товара.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        {item.useFifo === false && (
+                                            <div className={styles.batchSelectWrapper}>
+                                                <label className={styles.batchSelectLabel}>Партия:</label>
+                                                <select
+                                                    value={item.batchId || ''}
+                                                    onChange={(e) => {
+                                                        const batchId = e.target.value ? parseInt(e.target.value) : null;
+                                                        const stock = selectedVariant.stocks_data.stocks.find(s => s.batch_info?.id === batchId);
+                                                        const batchInfo = stock?.batch_info ? {
+                                                            id: stock.batch_info.id,
+                                                            batch_number: stock.batch_info.batch_number,
+                                                            received_date: stock.batch_info.received_date
+                                                        } : null;
+
+                                                        setCart(prevCart =>
+                                                            prevCart.map(cartItem =>
+                                                                cartItem.variantId === item.variantId
+                                                                    ? { ...cartItem, batchId, batchInfo }
+                                                                    : cartItem
+                                                            )
+                                                        );
+                                                    }}
+                                                    className={styles.batchSelect}
+                                                >
+                                                    <option value="">-- Выберите партию --</option>
+                                                    {selectedVariant.stocks_data.stocks
+                                                        .filter(stock => stock.batch_info)
+                                                        .map(stock => {
+                                                            const batch = stock.batch_info;
+                                                            const date = new Date(batch.received_date);
+                                                            const formattedDate = date.toLocaleString('ru-RU', {
+                                                                year: 'numeric',
+                                                                month: 'long',
+                                                                day: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            });
+                                                            return (
+                                                                <option key={batch.id} value={batch.id}>
+                                                                    {batch.batch_number} - {formattedDate} (доступно: {stock.available_quantity})
+                                                                </option>
+                                                            );
+                                                        })}
+                                                </select>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -711,8 +1039,10 @@ const SalesPage = () => {
             );
         }
 
-        const availableQty = selectedVariant.stocks_data.total_available_quantity;
+        // Используем ?? вместо || чтобы 0 не считался falsy значением
+        const availableQty = selectedVariant.available_quantity_in_location ?? 0;
         const currentImage = selectedProduct.images[currentImageIndex]?.image;
+        const hasPrice = selectedVariant.price !== null && selectedVariant.price !== undefined;
 
         return (
             <div className={styles.productDetails}>
@@ -769,20 +1099,24 @@ const SalesPage = () => {
                     </div>
 
                     <div className={styles.priceSection}>
-                        {selectedVariant.discount > 0 ? (
-                            <>
-                                <h4 className={styles.discountedPrice}>
-                                    {Math.round(selectedVariant.price * (1 - selectedVariant.discount / 100)).toLocaleString()} ₸
-                                </h4>
-                                <div className={styles.originalPriceWrapper}>
-                                    <span className={styles.originalPrice}>
-                                        {parseFloat(selectedVariant.price).toLocaleString()} ₸
-                                    </span>
-                                    <span className={styles.discountBadge}>-{selectedVariant.discount}%</span>
-                                </div>
-                            </>
+                        {hasPrice ? (
+                            selectedVariant.discount > 0 ? (
+                                <>
+                                    <h4 className={styles.discountedPrice}>
+                                        {Math.round(selectedVariant.price * (1 - selectedVariant.discount / 100)).toLocaleString()} ₸
+                                    </h4>
+                                    <div className={styles.originalPriceWrapper}>
+                                        <span className={styles.originalPrice}>
+                                            {parseFloat(selectedVariant.price).toLocaleString()} ₸
+                                        </span>
+                                        <span className={styles.discountBadge}>-{selectedVariant.discount}%</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <h4>{parseFloat(selectedVariant.price).toLocaleString()} ₸</h4>
+                            )
                         ) : (
-                            <h4>{parseFloat(selectedVariant.price).toLocaleString()} ₸</h4>
+                            <h4 className={styles.noPrice}>Цена не установлена</h4>
                         )}
                     </div>
 
@@ -799,7 +1133,7 @@ const SalesPage = () => {
                     <button
                         className={styles.addToCartButton}
                         onClick={() => addToCart(selectedProduct, selectedVariant)}
-                        disabled={availableQty <= 0}
+                        disabled={availableQty <= 0 || !hasPrice}
                     >
                         <FaPlus /> В корзину
                     </button>
@@ -842,55 +1176,99 @@ const SalesPage = () => {
                 {/* Left column - Search and products */}
                 <div className={styles.leftColumn}>
                     <div className={styles.searchCard}>
-                        <div className={styles.searchHeader}>
-                            <h4>Поиск товаров</h4>
-                            <button
-                                className={`${styles.scannerButton} ${scannerActive ? styles.scannerActive : ''}`}
-                                onClick={() => {
-                                    setScannerActive((prev) => !prev); // ← меняем на toggle
-                                    setTimeout(() => {
-                                        searchInputRef.current && searchInputRef.current.focus();
-                                    }, 100);
-                                }}
-                                type="button"
-                            >
-                                {scannerActive ? <FaCheck /> : <FaBarcode />} Сканер штрих-кода
-                            </button>
+                        {/* Фильтры - локация и категория */}
+                        <div className={styles.filtersSection}>
+                            <div className={styles.filtersSectionHeader}>
+                                <h4>Фильтры</h4>
+                            </div>
+                            <div className={styles.filterRow}>
+                                <SearchableSelect
+                                    options={locations}
+                                    value={selectedLocation}
+                                    onChange={(locationId) => {
+                                        setSelectedLocation(locationId);
+                                        setCart([]); // Очищаем корзину при смене локации
+                                        setItemFifoStates({}); // Очищаем состояния FIFO
+                                    }}
+                                    disabled={locationsLoading}
+                                    placeholder={locationsLoading ? "Загрузка..." : "Выберите локацию..."}
+                                    icon={FaBoxOpen}
+                                    label="Локация"
+                                    required={true}
+                                    getOptionLabel={(loc) => loc.name + (loc.is_primary ? ' ⭐' : '')}
+                                    getOptionSubLabel={(loc) => 
+                                        loc.location_type_detail?.name || 
+                                        (loc.address ? loc.address : '')
+                                    }
+                                />
 
+                                <SearchableSelect
+                                    options={[{ id: '', name: 'Все категории' }, ...categories]}
+                                    value={selectedCategory}
+                                    onChange={setSelectedCategory}
+                                    disabled={!selectedLocation}
+                                    placeholder="Выберите категорию..."
+                                    icon={FaShoppingCart}
+                                    label="Категория"
+                                    getOptionLabel={(cat) => cat.name}
+                                    getOptionSubLabel={(cat) => cat.full_path || ''}
+                                />
+                            </div>
                         </div>
 
-                        <div className={styles.searchControls}>
+                        {/* Поиск товаров */}
+                        <div className={styles.searchSection}>
+                            <div className={styles.searchHeader}>
+                                <h4>Поиск товаров</h4>
+                                <button
+                                    className={`${styles.scannerButton} ${scannerActive ? styles.scannerActive : ''}`}
+                                    onClick={() => {
+                                        setScannerActive((prev) => !prev); // ← меняем на toggle
+                                        setTimeout(() => {
+                                            searchInputRef.current && searchInputRef.current.focus();
+                                        }, 100);
+                                    }}
+                                    type="button"
+                                >
+                                    {scannerActive ? <FaCheck /> : <FaBarcode />} Сканер штрих-кода
+                                </button>
+                            </div>
+
                             <div className={styles.searchInputGroup}>
+                                <FaSearch className={styles.searchIcon} />
                                 <input
                                     ref={searchInputRef}
                                     type="text"
-                                    placeholder="Название, артикул или штрих-код..."
+                                    placeholder="Поиск по названию, артикулу или штрих-коду..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') handleSearch();
                                     }}
+                                    disabled={!selectedLocation}
+                                    className={styles.searchInput}
                                 />
                                 <button
                                     className={styles.searchButton}
                                     onClick={handleSearch}
+                                    disabled={!selectedLocation}
                                 >
-                                    <FaSearch />
+                                    Поиск
                                 </button>
                             </div>
 
-                            <select
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                                className={styles.categorySelect}
-                            >
-                                <option value="">Все категории</option>
-                                {categories.map(category => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
+                            {/* Фильтр "Есть в наличии" */}
+                            <div className={styles.filterCheckbox}>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={inStockOnly}
+                                        onChange={(e) => setInStockOnly(e.target.checked)}
+                                        disabled={!selectedLocation}
+                                    />
+                                    <span>Только товары в наличии</span>
+                                </label>
+                            </div>
                         </div>
 
                         <div className={styles.searchResults}>
@@ -985,7 +1363,10 @@ const SalesPage = () => {
                                     </button>
                                     <button
                                         className={styles.clearCartButton}
-                                        onClick={() => setCart([])}
+                                        onClick={() => {
+                                            setCart([]);
+                                            setItemFifoStates({});
+                                        }}
                                         disabled={cart.length === 0}
                                     >
                                         <FaTrashAlt /> Очистить

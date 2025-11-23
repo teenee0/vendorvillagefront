@@ -70,6 +70,7 @@ export const BusinessFooter = () => {
     const pageName = pathParts[3];
     const pageNames = {
       'products': 'Склад товаров',
+      'batches': 'Партии',
       'sale-products': 'Точка продаж',
       'transactions': 'Касса',
       'settings': 'Настройки'
@@ -90,8 +91,11 @@ export const BusinessFooter = () => {
   const items = [
     { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
     { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
+    { icon: <div>📋</div>, label: 'Партии', onClick: () => handleNavigate('/batches') },
     { icon: <div>💳</div>, label: 'Продажа', onClick: () => handleNavigate('/sale-products') },
     { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
+    { icon: <div>✅</div>, label: 'Задачи', onClick: () => handleNavigate('/tasks') },
+    { icon: <div>📊</div>, label: 'Инвентаризация', onClick: () => handleNavigate('/inventory') },
     { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
   ];
 

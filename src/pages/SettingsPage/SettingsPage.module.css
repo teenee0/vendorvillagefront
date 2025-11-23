@@ -62,9 +62,7 @@
 .accountContainer {
   display: flex;
   flex-direction: row;
-  max-width: 1200px;
-  min-width: 900px;
-  width: 100%;
+  width: 1200px;
   background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(20px);
   border-radius: 20px;

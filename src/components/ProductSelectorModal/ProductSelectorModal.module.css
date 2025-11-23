@@ -1,0 +1,475 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.searchSection {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.searchBox {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--palladium-mist);
+}
+
+.searchBox input {
+  flex: 1;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchBox input:focus {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 2px rgba(45, 175, 159, 0.2);
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.searchButton:hover:not(:disabled) {
+  background: #2a9f8f;
+}
+
+.searchButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.filterSection {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.locationFilter {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 180px;
+  outline: none;
+}
+
+.locationFilter:hover {
+  border-color: var(--royal-emerald);
+}
+
+.locationFilter:focus {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 2px rgba(45, 175, 159, 0.2);
+}
+
+.locationFilter option {
+  background: var(--obsidian-elite);
+  color: var(--platinum-gleam);
+}
+
+.sortControl {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sortButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sortButton:hover {
+  border-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
+}
+
+.sortButton.active {
+  background: var(--royal-emerald);
+  border-color: var(--royal-emerald);
+  color: white;
+}
+
+.refreshButton {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.refreshButton:hover:not(:disabled) {
+  border-color: var(--royal-emerald);
+  background: var(--royal-emerald);
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--palladium-mist);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: var(--palladium-mist);
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+.productCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 2px solid var(--gilded-shadow);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.productCard:hover {
+  border-color: var(--royal-emerald);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.productCard.selected {
+  border-color: var(--royal-emerald);
+  background: rgba(45, 175, 159, 0.1);
+  box-shadow: 0 0 0 2px rgba(45, 175, 159, 0.2);
+}
+
+.checkbox {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  background: var(--obsidian-elite);
+  border: 2px solid var(--gilded-shadow);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.productCard.selected .checkbox {
+  background: var(--royal-emerald);
+  border-color: var(--royal-emerald);
+  color: white;
+}
+
+.productImage {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.noImagePlaceholder {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 8px;
+  font-size: 3rem;
+  color: var(--palladium-mist);
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.productName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 0.9rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.productVariant {
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+}
+
+.attributes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.attribute {
+  background: rgba(45, 175, 159, 0.1);
+  color: var(--royal-emerald);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.locationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.locationName {
+  color: var(--royal-emerald);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+.locationName::before {
+  content: '📍';
+  font-size: 1rem;
+}
+
+.price {
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+.price::before {
+  content: '💰';
+  font-size: 1rem;
+}
+
+.quantity {
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+.quantity::before {
+  content: '📦';
+  font-size: 1rem;
+}
+
+.productCategory {
+  color: var(--palladium-mist);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.selectedCount {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.cancelButton,
+.confirmButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cancelButton {
+  background: transparent;
+  color: var(--silver-whisper);
+  border: 1px solid var(--gilded-shadow);
+}
+
+.cancelButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.confirmButton {
+  background: linear-gradient(135deg, var(--royal-emerald), #2d8f8a);
+  color: white;
+}
+
+.confirmButton:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .productGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .searchSection {
+    flex-wrap: wrap;
+  }
+
+  .locationFilter {
+    min-width: 150px;
+  }
+}
+

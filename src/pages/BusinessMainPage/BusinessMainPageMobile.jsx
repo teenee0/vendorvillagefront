@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaExclamationTriangle, FaChartLine, FaReceipt, FaMoneyBillWave, FaShoppingCart, FaUndoAlt } from 'react-icons/fa';
+import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaExclamationTriangle, FaChartLine, FaReceipt, FaMoneyBillWave, FaShoppingCart, FaUndoAlt, FaTasks, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 import { FcLineChart } from "react-icons/fc";
 import { Chart } from 'chart.js/auto';
 import axios from '../../api/axiosDefault';
@@ -8,7 +8,7 @@ import { useLocation } from '../../hooks/useLocation';
 import styles from './BusinessMainPageMobile.module.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -79,6 +79,7 @@ const BusinessMainPageMobile = () => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const { business_slug } = useParams();
+  const navigate = useNavigate();
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionDetails, setTransactionDetails] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
@@ -718,6 +719,91 @@ const BusinessMainPageMobile = () => {
               }
               height={300}
             />
+
+            {/* Секция задач */}
+            {data?.tasks && data.tasks.length > 0 && (
+              <div className={styles.tasksSection}>
+                <div className={styles.tasksHeader}>
+                  <h5 className={styles.tasksTitle}>
+                    <FaTasks className={styles.tasksIcon} /> Актуальные задачи
+                  </h5>
+                  <button 
+                    className={styles.viewAllTasksButton}
+                    onClick={() => navigate(`/business/${business_slug}/tasks`)}
+                  >
+                    Все <FaArrowRight className={styles.arrowIcon} />
+                  </button>
+                </div>
+                <div className={styles.tasksList}>
+                  {data.tasks.map((task, index) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={styles.taskCard}
+                      onClick={() => navigate(`/business/${business_slug}/tasks/${task.id}`)}
+                    >
+                      <div className={styles.taskCardHeader}>
+                        <h6 className={styles.taskTitle}>{task.title}</h6>
+                        <div className={styles.taskBadges}>
+                          <span className={`${styles.taskBadge} ${styles[`priority${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}`]}`}>
+                            {task.priority_display}
+                          </span>
+                          <span className={`${styles.taskBadge} ${styles[`status${task.status.charAt(0).toUpperCase() + task.status.slice(1).replace('_', '')}`]}`}>
+                            {task.status_display}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {task.progress && (
+                        <div className={styles.taskProgress}>
+                          <div className={styles.taskProgressInfo}>
+                            <span>Прогресс</span>
+                            <span className={styles.taskProgressPercentage}>
+                              {task.progress.percentage}%
+                            </span>
+                          </div>
+                          <div className={styles.taskProgressBar}>
+                            <div 
+                              className={styles.taskProgressBarFill}
+                              style={{ width: `${task.progress.percentage}%` }}
+                            ></div>
+                          </div>
+                          <div className={styles.taskProgressStats}>
+                            {task.progress.completed} из {task.progress.total} пунктов
+                          </div>
+                        </div>
+                      )}
+
+                      <div className={styles.taskMeta}>
+                        {task.assignees && task.assignees.length > 0 && (
+                          <div className={styles.taskAssignees}>
+                            <FaCheckCircle className={styles.taskMetaIcon} />
+                            <span>
+                              {task.assignees.map(a => a.name).join(', ')}
+                            </span>
+                          </div>
+                        )}
+                        {task.due_date && (
+                          <div className={styles.taskDueDate}>
+                            <FaCalendarAlt className={styles.taskMetaIcon} />
+                            <span>
+                              {dayjs(task.due_date).format('DD.MM.YYYY')}
+                            </span>
+                          </div>
+                        )}
+                        {task.location_name && (
+                          <div className={styles.taskLocation}>
+                            <span>{task.location_name}</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 

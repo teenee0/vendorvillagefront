@@ -1,0 +1,837 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  color: var(--silver-whisper);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.formGroup input,
+.formGroup textarea,
+.formGroup select {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 2px rgba(45, 175, 159, 0.2);
+}
+
+.helpText {
+  color: var(--palladium-mist);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.stocksSection {
+  border-top: 1px solid var(--gilded-shadow);
+  padding-top: 1.5rem;
+}
+
+.stocksHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stocksHeader h3 {
+  font-size: 1.25rem;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background: #2a9f8f;
+}
+
+.stocksList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stockRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.variantSelector {
+  width: 100%;
+}
+
+.productSelector {
+  width: 100%;
+}
+
+.searchBox {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--palladium-mist);
+}
+
+.searchBox input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  color: var(--platinum-gleam);
+  outline: none;
+}
+
+.searchBox input:focus {
+  border-color: var(--royal-emerald);
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: var(--obsidian-elite);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.productCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.productCard:hover {
+  border-color: var(--royal-emerald);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.productImage {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.noImagePlaceholder {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 6px;
+  color: var(--palladium-mist);
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.productName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productVariant {
+  color: var(--silver-whisper);
+  font-size: 0.8rem;
+}
+
+.productCategory {
+  color: var(--palladium-mist);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.selectedProduct {
+  width: 100%;
+}
+
+.selectedProductCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--royal-emerald);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.selectedProductImage {
+  width: 70px;
+  height: 98px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.selectedNoImage {
+  width: 70px;
+  height: 98px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--palladium-mist);
+  flex-shrink: 0;
+}
+
+.selectedProductInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selectedProductName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+}
+
+.selectedProductVariant {
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.selectedAttributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attributeBadge {
+  background: rgba(45, 175, 159, 0.1);
+  color: var(--royal-emerald);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgba(45, 175, 159, 0.2);
+}
+
+.changeButton {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.changeButton:hover {
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+}
+
+.stockControls {
+  display: grid;
+  grid-template-columns: 1.5fr 80px 120px 100px auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.select {
+  width: 100%;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+}
+
+.inputWithLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  color: var(--silver-whisper);
+  font-weight: 500;
+  text-align: center;
+}
+
+.quantityInput {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+  text-align: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  white-space: nowrap;
+  justify-content: center;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.removeButton {
+  background: transparent;
+  border: 1px solid var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeButton:hover {
+  background: var(--velvet-ruby);
+  color: white;
+}
+
+.emptyStocks {
+  text-align: center;
+  padding: 2rem;
+  color: var(--palladium-mist);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  border-top: 1px solid var(--gilded-shadow);
+  padding-top: 1.5rem;
+}
+
+.cancelButton,
+.submitButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cancelButton {
+  background: transparent;
+  color: var(--silver-whisper);
+  border: 1px solid var(--gilded-shadow);
+}
+
+.cancelButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.submitButton {
+  background: linear-gradient(135deg, var(--royal-emerald), #2d8f8a);
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.documentsSection {
+  border-top: 1px solid var(--gilded-shadow);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.addDocumentButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.addDocumentButton:hover {
+  background: #2a9f8f;
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.documentUploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.documentUploadForm input,
+.documentUploadForm textarea {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: var(--platinum-gleam);
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.documentUploadForm input:focus,
+.documentUploadForm textarea:focus {
+  border-color: var(--royal-emerald);
+}
+
+.documentUploadActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.documentUploadActions button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.documentUploadActions button:first-child {
+  background: var(--royal-emerald);
+  color: white;
+}
+
+.documentUploadActions button:first-child:hover:not(:disabled) {
+  background: #2a9f8f;
+}
+
+.documentUploadActions button:first-child:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.documentUploadActions button:last-child {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+}
+
+.documentUploadActions button:last-child:hover {
+  background: var(--gilded-shadow);
+}
+
+.documentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.documentCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.documentIcon {
+  font-size: 2rem;
+  color: var(--royal-emerald);
+}
+
+.documentInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.documentName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+}
+
+.documentDescription {
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.defectSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.addDefectButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addDefectButton:hover {
+  background: linear-gradient(135deg, #f57c00, #e65100);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.defectForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--royal-emerald);
+  border-radius: 8px;
+}
+
+.defectFormRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+}
+
+.defectFormActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.addDefectBtn {
+  flex: 1;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border: none;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addDefectBtn:hover {
+  background: linear-gradient(135deg, #45a049, #388e3c);
+}
+
+.cancelDefectBtn {
+  flex: 1;
+  background: var(--velvet-ruby);
+  border: none;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.cancelDefectBtn:hover {
+  background: #c41e3a;
+}
+
+.defectsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.defectItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--obsidian-elite);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 6px;
+}
+
+.defectQuantity {
+  color: #ff9800;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.defectReason {
+  flex: 1;
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.removeDefectBtn {
+  background: transparent;
+  border: 1px solid var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeDefectBtn:hover {
+  background: var(--velvet-ruby);
+  color: white;
+}
+
+.textInput {
+  width: 100%;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.5rem;
+  border-radius: 6px;
+  outline: none;
+}
+
+.activeFlagsSection {
+  grid-column: 1 / -1;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: var(--obsidian-elite);
+  border-radius: 8px;
+  border: 1px solid var(--sage-green);
+}
+
+.activeFlagsTitle {
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.activeFlagsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.activeFlagItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.activeFlagItem:hover {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.activeFlagItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--sage-green);
+  flex-shrink: 0;
+}
+
+.activeFlagItem input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.activeFlagItem input[type="checkbox"]:checked {
+  accent-color: var(--imperial-gold);
+}
+
+.flagLabel {
+  color: var(--platinum-gleam);
+  font-size: 0.85rem;
+  user-select: none;
+  flex: 1;
+}
+
+.activeFlagItem:hover .flagLabel {
+  color: var(--imperial-gold);
+}
+
+.activeFlagItem input[type="checkbox"]:disabled + .flagLabel {
+  color: var(--silver-whisper);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .stockControls {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .stockControls > button {
+    width: 100%;
+  }
+}
+

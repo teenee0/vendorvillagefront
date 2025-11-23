@@ -1,0 +1,169 @@
+.card {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--royal-emerald), var(--imperial-gold));
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  border-color: var(--royal-emerald);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.batchNumber {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--royal-emerald);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status_draft {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status_completed {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewButton,
+.deleteButton {
+  background: transparent;
+  border: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.viewButton:hover {
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+  background: rgba(45, 175, 159, 0.1);
+}
+
+.deleteButton:hover {
+  border-color: var(--velvet-ruby);
+  color: var(--velvet-ruby);
+  background: rgba(168, 58, 58, 0.1);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.icon {
+  color: var(--royal-emerald);
+  font-size: 1rem;
+}
+
+.label {
+  color: var(--silver-whisper);
+}
+
+.value {
+  color: var(--platinum-gleam);
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.statIcon {
+  color: var(--royal-emerald);
+  font-size: 1.5rem;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--silver-whisper);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.createdAt {
+  font-size: 0.8rem;
+  color: var(--palladium-mist);
+}
+

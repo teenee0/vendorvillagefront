@@ -31,11 +31,17 @@ import BusinessOwnerRoute from './components/BusinessOwnerRoute/BusinessOwnerRou
 import LocationWrapper from './components/LocationWrapper/LocationWrapper.jsx';
 import LocationSelectPage from './pages/LocationSelectPage/LocationSelectPage.jsx';
 import ProductAddPage from './pages/ProductAddPage/ProductAddPage.jsx';
-import ProductPage from './pages/ProductPage/ProductPage.jsx';
+import ProductPageNew from './pages/ProductPage/ProductPageNew.jsx';
 import SalesPage from './pages/SalesPage/SalesPage.jsx';
 import SettingsPage from './pages/SettingsPage/SettingsPage.jsx';
 import TransactionsPage from './pages/Transactions/Transactions.jsx';
 import EmployeeInvite from './pages/EmployeeInvite/EmployeeInvite.jsx';
+import VariantLocationPricePage from './pages/VariantLocationPricePage/VariantLocationPricePage.jsx';
+import BatchManagement from './pages/BatchManagement/BatchManagement.jsx';
+import TasksPage from './pages/TasksPage/TasksPage.jsx';
+import TaskDetailPage from './pages/TaskDetailPage/TaskDetailPage.jsx';
+import InventoryListPage from './pages/InventoryPage/InventoryListPage.jsx';
+import InventorySessionPage from './pages/InventoryPage/InventorySessionPage.jsx';
 
 function App() {
   const location = useLocation();
@@ -100,11 +106,17 @@ function App() {
                         } 
                       />
                       <Route path="/business/:business_slug/products/create" element={<ProductAddPage />} />
-                      <Route path="/business/:business_slug/products/:product_id" element={<ProductPage />} />
+                      <Route path="/business/:business_slug/products/:product_id" element={<ProductPageNew />} />
                       <Route path="/business/:business_slug/products/:product_id/edit" element={<ProductEditPage />} />
+                      <Route path="/business/:business_slug/variants-location-price" element={<VariantLocationPricePage />} />
                       <Route path="/business/:business_slug/sale-products" element={<SalesPage />} />
                       <Route path="/business/:business_slug/transactions" element={<TransactionsPage />} />
                       <Route path="/business/:business_slug/settings" element={<SettingsPage />} />
+                      <Route path="/business/:business_slug/batches" element={<BatchManagement />} />
+                      <Route path="/business/:business_slug/tasks" element={<TasksPage />} />
+                      <Route path="/business/:business_slug/tasks/:task_id" element={<TaskDetailPage />} />
+                      <Route path="/business/:business_slug/inventory" element={<InventoryListPage />} />
+                      <Route path="/business/:business_slug/inventory/:session_id" element={<InventorySessionPage />} />
                     </Route>
                   </Route>
                 </Route>

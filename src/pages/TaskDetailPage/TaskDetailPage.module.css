@@ -1,0 +1,1108 @@
+.container {
+    width: 90%;
+    max-width: none;
+    margin: 0 auto;
+    padding: 0;
+    color: var(--platinum-gleam);
+    background: var(--phantom-noir);
+    min-height: calc(100vh - 200px);
+}
+
+/* Заголовок задачи */
+.taskHeader {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(146, 125, 50, 0.15) 50%, rgba(100, 200, 100, 0.1) 100%);
+    border-bottom: 2px solid var(--imperial-gold);
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.backButtonHeader {
+    position: absolute;
+    top: 1.5rem;
+    left: 2.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid var(--imperial-gold);
+    border-radius: 6px;
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.backButtonHeader:hover {
+    background: var(--imperial-gold);
+    border-color: var(--imperial-gold);
+    color: var(--obsidian-elite);
+    transform: translateX(-2px);
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+}
+
+.taskHeaderContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: 2.5rem;
+}
+
+.taskHeaderLeft {
+    flex: 1;
+}
+
+.taskHeader h1 {
+    margin: 0 0 1rem 0;
+    color: var(--platinum-gleam);
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.taskHeaderBadges {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.badgeWrapper {
+    position: relative;
+}
+
+.taskHeaderRight {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: right;
+}
+
+.taskHeaderMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 0.95rem;
+}
+
+.taskHeaderMeta i {
+    color: var(--imperial-gold);
+}
+
+/* Основной контент */
+.content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    padding: 0 2.5rem 2.5rem;
+}
+
+.mainColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Карточки */
+.card {
+    background: var(--onyx-midnight);
+    border: 1px solid var(--sage-green);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+
+
+.cardHeader {
+    background: linear-gradient(135deg, var(--obsidian-elite) 0%, rgba(212, 175, 55, 0.05) 100%);
+    border-bottom: 1px solid var(--gilded-shadow);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cardHeader i {
+    color: var(--imperial-gold);
+    font-size: 1.1rem;
+}
+
+.cardHeader h3 {
+    margin: 0;
+    color: var(--platinum-gleam);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.cardBody {
+    padding: 1.5rem;
+}
+
+/* Бейджи */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.clickableBadge {
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickableBadge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.quickEditDropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 180px;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.quickEditOption {
+    padding: 0.75rem 1rem;
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    background: var(--obsidian-elite);
+}
+
+.quickEditOption:hover {
+    background: rgba(212, 175, 55, 0.1);
+    border-left-color: var(--imperial-gold);
+    padding-left: 1.25rem;
+}
+
+.quickEditOption.active {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--imperial-gold);
+    font-weight: 600;
+}
+
+.quickEditOption.active::before {
+    content: '✓';
+    color: var(--imperial-gold);
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.quickEditOption:not(:last-child) {
+    border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.priorityLow {
+    background: rgba(100, 200, 100, 0.2);
+    color: #64c864;
+    border: 1px solid #64c864;
+}
+
+.priorityMedium {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--imperial-gold);
+    border: 1px solid var(--imperial-gold);
+}
+
+.priorityHigh {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+    border: 1px solid #ffa500;
+}
+
+.priorityCritical {
+    background: rgba(255, 71, 87, 0.2);
+    color: var(--velvet-ruby);
+    border: 1px solid var(--velvet-ruby);
+}
+
+.statusTodo {
+    background: rgba(150, 150, 150, 0.2);
+    color: #969696;
+    border: 1px solid #969696;
+}
+
+.statusInProgress {
+    background: rgba(100, 150, 255, 0.2);
+    color: #6496ff;
+    border: 1px solid #6496ff;
+}
+
+.statusReview {
+    background: rgba(255, 200, 100, 0.2);
+    color: #ffc864;
+    border: 1px solid #ffc864;
+}
+
+.statusDone {
+    background: rgba(100, 200, 100, 0.2);
+    color: #64c864;
+    border: 1px solid #64c864;
+}
+
+.statusCancelled {
+    background: rgba(255, 71, 87, 0.2);
+    color: var(--velvet-ruby);
+    border: 1px solid var(--velvet-ruby);
+}
+
+/* Описание */
+.descriptionText {
+    color: var(--silver-whisper);
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.descriptionText p {
+    margin: 0 0 1rem 0;
+}
+
+.descriptionText p:last-child {
+    margin-bottom: 0;
+}
+
+/* Прогресс */
+.progressSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.progressInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--platinum-gleam);
+    font-weight: 500;
+}
+
+.progressPercentage {
+    color: var(--imperial-gold);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.progressBar {
+    width: 100%;
+    height: 12px;
+    background: var(--obsidian-elite);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--gilded-shadow);
+}
+
+.progressBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+    transition: width 0.3s ease;
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+.progressStats {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Чек-лист */
+.checklistList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.checklistItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.checklistItem:hover {
+    border-color: var(--sage-green);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.checklistLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checklistCheckbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--imperial-gold);
+    flex-shrink: 0;
+}
+
+.checklistText {
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    flex: 1;
+    transition: all 0.2s ease;
+}
+
+.checklistTextCompleted {
+    text-decoration: line-through;
+    color: var(--silver-whisper);
+    opacity: 0.7;
+}
+
+.checklistDelete {
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--silver-whisper);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.checklistDelete:hover {
+    background: rgba(255, 71, 87, 0.2);
+    color: var(--velvet-ruby);
+}
+
+.checklistForm {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gilded-shadow);
+}
+
+.checklistInput {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+}
+
+.checklistInput:focus {
+    outline: none;
+    border-color: var(--imperial-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.checklistInput::placeholder {
+    color: var(--silver-whisper);
+    opacity: 0.6;
+}
+
+.checklistAddButton {
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, var(--imperial-gold) 0%, #f4c430 100%);
+    border: none;
+    border-radius: 8px;
+    color: var(--obsidian-elite);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.checklistAddButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--imperial-gold) 100%);
+    color: var(--obsidian-elite);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.checklistAddButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--obsidian-elite);
+    color: var(--silver-whisper);
+}
+
+.emptyChecklist {
+    text-align: center;
+    padding: 2rem;
+    color: var(--silver-whisper);
+    font-style: italic;
+}
+
+/* Файлы */
+.filesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.fileItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-left: 3px solid var(--imperial-gold);
+    border-radius: 8px;
+    color: var(--platinum-gleam);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.fileItem:hover {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, var(--obsidian-elite) 100%);
+    border-color: var(--imperial-gold);
+    border-left-color: var(--sage-green);
+    color: var(--imperial-gold);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+.fileItem i:first-child {
+    color: var(--imperial-gold);
+    font-size: 1.1rem;
+}
+
+.fileItem i:last-child {
+    margin-left: auto;
+    opacity: 0.6;
+    font-size: 0.85rem;
+}
+
+/* Комментарии */
+.commentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.commentsList::-webkit-scrollbar {
+    width: 6px;
+}
+
+.commentsList::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+}
+
+.commentsList::-webkit-scrollbar-thumb {
+    background: var(--sage-green);
+    border-radius: 3px;
+    opacity: 0.5;
+}
+
+.commentsList::-webkit-scrollbar-thumb:hover {
+    background: var(--imperial-gold);
+    opacity: 1;
+}
+
+.comment {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--gilded-shadow);
+    border-left: 3px solid var(--imperial-gold);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.comment:hover {
+    border-color: var(--sage-green);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.commentAvatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--platinum-gleam);
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.commentContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.commentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.commentAuthor {
+    color: var(--platinum-gleam);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.commentDate {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+}
+
+.commentText {
+    color: var(--silver-whisper);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+}
+
+.noComments {
+    text-align: center;
+    padding: 2rem;
+    color: var(--silver-whisper);
+    font-style: italic;
+}
+
+.commentForm {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gilded-shadow);
+}
+
+.commentInput {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 1rem;
+}
+
+.commentInput:focus {
+    outline: none;
+    border-color: var(--imperial-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.commentInput::placeholder {
+    color: var(--silver-whisper);
+    opacity: 0.6;
+}
+
+.commentFormActions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.commentButton {
+    padding: 0.75rem 2rem;
+    background: linear-gradient(135deg, var(--imperial-gold) 0%, #f4c430 100%);
+    border: none;
+    border-radius: 8px;
+    color: #1a1a1a;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.commentButton:hover:not(:disabled) {
+
+    color: #1a1a1a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.commentButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--obsidian-elite);
+    color: var(--silver-whisper);
+}
+
+/* Боковая панель */
+.infoItem {
+    margin-bottom: 1.5rem;
+}
+
+.infoItem:last-child {
+    margin-bottom: 0;
+}
+
+.infoItem label {
+    display: block;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.infoValue {
+    color: var(--platinum-gleam);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.infoValue i {
+    color: var(--imperial-gold);
+}
+
+.assigneesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.assigneeItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: var(--obsidian-elite);
+    border-radius: 6px;
+}
+
+.assigneeAvatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--platinum-gleam);
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.assigneeItem span {
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+}
+
+/* Действия */
+.actionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.actionButton,
+.actionButtonSuccess,
+.actionButtonWarning,
+.actionButtonDanger {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: none;
+    border-radius: 8px;
+    color: #1a1a1a;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.actionButton {
+    background: linear-gradient(135deg, var(--imperial-gold) 0%, #f4c430 100%);
+}
+
+.actionButton:hover {
+    
+    color: #1a1a1a !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+}
+
+.actionButtonSuccess {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+}
+
+.actionButtonSuccess:hover {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #1a1a1a !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
+.actionButtonWarning {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.actionButtonWarning:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #1a1a1a !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.actionButtonDanger {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+}
+
+.actionButtonDanger:hover {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: var(--platinum-gleam);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* Ошибки */
+.error {
+    padding: 1.5rem;
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid var(--velvet-ruby);
+    border-radius: 8px;
+    color: var(--velvet-ruby);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.backButton {
+    padding: 0.75rem 1.5rem;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--imperial-gold);
+    border-radius: 8px;
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.backButton:hover {
+    background: var(--imperial-gold);
+    border-color: var(--imperial-gold);
+    color: var(--obsidian-elite);
+    transform: translateX(-2px);
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Модальные окна */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.modalContent {
+    background: var(--onyx-midnight);
+    border: 1px solid var(--sage-green);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+    background: var(--obsidian-elite);
+    border-radius: 12px 12px 0 0;
+}
+
+.modalHeader h2 {
+    margin: 0;
+    color: var(--platinum-gleam);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modalClose {
+    background: transparent;
+    border: none;
+    color: var(--silver-whisper);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.modalClose:hover {
+    background: rgba(255, 71, 87, 0.2);
+    color: #f87171;
+    transform: rotate(90deg);
+}
+
+.modalBody {
+    padding: 1.5rem;
+}
+
+.modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--gilded-shadow);
+    background: var(--obsidian-elite);
+    border-radius: 0 0 12px 12px;
+}
+
+.modalButtonCancel,
+.modalButtonSave {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modalButtonCancel {
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    color: var(--platinum-gleam);
+}
+
+.modalButtonCancel:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--imperial-gold);
+    color: var(--imperial-gold);
+    transform: translateY(-1px);
+}
+
+.modalButtonSave {
+    background: linear-gradient(135deg, var(--imperial-gold) 0%, #f4c430 100%);
+    color: #1a1a1a;
+}
+
+.modalButtonSave:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--sage-green) 0%, var(--imperial-gold) 100%);
+    color: #1a1a1a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.modalButtonSave:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--obsidian-elite);
+    color: var(--silver-whisper);
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--platinum-gleam);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.formInput,
+.formTextarea,
+.formSelect {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.formInput:focus,
+.formTextarea:focus,
+.formSelect:focus {
+    outline: none;
+    border-color: var(--imperial-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.formTextarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.assigneesSelector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--sage-green);
+    border-radius: 8px;
+    min-height: 60px;
+}
+
+.employeeSelectButton {
+    padding: 0.5rem 1rem;
+    background: var(--onyx-midnight);
+    border: 1px solid var(--sage-green);
+    border-radius: 6px;
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.employeeSelectButton:hover {
+    border-color: var(--imperial-gold);
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--imperial-gold);
+    transform: translateY(-1px);
+}
+
+.employeeSelectButton.selected {
+    background: linear-gradient(135deg, var(--imperial-gold) 0%, #f4c430 100%);
+    border-color: var(--imperial-gold);
+    color: var(--obsidian-elite);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .content {
+        grid-template-columns: 1fr;
+        padding: 0 1.5rem 1.5rem;
+    }
+
+    .taskHeader {
+        padding: 1.5rem;
+    }
+
+    .taskHeaderContent {
+        flex-direction: column;
+        margin-top: 3rem;
+    }
+
+    .taskHeaderRight {
+        text-align: left;
+    }
+
+    .backButtonHeader {
+        position: static;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .taskHeader {
+        padding: 1rem;
+    }
+
+    .taskHeader h1 {
+        font-size: 1.75rem;
+    }
+
+    .content {
+        padding: 0 1rem 1rem;
+    }
+
+    .cardBody {
+        padding: 1rem;
+    }
+
+    .cardHeader {
+        padding: 1rem;
+    }
+
+    .cardHeader h3 {
+        font-size: 1.1rem;
+    }
+
+    .modalOverlay {
+        padding: 1rem;
+    }
+
+    .modalContent {
+        max-width: 100%;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+    }
+}

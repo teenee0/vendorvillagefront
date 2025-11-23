@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import {
   FaSearch,
@@ -8,10 +8,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaFilePdf,
-  FaHistory,
   FaReceipt,
-  FaChevronDown,
-  FaChevronUp,
   FaTimes,
   FaCalendarAlt,
   FaExchangeAlt
@@ -30,9 +27,9 @@ dayjs.extend(timezone);
 
 const TransactionsPage = () => {
   const { business_slug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('receipts');
   const [receipts, setReceipts] = useState([]);
-  const [receiptsHistory, setReceiptsHistory] = useState([]);
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,7 +40,6 @@ const TransactionsPage = () => {
     has_previous: false
   });
   const [selectedReceipt, setSelectedReceipt] = useState(null);
-  const [expandedHistoryIds, setExpandedHistoryIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
@@ -56,47 +52,14 @@ const TransactionsPage = () => {
   const [returnForm, setReturnForm] = useState({
     quantity: 1,
     reason: '',
-    is_defect: false,
-    restock_location: ''
+    is_defect: false
   });
-  const [restockLocations, setRestockLocations] = useState([]);
   const [returnLoading, setReturnLoading] = useState(false);
-
-  // Format changes for history records
-  const formatChanges = (changes) => {
-    if (!changes || typeof changes !== 'object') return 'Нет изменений';
-    try {
-      return Object.entries(changes).map(([field, change]) => {
-        const oldValue = change.old !== null ? change.old : '—';
-        const newValue = change.new !== null ? change.new : '—';
-        const fieldName = {
-          total_amount: 'Сумма',
-          discount_amount: 'Скидка (₸)',
-          discount_percent: 'Скидка (%)',
-          is_paid: 'Статус оплаты',
-          customer_name: 'Имя клиента',
-          customer_phone: 'Телефон клиента',
-          payment_method: 'Способ оплаты',
-          is_deleted: 'Статус удаления'
-        }[field] || field;
-        return (
-          <div key={field}>
-            <strong>{fieldName}:</strong> {oldValue} → {newValue}
-          </div>
-        );
-      });
-    } catch (e) {
-      console.error('Error formatting changes:', e);
-      return 'Ошибка отображения изменений';
-    }
-  };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === 'receipts') {
       fetchReceipts(1);
-    } else if (tab === 'history') {
-      fetchReceiptsHistory(1);
     } else if (tab === 'returns') {
       fetchReturns(1);
     }
@@ -138,20 +101,6 @@ const TransactionsPage = () => {
     }
   };
 
-  const fetchReceiptsHistory = async (page = 1) => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`/api/business/${business_slug}/receipts/history/`, { params: { page } });
-      setReceiptsHistory(response.data.results);
-      setPagination(response.data.pagination);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchReceiptDetails = async (receiptId) => {
     try {
       setLoading(true);
@@ -169,21 +118,13 @@ const TransactionsPage = () => {
     setReturnForm({
       quantity: 1,
       reason: '',
-      is_defect: false,
-      restock_location: ''
+      is_defect: false
     });
     setReturnModal({
       open: true,
       sale,
       maxQty: sale.available_to_return || 1
     });
-    try {
-      const res = await axios.get(`/api/business/${business_slug}/locations/`, { params: { per_page: 100 } });
-      const list = Array.isArray(res.data?.results) ? res.data.results : (Array.isArray(res.data) ? res.data : []);
-      setRestockLocations(list);
-    } catch {
-      setRestockLocations([]);
-    }
   };
 
   const closeReturnModal = () => {
@@ -213,9 +154,6 @@ const TransactionsPage = () => {
         reason: returnForm.reason || '',
         is_defect: !!returnForm.is_defect
       };
-      if (returnForm.restock_location) {
-        payload.restock_location = returnForm.restock_location;
-      }
       await axios.post(`/api/business/${business_slug}/returns/create/`, payload);
       if (activeTab !== 'returns') setActiveTab('returns');
       await fetchReturns(1);
@@ -241,8 +179,6 @@ const TransactionsPage = () => {
   const applyDateFilter = () => {
     if (activeTab === 'receipts') {
       fetchReceipts(1);
-    } else if (tab === 'history') {
-      fetchReceiptsHistory(1);
     } else if (tab === 'returns') {
       fetchReturns(1);
     }
@@ -252,8 +188,6 @@ const TransactionsPage = () => {
     setDateRange([null, null]);
     if (activeTab === 'receipts') {
       fetchReceipts(1);
-    } else if (activeTab === 'history') {
-      fetchReceiptsHistory(1);
     } else if (activeTab === 'returns') {
       fetchReturns(1);
     }
@@ -264,29 +198,10 @@ const TransactionsPage = () => {
     return dayjs(date).tz(tz).format('DD.MM.YYYY HH:mm');
   };
 
-  const toggleHistory = (receiptId) => {
-    setExpandedHistoryIds(prev =>
-      prev.includes(receiptId)
-        ? prev.filter(id => id !== receiptId)
-        : [...prev, receiptId]
-    );
-  };
-
-  const getOperationType = (type) => {
-    switch (type) {
-      case '+': return 'Создание';
-      case '~': return 'Изменение';
-      case '-': return 'Удаление';
-      default: return type;
-    }
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
     if (activeTab === 'receipts') {
       fetchReceipts(1);
-    } else if (activeTab === 'history') {
-      fetchReceiptsHistory(1);
     } else if (activeTab === 'returns') {
       fetchReturns(1);
     }
@@ -295,8 +210,6 @@ const TransactionsPage = () => {
   const handlePageChange = (page) => {
     if (activeTab === 'receipts') {
       fetchReceipts(page);
-    } else if (activeTab === 'history') {
-      fetchReceiptsHistory(page);
     } else if (activeTab === 'returns') {
       fetchReturns(page);
     }
@@ -305,12 +218,21 @@ const TransactionsPage = () => {
   useEffect(() => {
     if (activeTab === 'receipts') {
       fetchReceipts();
-    } else if (activeTab === 'history') {
-      fetchReceiptsHistory();
     } else if (activeTab === 'returns') {
       fetchReturns();
     }
   }, [business_slug, activeTab]);
+
+  // Автоматически открыть чек из query параметра
+  useEffect(() => {
+    const receiptId = searchParams.get('receipt');
+    if (receiptId && !selectedReceipt) {
+      fetchReceiptDetails(parseInt(receiptId));
+      // Убираем параметр из URL
+      searchParams.delete('receipt');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams]);
 
   if (loading && !selectedReceipt) {
     return (
@@ -338,12 +260,6 @@ const TransactionsPage = () => {
           onClick={() => handleTabChange('receipts')}
         >
           <FaReceipt /> Текущие чеки
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'history' ? styles.active : ''}`}
-          onClick={() => handleTabChange('history')}
-        >
-          <FaHistory /> История изменений
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'returns' ? styles.active : ''}`}
@@ -460,89 +376,6 @@ const TransactionsPage = () => {
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
-        ) : activeTab === 'history' ? (
-          <div className={styles.historyList}>
-            {receiptsHistory.length === 0 ? (
-              <div className={styles.empty}>История изменений не найдена</div>
-            ) : (
-              <div className={styles.historyContainer}>
-                {receiptsHistory.map((item) => (
-                  <div key={item.receipt.id} className={styles.historyItem}>
-                    <div
-                      className={styles.historyHeader}
-                      onClick={() => toggleHistory(item.receipt.id)}
-                    >
-                      <div className={styles.historyMainInfo}>
-                        <span className={styles.receiptNumber}>
-                          Чек № {item.receipt.number}
-                        </span>
-                        <span className={styles.receiptDate}>
-                          {new Date(item.receipt.created_at).toLocaleString()}
-                        </span>
-                        <span className={styles.receiptAmount}>
-                          {parseFloat(item.receipt.total_amount).toLocaleString()} ₸
-                        </span>
-                        <span className={`${styles.receiptStatus} ${item.history.some(h => h.is_deleted) ? styles.deleted : styles.active}`}>
-                          {item.receipt.is_paid ? 'Оплачен' : 'Не оплачен'} |
-                          {item.history.some(h => h.is_deleted) ? ' Удален' : ' Активен'}
-                        </span>
-                      </div>
-                      <div className={styles.historyToggle}>
-                        {expandedHistoryIds.includes(item.receipt.id) ? (
-                          <>
-                            <FaChevronUp /> Скрыть
-                          </>
-                        ) : (
-                          <>
-                            <FaChevronDown /> Показать
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {expandedHistoryIds.includes(item.receipt.id) && (
-                      <div className={styles.historyDetails}>
-                        <div className={styles.historyRecords}>
-                          {item.history.map((record, index) => (
-                            <div key={index} className={`${styles.historyRecord} ${record.is_deleted ? styles.deleted : ''}`}>
-                              <div className={styles.recordHeader}>
-                                <span className={styles.recordType}>
-                                  {getOperationType(record.type)}
-                                </span>
-                                <span className={styles.recordDate}>
-                                  {new Date(record.date).toLocaleString()}
-                                </span>
-                                <span className={styles.recordUser}>
-                                  Пользователь: {record.user}
-                                </span>
-                              </div>
-                              <div className={styles.recordDetails}>
-                                <div className={styles.recordAmount}>
-                                  Сумма: {parseFloat(record.total_amount).toLocaleString()} ₸
-                                </div>
-                                {record.discount_amount > 0 && (
-                                  <div className={styles.recordDiscount}>
-                                    Скидка: {record.discount_amount} ₸
-                                  </div>
-                                )}
-                                {record.discount_percent > 0 && (
-                                  <div className={styles.recordDiscount}>
-                                    Скидка: {record.discount_percent}%
-                                  </div>
-                                )}
-                              </div>
-                              <div className={styles.recordChanges}>
-                                {formatChanges(record.changes)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             )}
           </div>
         ) : (
@@ -851,20 +684,6 @@ const TransactionsPage = () => {
                   Дефект
                 </label>
               </div>
-              {restockLocations.length > 0 && (
-                <div className={styles.formRow}>
-                  <label>Склад для возврата</label>
-                  <select
-                    value={returnForm.restock_location}
-                    onChange={(e) => setReturnForm(f => ({ ...f, restock_location: e.target.value }))}
-                  >
-                    <option value="">— Не выбрано —</option>
-                    {restockLocations.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               <div className={styles.modalActionsRight}>
                 <button
                   className={styles.cancelButton}

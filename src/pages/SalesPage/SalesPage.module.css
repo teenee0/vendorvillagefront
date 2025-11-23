@@ -49,9 +49,6 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin: 20px 15px 0;
-  width: calc(100% - 30px);
-  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -114,65 +111,570 @@
 }
 
 /* Search controls */
-.searchControls {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 15px;
+/* Секция фильтров */
+.filtersSection {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--gilded-shadow);
 }
 
-.searchInputGroup {
-  flex: 2;
+.filtersSectionHeader {
+  margin-bottom: 16px;
+}
+
+.filtersSectionHeader h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--royal-emerald);
+  font-weight: 600;
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.searchInputGroup input {
-  flex: 1;
-  min-width: 120px;
-  background: var(--phantom-noir);
-  color: var(--platinum-gleam);
-  border: 1px solid var(--gilded-shadow);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: clamp(0.9rem, 3vw, 1rem);
-  outline: none;
-  transition: border-color 0.18s;
+/* Секция поиска */
+.searchSection {
+  margin-bottom: 20px;
 }
 
-.searchInputGroup input:focus {
-  border-color: var(--royal-emerald);
+/* Новые стили для фильтров */
+.filterRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-.searchButton {
-  background: var(--imperial-gold);
-  color: var(--obsidian-elite);
-  border: none;
-  border-radius: 8px;
-  padding: 0 12px;
-  font-size: clamp(1rem, 3vw, 1.12em);
-  cursor: pointer;
-  transition: background 0.14s;
+/* Searchable Select - Стили как в ProductAddPage */
+.searchableSelectWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchableLabel {
   display: flex;
   align-items: center;
-  min-height: 40px;
+  gap: 8px;
+  color: var(--imperial-gold);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.searchableLabel svg {
+  font-size: 1rem;
+}
+
+.requiredMark {
+  color: var(--crimson-blaze);
+}
+
+.searchableSelect {
+  position: relative;
+}
+
+.searchableControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 2px solid var(--gilded-shadow);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--phantom-noir) 0%, var(--obsidian-elite) 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.searchableControl:hover:not(.disabled) {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.25);
+  transform: translateY(-1px);
+}
+
+.searchableControl:focus {
+  outline: none;
+  border-color: var(--luminous-sapphire);
+  box-shadow: 0 0 0 4px rgba(41, 128, 185, 0.2);
+}
+
+.searchableControl.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--gilded-shadow);
+}
+
+.searchableValue {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 2px;
+  max-width: calc(100% - 16px);
+  flex: 1;
+}
+
+.selectedName {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.searchButton:hover {
-  background: var(--royal-emerald);
-  color: #fff;
+.selectedSubLabel {
+  color: var(--silver-whisper);
+  font-size: 12px;
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.categorySelect {
-  flex: 1.3;
+.searchablePlaceholder {
+  color: var(--palladium-mist);
+  font-weight: 400;
+}
+
+.searchableCaret {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--imperial-gold);
+  margin-left: 8px;
+  flex: 0 0 auto;
+  transition: transform 0.3s ease;
+}
+
+.searchableControl:hover:not(.disabled) .searchableCaret {
+  border-top-color: var(--royal-emerald);
+}
+
+/* Dropdown */
+.searchableDropdown {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  border: 2px solid var(--gilded-shadow);
+  border-radius: 12px;
+  background: var(--obsidian-elite);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.searchableSearch {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 2px solid var(--gilded-shadow);
   background: var(--phantom-noir);
   color: var(--platinum-gleam);
+  outline: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: border-color 0.3s ease;
+}
+
+.searchableSearch:focus {
+  border-bottom-color: var(--royal-emerald);
+}
+
+.searchableSearch::placeholder {
+  color: var(--palladium-mist);
+}
+
+.searchableList {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.searchableEmpty {
+  padding: 16px;
+  color: var(--silver-whisper);
+  text-align: center;
+  font-style: italic;
+}
+
+/* Items */
+.searchableItem {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.searchableItem:last-child {
+  border-bottom: none;
+}
+
+.searchableItem:hover,
+.searchableItemActive {
+  background: var(--phantom-noir);
+  border-left: 3px solid var(--royal-emerald);
+  padding-left: 11px;
+}
+
+.searchableItemName {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.searchableItemSubLabel {
+  color: var(--silver-whisper);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* Улучшенная строка поиска */
+.searchInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--phantom-noir) 0%, var(--obsidian-elite) 100%);
+  border: 2px solid var(--gilded-shadow);
+  border-radius: 12px;
+  padding: 4px 4px 4px 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.searchInputGroup:focus-within {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.2);
+}
+
+.searchIcon {
+  color: var(--silver-whisper);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 120px;
+  background: transparent;
+  color: var(--platinum-gleam);
+  border: none;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--silver-whisper);
+  font-weight: 400;
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.searchInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.searchButton {
+  flex-shrink: 0;
+  background: linear-gradient(90deg, var(--imperial-gold) 0%, var(--luminous-sapphire) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.searchButton:hover:not(:disabled) {
+  background: linear-gradient(90deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.searchButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.searchButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Фильтр "Есть в наличии" */
+.filterCheckbox {
+  margin-top: 12px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, var(--phantom-noir) 0%, var(--obsidian-elite) 100%);
+  border: 1.5px solid var(--gilded-shadow);
+  border-radius: 10px;
+}
+
+.filterCheckbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--platinum-gleam);
+  user-select: none;
+}
+
+.filterCheckbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--royal-emerald);
+}
+
+.filterCheckbox input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filterCheckbox label:hover {
+  color: var(--imperial-gold);
+}
+
+/* FIFO и выбор партии для товара в корзине */
+.itemBatchSelection {
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--phantom-noir) 0%, var(--obsidian-elite) 100%);
   border: 1px solid var(--gilded-shadow);
   border-radius: 8px;
-  font-size: clamp(0.9rem, 3vw, 1rem);
+}
+
+.fifoCheckboxGroup {
+  display: flex;
+  align-items: center;
+}
+
+.fifoCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--platinum-gleam);
+}
+
+.fifoLabel {
+  font-size: 0.9rem;
+  color: var(--platinum-gleam);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.availableQtyBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fifoCheckbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--royal-emerald);
+}
+
+.fifoTooltipIcon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--luminous-sapphire);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: help;
+  transition: all 0.3s ease;
+}
+
+.fifoTooltipIcon:hover {
+  background: var(--royal-emerald);
+  transform: scale(1.1);
+}
+
+.fifoTooltip {
+  position: absolute;
+  left: 25px;
+  top: -10px;
+  background: var(--obsidian-elite);
+  color: var(--platinum-gleam);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--imperial-gold);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  width: 220px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  z-index: 1000;
+  white-space: normal;
+}
+
+.batchSelectWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.batchSelectLabel {
+  color: var(--imperial-gold);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.batchSelect {
+  width: 100%;
+  background: linear-gradient(135deg, var(--phantom-noir) 0%, var(--obsidian-elite) 100%);
+  color: var(--platinum-gleam);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
   padding: 8px 10px;
-  min-width: 120px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.batchSelect:hover {
+  border-color: var(--royal-emerald);
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.25);
+}
+
+.batchSelect:focus {
+  outline: none;
+  border-color: var(--luminous-sapphire);
+  box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2);
+}
+
+.batchSelect option {
+  background: var(--obsidian-elite);
+  color: var(--platinum-gleam);
+  padding: 8px;
+}
+
+/* Адаптивность для фильтров */
+@media (max-width: 768px) {
+  .filterRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .searchableLabel {
+    font-size: 0.85rem;
+  }
+  
+  .searchableControl {
+    min-height: 44px;
+    padding: 8px 10px;
+  }
+  
+  .selectedSubLabel {
+    -webkit-line-clamp: 1;
+    max-height: 1.2em;
+  }
+  
+  .searchableDropdown {
+    max-height: 70vh;
+  }
+  
+  .searchableList {
+    max-height: 60vh;
+  }
+  
+  .searchInputGroup {
+    padding: 4px;
+  }
+  
+  .searchInput {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+  
+  .searchButton {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+  
+  .itemBatchSelection {
+    padding: 10px;
+  }
+  
+  .fifoCheckboxLabel {
+    font-size: 0.85rem;
+  }
+  
+  .fifoLabel {
+    font-size: 0.85rem;
+  }
+  
+  .availableQtyBadge {
+    font-size: 0.75rem;
+    padding: 1px 6px;
+  }
+  
+  .fifoCheckbox {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .fifoTooltipIcon {
+    width: 14px;
+    height: 14px;
+    font-size: 0.7rem;
+  }
+  
+  .fifoTooltip {
+    width: 200px;
+    left: 20px;
+    font-size: 0.75rem;
+  }
+  
+  .batchSelect {
+    font-size: 0.8rem;
+    padding: 7px 8px;
+  }
+}
+
+/* Стиль для отсутствующей цены */
+.noPrice {
+  color: var(--crimson-blaze);
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  font-weight: 500;
+  font-style: italic;
 }
 
 /* Products grid */
@@ -1784,12 +2286,6 @@
   .rightColumn {
     max-width: 45%;
     min-width: 380px;
-  }
-}
-
-@media (min-width: 480px) {
-  .searchControls {
-    flex-direction: row;
   }
 }
 
