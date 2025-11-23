@@ -520,6 +520,8 @@ const SalesPage = () => {
             const response = await axios.post(`/api/business/${business_slug}/create-receipt/`, saleData);
 
             console.log('Ответ сервера:', response.data); // Логируем ответ сервера
+            console.log('receipt_preview_image:', response.data?.receipt_preview_image); // Логируем путь к превью
+            console.log('receipt_pdf_file:', response.data?.receipt_pdf_file); // Логируем путь к PDF
 
             setReceiptData(response.data);
             setSaleCompleted(true);
@@ -1797,16 +1799,32 @@ const SalesPage = () => {
                                 </>
                             ) : receiptData ? (
                                 <div className={styles.receiptCompleted}>
-                                    <div className={styles.receiptImageContainer}>
-                                        <img
-                                            src={getFileUrl(receiptData.receipt_preview_image)}
-                                            alt={`Чек ${receiptData.number}`}
-                                            className={styles.receiptImage}
-                                            onError={(e) => {
-                                                e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
-                                            }}
-                                        />
-                                    </div>
+                                    {receiptData.receipt_preview_image ? (
+                                        <div className={styles.receiptImageContainer}>
+                                            <img
+                                                src={receiptData.receipt_preview_image || getFileUrl(receiptData.receipt_preview_image)}
+                                                alt={`Чек ${receiptData.number}`}
+                                                className={styles.receiptImage}
+                                                onError={(e) => {
+                                                    console.error('Ошибка загрузки изображения чека:', receiptData.receipt_preview_image);
+                                                    const imageUrl = receiptData.receipt_preview_image || getFileUrl(receiptData.receipt_preview_image);
+                                                    console.error('Полный URL:', imageUrl);
+                                                    e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
+                                                }}
+                                                onLoad={() => {
+                                                    const imageUrl = receiptData.receipt_preview_image || getFileUrl(receiptData.receipt_preview_image);
+                                                    console.log('Изображение чека успешно загружено:', imageUrl);
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className={styles.receiptImageContainer}>
+                                            <div className={styles.receiptImagePlaceholder}>
+                                                <p>Превью чека недоступно</p>
+                                                <small>PDF файл: {receiptData.receipt_pdf_file ? 'Доступен' : 'Недоступен'}</small>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className={styles.receiptInfo}>
                                         <h5>Чек #{receiptData.number}</h5>

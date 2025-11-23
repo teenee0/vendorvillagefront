@@ -363,6 +363,7 @@ const AuthPage = () => {
             ? errorData.non_field_errors[0] 
             : errorData.non_field_errors;
           showNotification('error', generalError);
+          setErrors({ auth: generalError });
           hasGeneralError = true;
         }
         
@@ -371,28 +372,46 @@ const AuthPage = () => {
           if (key === 'non_field_errors') continue;
           
           const errorMessage = Array.isArray(errorData[key]) ? errorData[key][0] : errorData[key];
+          const errorMessageStr = String(errorMessage).toLowerCase();
           serverErrors[key] = errorMessage;
           
           // Показываем красивые уведомления для специфических ошибок
-          if (key === 'email' && errorMessage.includes('уже используется')) {
+          if (key === 'email' && errorMessageStr.includes('уже используется')) {
             showNotification('error', 'Этот email уже зарегистрирован');
+            setErrors({ auth: 'Этот email уже зарегистрирован' });
             hasGeneralError = true;
-          } else if (key === 'email' && errorMessage.includes('не найден')) {
+          } else if (key === 'email' && errorMessageStr.includes('не найден')) {
             showNotification('error', 'Пользователь с таким email не найден');
+            setErrors({ auth: 'Пользователь с таким email не найден' });
             hasGeneralError = true;
-          } else if (key === 'error' && errorMessage.includes('не существует')) {
-            showNotification('error', 'Аккаунт с таким email не существует');
-            hasGeneralError = true;
-          } else if (key === 'error' && errorMessage.includes('Неверный пароль')) {
-            showNotification('error', 'Неверный пароль');
-            hasGeneralError = true;
-          } else if (key === 'detail' && errorMessage.includes('Неверный код')) {
+          } else if (key === 'error') {
+            // Обрабатываем все ошибки с ключом 'error'
+            if (errorMessageStr.includes('не существует') || errorMessageStr.includes('аккаунт')) {
+              const message = String(errorMessage);
+              showNotification('error', message);
+              setErrors({ auth: message });
+              hasGeneralError = true;
+            } else if (errorMessageStr.includes('неверный пароль') || errorMessageStr.includes('пароль')) {
+              const message = String(errorMessage);
+              showNotification('error', message);
+              setErrors({ auth: message });
+              hasGeneralError = true;
+            } else {
+              // Для любых других ошибок с ключом 'error'
+              const message = String(errorMessage);
+              showNotification('error', message);
+              setErrors({ auth: message });
+              hasGeneralError = true;
+            }
+          } else if (key === 'detail' && errorMessageStr.includes('неверный код')) {
             showNotification('error', 'Неверный код подтверждения');
+            setErrors({ auth: 'Неверный код подтверждения' });
             hasGeneralError = true;
-          } else if (key === 'detail' && errorMessage.includes('истекла')) {
+          } else if (key === 'detail' && errorMessageStr.includes('истекла')) {
             showNotification('error', 'Ссылка для подтверждения истекла');
+            setErrors({ auth: 'Ссылка для подтверждения истекла' });
             hasGeneralError = true;
-          } else if (key === 'detail' && errorMessage.includes('успешно изменен')) {
+          } else if (key === 'detail' && errorMessageStr.includes('успешно изменен')) {
             showNotification('success', 'Пароль успешно изменен!');
             hasGeneralError = true;
           }
@@ -403,7 +422,9 @@ const AuthPage = () => {
           setErrors(serverErrors);
         }
       } else {
-        showNotification('error', 'Произошла ошибка. Пожалуйста, попробуйте позже.');
+        const errorMessage = error.message || 'Произошла ошибка. Пожалуйста, попробуйте позже.';
+        showNotification('error', errorMessage);
+        setErrors({ auth: errorMessage });
       }
     } finally {
       setIsLoading(false);
