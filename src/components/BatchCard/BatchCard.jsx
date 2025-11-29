@@ -58,13 +58,44 @@ const BatchCard = ({ batch, onView, onDelete }) => {
         )}
 
         <div className={styles.stats}>
-          <div className={styles.statItem}>
-            <FaBoxes className={styles.statIcon} />
-            <div className={styles.statContent}>
-              <div className={styles.statValue}>{batch.total_items || 0}</div>
-              <div className={styles.statLabel}>Товаров</div>
+          {batch.total_items_by_unit && batch.total_items_by_unit.length > 0 ? (
+            <div className={styles.statItem}>
+              <FaBoxes className={styles.statIcon} />
+              <div className={styles.statContent}>
+                <div className={styles.unitsList}>
+                  {batch.total_items_by_unit.map((item, index) => {
+                    const quantity = item.formatted_quantity !== undefined 
+                      ? item.formatted_quantity 
+                      : (item.quantity === Math.floor(item.quantity) 
+                          ? Math.floor(item.quantity) 
+                          : parseFloat(item.quantity.toFixed(3)));
+                    return (
+                      <div key={index} className={styles.unitBadge}>
+                        <span className={styles.unitQuantity}>
+                          {typeof quantity === 'number' 
+                            ? quantity.toLocaleString('ru-RU', {
+                                maximumFractionDigits: 3,
+                                minimumFractionDigits: 0
+                              })
+                            : quantity}
+                        </span>
+                        <span className={styles.unitName}>{item.unit}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className={styles.statLabel}>Товаров</div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className={styles.statItem}>
+              <FaBoxes className={styles.statIcon} />
+              <div className={styles.statContent}>
+                <div className={styles.statValue}>{batch.total_items || 0}</div>
+                <div className={styles.statLabel}>Товаров</div>
+              </div>
+            </div>
+          )}
 
           <div className={styles.statItem}>
             <FaMapMarkerAlt className={styles.statIcon} />

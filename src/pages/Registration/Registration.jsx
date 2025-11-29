@@ -390,12 +390,12 @@ const AuthPage = () => {
               const message = String(errorMessage);
               showNotification('error', message);
               setErrors({ auth: message });
-              hasGeneralError = true;
+            hasGeneralError = true;
             } else if (errorMessageStr.includes('неверный пароль') || errorMessageStr.includes('пароль')) {
               const message = String(errorMessage);
               showNotification('error', message);
               setErrors({ auth: message });
-              hasGeneralError = true;
+            hasGeneralError = true;
             } else {
               // Для любых других ошибок с ключом 'error'
               const message = String(errorMessage);

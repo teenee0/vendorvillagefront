@@ -87,7 +87,8 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
         main_image: binding.main_image,
         attributes: binding.attributes
       },
-      price: binding.price
+      price: binding.price,
+      unit_display: binding.unit_display || 'шт.' // Единица измерения
     }));
     
     setStocks([...stocks, ...newStocks]);
@@ -108,7 +109,8 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
   };
 
   const handleAddDefect = (index) => {
-    if (!defectQuantity || defectQuantity <= 0) {
+    const quantityValue = typeof defectQuantity === 'number' ? defectQuantity : parseFloat(defectQuantity) || 0;
+    if (!quantityValue || quantityValue <= 0) {
       alert('Укажите количество брака');
       return;
     }
@@ -120,15 +122,19 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
 
     const stock = stocks[index];
     const currentDefects = stock.defects || [];
-    const totalDefects = currentDefects.reduce((sum, d) => sum + d.quantity, 0);
+    const totalDefects = currentDefects.reduce((sum, d) => {
+      const qty = typeof d.quantity === 'number' ? d.quantity : parseFloat(d.quantity) || 0;
+      return sum + qty;
+    }, 0);
     
-    if (totalDefects + defectQuantity > stock.quantity) {
-      alert(`Общее количество брака (${totalDefects + defectQuantity}) не может превышать количество товара (${stock.quantity})`);
+    const stockQuantity = typeof stock.quantity === 'number' ? stock.quantity : parseFloat(stock.quantity) || 0;
+    if (totalDefects + quantityValue > stockQuantity) {
+      alert(`Общее количество брака (${totalDefects + quantityValue}) не может превышать количество товара (${stockQuantity})`);
       return;
     }
 
     const newDefect = {
-      quantity: defectQuantity,
+      quantity: quantityValue,
       reason: defectReason,
       created_at: new Date().toISOString()
     };
@@ -189,17 +195,46 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
     try {
       const batchData = {
         ...formData,
-        stocks: stocks.filter(s => s.variant_on_location_id).map(s => ({
-          variant_on_location_id: s.variant_on_location_id,
-          quantity: s.quantity,
-          cost_price: s.cost_price || null,
-          reserved_quantity: s.reserved_quantity || 0,
-          defects: s.defects || [],
-          is_available_for_sale: s.is_available_for_sale,
-          is_active_on_marketplace: s.is_active_on_marketplace || false,
-          is_active_for_offline_sale: s.is_active_for_offline_sale || false,
-          is_active_on_own_site: s.is_active_on_own_site || false
-        }))
+        stocks: stocks.filter(s => s.variant_on_location_id).map(s => {
+          // Валидация и нормализация quantity
+          let quantity = s.quantity;
+          if (quantity === '' || quantity === null || quantity === undefined) {
+            quantity = s.unit_display === 'шт.' ? 1 : 0.001;
+          } else {
+            quantity = typeof quantity === 'number' ? quantity : parseFloat(quantity);
+            if (isNaN(quantity)) {
+              quantity = s.unit_display === 'шт.' ? 1 : 0.001;
+            } else {
+              quantity = s.unit_display === 'шт.' ? Math.max(1, Math.floor(quantity)) : Math.max(0.001, quantity);
+            }
+          }
+          
+          // Валидация и нормализация reserved_quantity
+          let reserved_quantity = s.reserved_quantity;
+          if (reserved_quantity === '' || reserved_quantity === null || reserved_quantity === undefined) {
+            reserved_quantity = 0;
+          } else {
+            reserved_quantity = typeof reserved_quantity === 'number' ? reserved_quantity : parseFloat(reserved_quantity);
+            if (isNaN(reserved_quantity)) {
+              reserved_quantity = 0;
+            } else {
+              reserved_quantity = s.unit_display === 'шт.' ? Math.max(0, Math.floor(reserved_quantity)) : Math.max(0, reserved_quantity);
+              reserved_quantity = Math.min(reserved_quantity, quantity);
+            }
+          }
+          
+          return {
+            variant_on_location_id: s.variant_on_location_id,
+            quantity: quantity,
+            cost_price: s.cost_price || null,
+            reserved_quantity: reserved_quantity,
+            defects: s.defects || [],
+            is_available_for_sale: s.is_available_for_sale,
+            is_active_on_marketplace: s.is_active_on_marketplace || false,
+            is_active_for_offline_sale: s.is_active_for_offline_sale || false,
+            is_active_on_own_site: s.is_active_on_own_site || false
+          };
+        })
       };
       
       if (!batchData.received_by) {
@@ -359,43 +394,99 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
                         </div>
                       )}
 
-                      <input
-                        type="number"
-                        min="1"
-                        value={stock.quantity}
-                        onChange={(e) => updateStock(index, 'quantity', parseInt(e.target.value))}
-                        required
-                        className={styles.quantityInput}
-                        placeholder="Кол-во"
-                      />
+                      <div className={styles.inputWithLabel}>
+                        <label className={styles.fieldLabel}>Количество</label>
+                        <input
+                          type="number"
+                          min={stock.unit_display === 'шт.' ? '1' : '0.001'}
+                          step={stock.unit_display === 'шт.' ? '1' : '0.001'}
+                          value={stock.quantity === null || stock.quantity === undefined ? '' : stock.quantity}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            if (inputValue === '') {
+                              updateStock(index, 'quantity', '');
+                              return;
+                            }
+                            const value = stock.unit_display === 'шт.' 
+                              ? (inputValue.includes('.') ? Math.floor(parseFloat(inputValue)) : parseInt(inputValue))
+                              : parseFloat(inputValue);
+                            if (!isNaN(value)) {
+                              updateStock(index, 'quantity', value);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const inputValue = e.target.value;
+                            if (inputValue === '' || inputValue === null || inputValue === undefined) {
+                              const minValue = stock.unit_display === 'шт.' ? 1 : 0.001;
+                              updateStock(index, 'quantity', minValue);
+                            } else {
+                              const value = stock.unit_display === 'шт.' 
+                                ? Math.max(1, parseInt(inputValue) || 1)
+                                : Math.max(0.001, parseFloat(inputValue) || 0.001);
+                              updateStock(index, 'quantity', value);
+                            }
+                          }}
+                          required
+                          className={styles.quantityInput}
+                          placeholder="Кол-во"
+                        />
+                        <span className={styles.unitLabel}>{stock.unit_display || 'шт.'}</span>
+                      </div>
 
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={stock.cost_price}
-                        onChange={(e) => updateStock(index, 'cost_price', parseFloat(e.target.value) || '')}
-                        className={styles.quantityInput}
-                        placeholder="Себестоимость"
-                        title="Себестоимость одной единицы"
-                      />
+                      <div className={styles.inputWithLabel}>
+                        <label className={styles.fieldLabel}>Себестоимость</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={stock.cost_price}
+                          onChange={(e) => updateStock(index, 'cost_price', parseFloat(e.target.value) || '')}
+                          className={styles.quantityInput}
+                          placeholder="0.00"
+                          title="Себестоимость одной единицы"
+                        />
+                        <span className={styles.currencyLabel}>₸</span>
+                      </div>
 
                       <div className={styles.inputWithLabel}>
                         <label className={styles.fieldLabel}>Резерв 🔒</label>
                         <input
                           type="number"
                           min="0"
+                          step={stock.unit_display === 'шт.' ? '1' : '0.001'}
                           max={stock.quantity || 0}
-                          value={stock.reserved_quantity || 0}
+                          value={stock.reserved_quantity === null || stock.reserved_quantity === undefined ? '' : stock.reserved_quantity}
                           onChange={(e) => {
-                            const value = parseInt(e.target.value) || 0;
-                            const maxValue = stock.quantity || 0;
-                            updateStock(index, 'reserved_quantity', Math.min(value, maxValue));
+                            const inputValue = e.target.value;
+                            if (inputValue === '') {
+                              updateStock(index, 'reserved_quantity', '');
+                              return;
+                            }
+                            const value = stock.unit_display === 'шт.' 
+                              ? (inputValue.includes('.') ? Math.floor(parseFloat(inputValue)) : parseInt(inputValue))
+                              : parseFloat(inputValue);
+                            if (!isNaN(value)) {
+                              const maxValue = typeof stock.quantity === 'number' ? stock.quantity : parseFloat(stock.quantity) || 0;
+                              updateStock(index, 'reserved_quantity', Math.min(Math.max(0, value), maxValue));
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const inputValue = e.target.value;
+                            if (inputValue === '' || inputValue === null || inputValue === undefined) {
+                              updateStock(index, 'reserved_quantity', 0);
+                            } else {
+                              const value = stock.unit_display === 'шт.' 
+                                ? Math.max(0, parseInt(inputValue) || 0)
+                                : Math.max(0, parseFloat(inputValue) || 0);
+                              const maxValue = typeof stock.quantity === 'number' ? stock.quantity : parseFloat(stock.quantity) || 0;
+                              updateStock(index, 'reserved_quantity', Math.min(value, maxValue));
+                            }
                           }}
                           className={styles.quantityInput}
                           placeholder="0"
                           title={`Зарезервированное количество (недоступно для продажи, максимум ${stock.quantity || 0})`}
                         />
+                        <span className={styles.unitLabel}>{stock.unit_display || 'шт.'}</span>
                       </div>
 
                         <label className={styles.checkboxLabel}>
@@ -497,7 +588,7 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
                           <div className={styles.defectsList}>
                             {stock.defects.map((defect, defectIdx) => (
                               <div key={defectIdx} className={styles.defectItem}>
-                                <span className={styles.defectQuantity}>{defect.quantity} шт.</span>
+                                <span className={styles.defectQuantity}>{defect.quantity} {stock.unit_display || 'шт.'}</span>
                                 <span className={styles.defectReason}>— {defect.reason}</span>
                                 <button type="button" className={styles.removeDefectBtn} onClick={() => handleRemoveDefect(index, defectIdx)}>
                                   <FaTrash size={12} />

@@ -457,7 +457,7 @@
 /* FIFO и выбор партии для товара в корзине */
 .itemBatchSelection {
   margin-top: 12px;
-  padding: 12px;
+  padding: 5px;
   background: linear-gradient(135deg, var(--phantom-noir) 0%, var(--obsidian-elite) 100%);
   border: 1px solid var(--gilded-shadow);
   border-radius: 8px;
@@ -1004,21 +1004,35 @@
   color: #fff;
 }
 
+.quantityInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .quantityInput {
-  width: 45px;
   background: var(--background-main);
   color: var(--platinum-gleam);
   border: 1px solid var(--gilded-shadow);
   border-radius: 5px;
   text-align: center;
   font-size: 1.04em;
-  padding: 5px 0;
+  padding: 5px 30px 5px 8px;
   outline: none;
   transition: border-color 0.15s;
 }
 
 .quantityInput:focus {
   border-color: var(--royal-emerald);
+}
+
+.quantityUnit {
+  position: absolute;
+  right: 8px;
+  color: var(--silver-whisper);
+  font-size: 0.75em;
+  pointer-events: none;
+  user-select: none;
 }
 
 .cartItemPrice {
@@ -2228,10 +2242,14 @@
     gap: 2px;
   }
 
-  .quantityButton,
-  .quantityInput {
+  .quantityButton {
     width: 28px;
     height: 28px;
+    font-size: 0.97em;
+  }
+  
+  .quantityInput {
+    width: 60px;
     font-size: 0.97em;
   }
 }

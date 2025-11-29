@@ -114,7 +114,7 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
                 <div className={`${styles.stockInfo} ${totalAvailable > 0 ? styles.inStock : styles.noStock}`}>
                     <span className={styles.stockLabel}>В наличии:</span>
                     <span className={styles.stockValue}>
-                        {totalAvailable} шт.
+                        {totalAvailable} {product.unit_display || 'шт.'}
                     </span>
                 </div>
                 

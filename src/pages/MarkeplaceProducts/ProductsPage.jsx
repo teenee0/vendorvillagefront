@@ -24,6 +24,7 @@ const ProductsPage = () => {
   const [expandedFilters, setExpandedFilters] = useState({});
   const [tempFilters, setTempFilters] = useState({});
   const [visibleFiltersCount, setVisibleFiltersCount] = useState(2); // Показываем первые 3 фильтра по умолчанию
+  const [showAllSubcategories, setShowAllSubcategories] = useState(false);
   // Инициализация параметров из URL
 
   useEffect(() => {
@@ -292,7 +293,7 @@ const ProductsPage = () => {
                 Подкатегории
               </h4>
               <ul className="subcategory-list">
-                {data.subcategories.map(subcat => (
+                {(showAllSubcategories ? data.subcategories : data.subcategories.slice(0, 5)).map(subcat => (
                   <li key={subcat.id} className="subcategory-item">
                     <button
                       className={`subcategory-button ${location.pathname.includes(`/categories/${subcat.id}`) ? 'active' : ''}`}
@@ -303,6 +304,15 @@ const ProductsPage = () => {
                   </li>
                 ))}
               </ul>
+              {data.subcategories.length > 5 && (
+                <button
+                  className="show-more-subcategories"
+                  onClick={() => setShowAllSubcategories(!showAllSubcategories)}
+                >
+                  {showAllSubcategories ? 'Свернуть' : `Показать все (${data.subcategories.length})`}
+                  <span className={`chevron ${showAllSubcategories ? 'up' : 'down'}`}></span>
+                </button>
+              )}
             </div>
           )}
 
@@ -330,7 +340,6 @@ const ProductsPage = () => {
                 onChange={(e) => setPriceMin(e.target.value)}
                 min="0"
               />
-              <span className="price-separator">-</span>
               <input
                 type="number"
                 placeholder="до"

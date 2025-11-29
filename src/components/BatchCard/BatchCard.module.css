@@ -149,6 +149,50 @@
   line-height: 1;
 }
 
+.unitsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  min-height: 2rem;
+  align-items: center;
+}
+
+.unitBadge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, rgba(45, 175, 159, 0.12) 0%, rgba(45, 175, 159, 0.08) 100%);
+  border: 1px solid rgba(45, 175, 159, 0.25);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.unitBadge:hover {
+  background: linear-gradient(135deg, rgba(45, 175, 159, 0.2) 0%, rgba(45, 175, 159, 0.15) 100%);
+  border-color: rgba(45, 175, 159, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.unitQuantity {
+  font-weight: 700;
+  color: var(--royal-emerald);
+  font-size: 1rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.unitName {
+  color: var(--silver-whisper);
+  font-weight: 500;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
 .statLabel {
   font-size: 0.75rem;
   color: var(--silver-whisper);

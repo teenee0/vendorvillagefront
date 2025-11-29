@@ -358,12 +358,24 @@ const SalesPage = () => {
                 item => item.variantId === variant.id && item.productId === product.id
             );
 
+            // Получаем единицу измерения товара
+            const unitDisplay = product.unit_display || 'шт.';
+            const isPieces = unitDisplay === 'шт.';
+            const initialQuantity = isPieces ? 1 : 0.1;
+            const incrementStep = isPieces ? 1 : 0.1;
+
             if (existingItem) {
-                if (existingItem.quantity < availableQty) {
-                    return prevCart.map(item =>
-                        item.variantId === variant.id && item.productId === product.id
-                            ? { ...item, quantity: item.quantity + 1 }
-                            : item
+                const newQuantity = existingItem.quantity + incrementStep;
+                if (newQuantity <= availableQty) {
+                    // Нормализуем количество в зависимости от единицы измерения
+                    const normalizedQuantity = isPieces 
+                        ? Math.floor(newQuantity)
+                        : parseFloat(newQuantity.toFixed(3));
+                    
+                    return prevCart.map(cartItem =>
+                        cartItem.variantId === variant.id && cartItem.productId === product.id
+                            ? { ...cartItem, quantity: normalizedQuantity, unitDisplay: unitDisplay }
+                            : cartItem
                     );
                 } else {
                     alert('Недостаточно товара в выбранной локации');
@@ -395,8 +407,9 @@ const SalesPage = () => {
                         price,
                         originalPrice,
                         discount: variant.discount || 0,
-                        quantity: 1,
+                        quantity: initialQuantity,
                         stock: availableQty,
+                        unitDisplay: unitDisplay,
                         image: product.images.find(img => img.is_main)?.image || product.images[0]?.image,
                         itemDiscountAmount: 0,
                         itemDiscountPercent: 0,
@@ -427,25 +440,45 @@ const SalesPage = () => {
 
     // Update quantity
     const updateQuantity = (variantId, newQuantity) => {
-        if (newQuantity < 1) return;
-
         setCart(prevCart => {
             const item = prevCart.find(item => item.variantId === variantId);
             if (!item) return prevCart;
 
-            if (newQuantity > item.stock) {
+            const unitDisplay = item.unitDisplay || 'шт.';
+            const isPieces = unitDisplay === 'шт.';
+            
+            // Разрешаем пустое значение для возможности очистки поля
+            if (newQuantity === '' || newQuantity === null || newQuantity === undefined) {
+                return prevCart.map(cartItem =>
+                    cartItem.variantId === variantId
+                        ? { ...cartItem, quantity: '' }
+                        : cartItem
+                );
+            }
+            
+            // Нормализуем количество в зависимости от единицы измерения
+            let normalizedQuantity;
+            if (isPieces) {
+                // Для штук - только целые числа
+                normalizedQuantity = Math.max(1, Math.floor(parseFloat(newQuantity) || 1));
+            } else {
+                // Для других единиц - может быть дробным
+                normalizedQuantity = Math.max(0.001, parseFloat(newQuantity) || 0.001);
+            }
+
+            if (normalizedQuantity > item.stock) {
                 alert('Недостаточно товара на складе');
-                return prevCart.map(item =>
-                    item.variantId === variantId
-                        ? { ...item, quantity: item.stock }
-                        : item
+                return prevCart.map(cartItem =>
+                    cartItem.variantId === variantId
+                        ? { ...cartItem, quantity: item.stock }
+                        : cartItem
                 );
             }
 
-            return prevCart.map(item =>
-                item.variantId === variantId
-                    ? { ...item, quantity: newQuantity }
-                    : item
+            return prevCart.map(cartItem =>
+                cartItem.variantId === variantId
+                    ? { ...cartItem, quantity: normalizedQuantity }
+                    : cartItem
             );
         });
     };
@@ -493,10 +526,21 @@ const SalesPage = () => {
         try {
             const saleData = {
                 items: cart.map(item => {
+                    const unitDisplay = item.unitDisplay || 'шт.';
+                    const isPieces = unitDisplay === 'шт.';
+                    
+                    // Нормализуем quantity перед отправкой
+                    let normalizedQuantity = item.quantity;
+                    if (isPieces) {
+                        normalizedQuantity = Math.floor(item.quantity);
+                    } else {
+                        normalizedQuantity = parseFloat(item.quantity.toFixed(3));
+                    }
+                    
                     const itemData = {
                         variant: item.variantId,
                         location: item.location,
-                        quantity: item.quantity,
+                        quantity: normalizedQuantity,
                         discount_amount: item.itemDiscountAmount || 0,
                         discount_percent: item.itemDiscountPercent || 0,
                         use_fifo: item.useFifo !== false
@@ -716,7 +760,7 @@ const SalesPage = () => {
                                     </div>
                                     <div className={styles.stockInfo}>
                                         <span className={`${styles.stockBadge} ${availableQty > 0 ? styles.inStock : styles.outOfStock}`}>
-                                            {availableQty > 0 ? `В наличии: ${availableQty}` : 'Нет в наличии'}
+                                            {availableQty > 0 ? `В наличии: ${availableQty} ${product?.unit_display || 'шт.'}` : 'Нет в наличии'}
                                         </span>
                                     </div>
                                     <button
@@ -809,7 +853,7 @@ const SalesPage = () => {
                                                 <span className={styles.fifoLabel}>
                                                     FIFO 
                                                     <span className={styles.availableQtyBadge}>
-                                                        (в наличии: {selectedVariant?.available_quantity_in_location ?? item.stock ?? 0})
+                                                        (в наличии: {selectedVariant?.available_quantity_in_location ?? item.stock ?? 0} {item.unitDisplay || selectedProduct?.unit_display || 'шт.'})
                                                     </span>
                                                 </span>
                                                 <div 
@@ -868,7 +912,7 @@ const SalesPage = () => {
                                                             });
                                                             return (
                                                                 <option key={batch.id} value={batch.id}>
-                                                                    {batch.batch_number} - {formattedDate} (доступно: {stock.available_quantity})
+                                                                    {batch.batch_number} - {formattedDate} (доступно: {stock.available_quantity} {stock.unit_display || item.unitDisplay || selectedProduct?.unit_display || 'шт.'})
                                                                 </option>
                                                             );
                                                         })}
@@ -886,27 +930,83 @@ const SalesPage = () => {
                                     <FaTimes />
                                 </button>
                                 <div className={styles.quantityControl}>
-                                    <button
-                                        className={styles.quantityButton}
-                                        onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
-                                    >
-                                        <FaMinus />
-                                    </button>
-                                    <input
-                                        type="number"
-                                        value={item.quantity}
-                                        onChange={(e) => updateQuantity(item.variantId, parseInt(e.target.value) || 1)}
-                                        min="1"
-                                        max={item.stock}
-                                        className={styles.quantityInput}
-                                    />
-                                    <button
-                                        className={styles.quantityButton}
-                                        onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                                        disabled={item.quantity >= item.stock}
-                                    >
-                                        <FaPlus />
-                                    </button>
+                                    {(() => {
+                                        const unitDisplay = item.unitDisplay || 'шт.';
+                                        const isPieces = unitDisplay === 'шт.';
+                                        const step = isPieces ? 1 : 0.5;
+                                        const inputStep = isPieces ? 1 : 0.1;
+                                        const minValue = isPieces ? 1 : 0.1;
+                                        
+                                        return (
+                                            <>
+                                                <button
+                                                    className={styles.quantityButton}
+                                                    onClick={() => {
+                                                        const newQty = item.quantity - step;
+                                                        updateQuantity(item.variantId, newQty);
+                                                    }}
+                                                >
+                                                    <FaMinus />
+                                                </button>
+                                                <div className={styles.quantityInputWrapper}>
+                                                    <input
+                                                        type="number"
+                                                        value={item.quantity}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            // Разрешаем пустое значение для возможности очистки поля
+                                                            if (value === '' || value === null) {
+                                                                setCart(prevCart => 
+                                                                    prevCart.map(cartItem =>
+                                                                        cartItem.variantId === item.variantId
+                                                                            ? { ...cartItem, quantity: '' }
+                                                                            : cartItem
+                                                                    )
+                                                                );
+                                                                return;
+                                                            }
+                                                            const numValue = parseFloat(value);
+                                                            if (isNaN(numValue)) return;
+                                                            updateQuantity(item.variantId, numValue);
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            const value = e.target.value;
+                                                            // Если поле пустое или значение меньше минимума, устанавливаем минимальное значение
+                                                            if (value === '' || value === null || parseFloat(value) < minValue) {
+                                                                updateQuantity(item.variantId, minValue);
+                                                            } else {
+                                                                // Нормализуем значение при потере фокуса
+                                                                const numValue = parseFloat(value);
+                                                                if (!isNaN(numValue)) {
+                                                                    const normalizedValue = isPieces 
+                                                                        ? Math.floor(numValue)
+                                                                        : parseFloat(numValue.toFixed(3));
+                                                                    updateQuantity(item.variantId, normalizedValue);
+                                                                }
+                                                            }
+                                                        }}
+                                                        step={inputStep}
+                                                        min={minValue}
+                                                        max={item.stock}
+                                                        className={styles.quantityInput}
+                                                    />
+                                                    <span className={styles.quantityUnit}>{unitDisplay}</span>
+                                                </div>
+                                                <button
+                                                    className={styles.quantityButton}
+                                                    onClick={() => {
+                                                        const newQty = item.quantity + step;
+                                                        if (newQty <= item.stock) {
+                                                            updateQuantity(item.variantId, newQty);
+                                                        }
+                                                    }}
+                                                    disabled={item.quantity >= item.stock}
+                                                >
+                                                    <FaPlus />
+                                                </button>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                                 <div className={styles.cartItemPrice}>
                                     <div className={styles.priceContainer}>
@@ -1124,7 +1224,7 @@ const SalesPage = () => {
 
                     <div className={styles.stockInfo}>
                         <span className={`${styles.stockBadge} ${availableQty > 0 ? styles.inStock : styles.outOfStock}`}>
-                            {availableQty > 0 ? `В наличии: ${availableQty}` : 'Нет в наличии'}
+                            {availableQty > 0 ? `В наличии: ${availableQty} ${selectedProduct?.unit_display || 'шт.'}` : 'Нет в наличии'}
                         </span>
                     </div>
 
@@ -1800,23 +1900,23 @@ const SalesPage = () => {
                             ) : receiptData ? (
                                 <div className={styles.receiptCompleted}>
                                     {receiptData.receipt_preview_image ? (
-                                        <div className={styles.receiptImageContainer}>
-                                            <img
+                                    <div className={styles.receiptImageContainer}>
+                                        <img
                                                 src={receiptData.receipt_preview_image || getFileUrl(receiptData.receipt_preview_image)}
-                                                alt={`Чек ${receiptData.number}`}
-                                                className={styles.receiptImage}
-                                                onError={(e) => {
+                                            alt={`Чек ${receiptData.number}`}
+                                            className={styles.receiptImage}
+                                            onError={(e) => {
                                                     console.error('Ошибка загрузки изображения чека:', receiptData.receipt_preview_image);
                                                     const imageUrl = receiptData.receipt_preview_image || getFileUrl(receiptData.receipt_preview_image);
                                                     console.error('Полный URL:', imageUrl);
-                                                    e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
-                                                }}
+                                                e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
+                                            }}
                                                 onLoad={() => {
                                                     const imageUrl = receiptData.receipt_preview_image || getFileUrl(receiptData.receipt_preview_image);
                                                     console.log('Изображение чека успешно загружено:', imageUrl);
                                                 }}
-                                            />
-                                        </div>
+                                        />
+                                    </div>
                                     ) : (
                                         <div className={styles.receiptImageContainer}>
                                             <div className={styles.receiptImagePlaceholder}>

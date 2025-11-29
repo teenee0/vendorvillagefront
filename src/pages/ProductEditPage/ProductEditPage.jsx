@@ -18,6 +18,7 @@ const ProductEditPage = () => {
     const [productDescription, setProductDescription] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [categoryName, setCategoryName] = useState('');
+    const [unitOfMeasureId, setUnitOfMeasureId] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [isVisibleOnMarketplace, setIsVisibleOnMarketplace] = useState(false);
     const [isVisibleOnOwnSite, setIsVisibleOnOwnSite] = useState(false);
@@ -28,6 +29,10 @@ const ProductEditPage = () => {
     const [attributesError, setAttributesError] = useState(null);
     const [isLoadingProduct, setIsLoadingProduct] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Единицы измерения
+    const [unitsOfMeasure, setUnitsOfMeasure] = useState([]);
+    const [isLoadingUnits, setIsLoadingUnits] = useState(true);
 
     // Изображения
     const [images, setImages] = useState([]);
@@ -62,9 +67,20 @@ const ProductEditPage = () => {
                 setProductDescription(productData.description);
                 setCategoryId(productData.category);
                 setCategoryName(productData.category_name);
+                setUnitOfMeasureId(productData.unit_of_measure?.id || '');
                 setIsActive(productData.is_active);
                 setIsVisibleOnMarketplace(productData.is_visible_on_marketplace);
                 setIsVisibleOnOwnSite(productData.is_visible_on_own_site);
+
+                // Загрузка единиц измерения
+                try {
+                    const unitsResponse = await axios.get(`/api/units-of-measure/`);
+                    setUnitsOfMeasure(unitsResponse.data);
+                    setIsLoadingUnits(false);
+                } catch (err) {
+                    console.error('Ошибка при загрузке единиц измерения:', err);
+                    setIsLoadingUnits(false);
+                }
 
                 // Загрузка изображений
                 setImages(productData.images.map(img => ({
@@ -83,7 +99,7 @@ const ProductEditPage = () => {
                 }));
                 setCategoryAttributes(formattedAttributes);
 
-                // Загрузка вариантов (только атрибуты и show_this)
+                // Загрузка вариантов (только атрибуты)
                 if (productData.variants && productData.variants.length > 0) {
                     const loadedVariants = productData.variants.map((variant, index) => {
                         const attributesObj = {};
@@ -101,7 +117,6 @@ const ProductEditPage = () => {
                         return {
                             id: index + 1,
                             existing_id: variant.id,
-                            showThis: variant.show_this,
                             attributes: attributesObj,
                             attributesWithIds
                         };
@@ -129,7 +144,6 @@ const ProductEditPage = () => {
     const handleAddVariant = () => {
         const newVariant = {
             id: variantCounter,
-            showThis: true,
             attributes: categoryAttributes.reduce((acc, attr) => {
                 acc[String(attr.id)] = attr.values.length > 0 ?
                     (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
@@ -173,7 +187,6 @@ const ProductEditPage = () => {
 
         const newVariant = {
             id: variantCounter,
-            showThis: lastVariant.showThis,
             attributes: copiedAttributes
         };
 
@@ -346,13 +359,13 @@ const ProductEditPage = () => {
             name: productName,
             description: productDescription,
             category: categoryId,
+            unit_of_measure: unitOfMeasureId || null,
             is_active: isActive,
             is_visible_on_marketplace: isVisibleOnMarketplace,
             is_visible_on_own_site: isVisibleOnOwnSite,
             images_to_delete: imagesToDelete,
             variants: variants.map(variant => ({
                 id: variant.existing_id,
-                show_this: variant.showThis,
                 attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
                     const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
                     const isPredefined = attribute?.has_predefined_values;
@@ -557,6 +570,23 @@ const ProductEditPage = () => {
                                             value={categoryId}
                                         />
                                     </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="product-unit" className={styles.formLabel}>Единица измерения</label>
+                                        <select
+                                            id="product-unit"
+                                            className={styles.formControl}
+                                            value={unitOfMeasureId}
+                                            onChange={(e) => setUnitOfMeasureId(e.target.value)}
+                                            disabled={isLoadingUnits}
+                                        >
+                                            <option value="">Выберите единицу измерения</option>
+                                            {unitsOfMeasure.map(unit => (
+                                                <option key={unit.id} value={unit.id}>
+                                                    {unit.name} ({unit.short_name})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className={styles.formGroup}>
                                     <label htmlFor="product-description" className={styles.formLabel}>Описание товара *</label>
@@ -635,7 +665,6 @@ const ProductEditPage = () => {
                                                         <thead>
                                                             <tr>
                                                                 <th className={styles.stickyColumn}>№</th>
-                                                                <th>Активность</th>
                                                                 {categoryAttributes.map(attr => (
                                                                     <th key={attr.id}>
                                                                         {attr.name}
@@ -648,7 +677,7 @@ const ProductEditPage = () => {
                                                         <tbody>
                                                             {variants.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
+                                                                    <td colSpan={categoryAttributes.length + 2} className={styles.noVariants}>
                                                                         Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
                                                                     </td>
                                                                 </tr>
@@ -656,18 +685,6 @@ const ProductEditPage = () => {
                                                                 variants.map((variant, index) => (
                                                                     <tr key={variant.id}>
                                                                         <td className={styles.stickyColumn}>{index + 1}</td>
-                                                                        <td>
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                className={styles.formControltd}
-                                                                                checked={variant.showThis}
-                                                                                onChange={(e) => handleVariantChange(
-                                                                                    variant.id,
-                                                                                    'showThis',
-                                                                                    e.target.checked
-                                                                                )}
-                                                                            />
-                                                                        </td>
                                                                         {categoryAttributes.map(attr => (
                                                                             <td key={attr.id}>
                                                                                 {attr.has_predefined_values ? (

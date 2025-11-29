@@ -42,6 +42,13 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
     if (batch.stocks) {
       setStocks(batch.stocks.map(stock => ({
         ...stock,
+        variant_on_location_id: stock.variant_on_location_id, // Должен быть передан из API
+        location_name: stock.location_name || '',
+        unit_display: stock.unit_display || 'шт.',
+        price: stock.selling_price || stock.price || null, // Используем selling_price из API
+        is_active_on_marketplace: stock.is_active_on_marketplace || false,
+        is_active_for_offline_sale: stock.is_active_for_offline_sale || false,
+        is_active_on_own_site: stock.is_active_on_own_site || false,
         variant_data: stock.variant_data || {
           product_name: stock.variant_name,
           main_image: stock.main_image || null,
@@ -76,21 +83,33 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
     }));
   };
 
-  const handleVariantSelect = (selectedVariants) => {
-    if (selectedVariants.length === 0) return;
-
-    const newStocks = selectedVariants.map((variant) => ({
-      variant_id: variant.id,
-      location_id: '',
+  const handleVariantSelect = (selectedBindings) => {
+    if (selectedBindings.length === 0) return;
+    
+    // Теперь selectedBindings - это привязки (вариант + локация + цена)
+    const newStocks = selectedBindings.map((binding) => ({
+      variant_on_location_id: binding.variant_on_location_id, // ID ProductVariantLocationPrice
+      variant_id: binding.variant_id,
+      location_id: binding.location_id,
+      location_name: binding.location_name,
       quantity: 1,
       cost_price: '',
       reserved_quantity: 0,
       defects: [],
       is_available_for_sale: true,
-      variant_name: variant.product_name,
-      variant_data: variant
+      is_active_on_marketplace: false,
+      is_active_for_offline_sale: false,
+      is_active_on_own_site: false,
+      variant_name: `${binding.product_name} ${binding.variant_name || ''}`.trim(),
+      variant_data: {
+        name: binding.variant_name,
+        main_image: binding.main_image,
+        attributes: binding.attributes
+      },
+      price: binding.price,
+      unit_display: binding.unit_display || 'шт.' // Единица измерения
     }));
-
+    
     setStocks([...stocks, ...newStocks]);
     setIsSelectorOpen(false);
   };
@@ -157,18 +176,59 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
     try {
       const updateData = {
         ...formData,
-        stocks: stocks.filter(s => s.variant_id && s.location_id).map(s => ({
-          variant_id: s.variant_id,
-          location_id: s.location_id,
-          quantity: s.quantity,
-          cost_price: s.cost_price || null,
-          reserved_quantity: s.reserved_quantity || 0,
-          defects: s.defects || [],
-          is_available_for_sale: s.is_available_for_sale
-        }))
+        stocks: stocks.filter(s => s.variant_on_location_id).map(s => {
+          // Валидация и нормализация quantity
+          let quantity = s.quantity;
+          if (quantity === '' || quantity === null || quantity === undefined) {
+            quantity = s.unit_display === 'шт.' ? 1 : 0.001;
+          } else {
+            quantity = typeof quantity === 'number' ? quantity : parseFloat(quantity);
+            if (isNaN(quantity)) {
+              quantity = s.unit_display === 'шт.' ? 1 : 0.001;
+            } else {
+              quantity = s.unit_display === 'шт.' ? Math.max(1, Math.floor(quantity)) : Math.max(0.001, quantity);
+            }
+          }
+          
+          // Валидация и нормализация reserved_quantity
+          let reserved_quantity = s.reserved_quantity;
+          if (reserved_quantity === '' || reserved_quantity === null || reserved_quantity === undefined) {
+            reserved_quantity = 0;
+          } else {
+            reserved_quantity = typeof reserved_quantity === 'number' ? reserved_quantity : parseFloat(reserved_quantity);
+            if (isNaN(reserved_quantity)) {
+              reserved_quantity = 0;
+            } else {
+              reserved_quantity = s.unit_display === 'шт.' ? Math.max(0, Math.floor(reserved_quantity)) : Math.max(0, reserved_quantity);
+              reserved_quantity = Math.min(reserved_quantity, quantity);
+            }
+          }
+          
+          // Преобразуем variant_on_location_id в число
+          const variantOnLocationId = parseInt(s.variant_on_location_id);
+          if (isNaN(variantOnLocationId)) {
+            console.error('Invalid variant_on_location_id:', s.variant_on_location_id);
+            throw new Error(`Неверный ID варианта на локации для товара: ${s.variant_name || 'Неизвестный товар'}`);
+          }
+          
+          return {
+            variant_on_location_id: variantOnLocationId,
+            quantity: quantity,
+            cost_price: s.cost_price || null,
+            reserved_quantity: reserved_quantity,
+            defects: s.defects || [],
+            is_available_for_sale: s.is_available_for_sale,
+            is_active_on_marketplace: s.is_active_on_marketplace || false,
+            is_active_for_offline_sale: s.is_active_for_offline_sale || false,
+            is_active_on_own_site: s.is_active_on_own_site || false
+          };
+        })
       };
 
-      if (!updateData.received_by) {
+      // Преобразуем received_by в число, если он есть
+      if (updateData.received_by) {
+        updateData.received_by = parseInt(updateData.received_by) || null;
+      } else {
         delete updateData.received_by;
       }
 
@@ -425,29 +485,158 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
                     {!isCompleted ? (
                       <>
                         <div className={styles.stockControls}>
-                          <select value={stock.location_id} onChange={(e) => updateStock(index, 'location_id', e.target.value)} required className={styles.select} title="Выберите локацию">
-                            <option value="">Выберите локацию</option>
-                            {locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
-                          </select>
+                          {stock.location_name && (
+                            <div className={styles.locationDisplay}>
+                              <strong>Локация:</strong> {stock.location_name}
+                              {stock.price && (
+                                <span className={styles.priceDisplay}>
+                                  Цена: {stock.price.toLocaleString('ru-RU')} ₸
+                                </span>
+                              )}
+                            </div>
+                          )}
+
                           <div className={styles.inputWithLabel}>
-                            <label className={styles.fieldLabel}>Кол-во</label>
-                            <input type="number" min="1" value={stock.quantity} onChange={(e) => updateStock(index, 'quantity', parseInt(e.target.value))} required className={styles.quantityInput} placeholder="0" />
+                            <label className={styles.fieldLabel}>Количество</label>
+                            <input
+                              type="number"
+                              min="0.001"
+                              step={stock.unit_display === 'шт.' ? '1' : '0.001'}
+                              value={stock.quantity === null || stock.quantity === undefined ? '' : stock.quantity}
+                              onChange={(e) => {
+                                const inputValue = e.target.value;
+                                if (inputValue === '') {
+                                  updateStock(index, 'quantity', '');
+                                  return;
+                                }
+                                const value = stock.unit_display === 'шт.' 
+                                  ? (inputValue.includes('.') ? Math.floor(parseFloat(inputValue)) : parseInt(inputValue))
+                                  : parseFloat(inputValue);
+                                if (!isNaN(value)) {
+                                  updateStock(index, 'quantity', value);
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const inputValue = e.target.value;
+                                if (inputValue === '' || inputValue === null || inputValue === undefined) {
+                                  const minValue = stock.unit_display === 'шт.' ? 1 : 0.001;
+                                  updateStock(index, 'quantity', minValue);
+                                } else {
+                                  const value = stock.unit_display === 'шт.' 
+                                    ? Math.max(1, parseInt(inputValue) || 1)
+                                    : Math.max(0.001, parseFloat(inputValue) || 0.001);
+                                  updateStock(index, 'quantity', value);
+                                }
+                              }}
+                              required
+                              className={styles.quantityInput}
+                              placeholder="Кол-во"
+                            />
+                            <span className={styles.unitLabel}>{stock.unit_display || 'шт.'}</span>
                           </div>
+
                           <div className={styles.inputWithLabel}>
                             <label className={styles.fieldLabel}>Себестоимость</label>
-                            <input type="number" step="0.01" min="0" value={stock.cost_price} onChange={(e) => updateStock(index, 'cost_price', parseFloat(e.target.value) || '')} className={styles.quantityInput} placeholder="0.00" />
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={stock.cost_price}
+                              onChange={(e) => updateStock(index, 'cost_price', parseFloat(e.target.value) || '')}
+                              className={styles.quantityInput}
+                              placeholder="0.00"
+                              title="Себестоимость одной единицы"
+                            />
+                            <span className={styles.currencyLabel}>₸</span>
                           </div>
+
                           <div className={styles.inputWithLabel}>
                             <label className={styles.fieldLabel}>Резерв 🔒</label>
-                            <input type="number" min="0" max={stock.quantity || 0} value={stock.reserved_quantity || 0} onChange={(e) => {
-                              const value = parseInt(e.target.value) || 0;
-                              const maxValue = stock.quantity || 0;
-                              updateStock(index, 'reserved_quantity', Math.min(value, maxValue));
-                            }} className={styles.quantityInput} placeholder="0" title={`Зарезервированное количество (недоступно для продажи, максимум ${stock.quantity || 0})`} />
+                            <input
+                              type="number"
+                              min="0"
+                              step={stock.unit_display === 'шт.' ? '1' : '0.001'}
+                              max={stock.quantity || 0}
+                              value={stock.reserved_quantity === null || stock.reserved_quantity === undefined ? '' : stock.reserved_quantity}
+                              onChange={(e) => {
+                                const inputValue = e.target.value;
+                                if (inputValue === '') {
+                                  updateStock(index, 'reserved_quantity', '');
+                                  return;
+                                }
+                                const value = stock.unit_display === 'шт.' 
+                                  ? (inputValue.includes('.') ? Math.floor(parseFloat(inputValue)) : parseInt(inputValue))
+                                  : parseFloat(inputValue);
+                                if (!isNaN(value)) {
+                                  const maxValue = typeof stock.quantity === 'number' ? stock.quantity : parseFloat(stock.quantity) || 0;
+                                  updateStock(index, 'reserved_quantity', Math.min(Math.max(0, value), maxValue));
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const inputValue = e.target.value;
+                                if (inputValue === '' || inputValue === null || inputValue === undefined) {
+                                  updateStock(index, 'reserved_quantity', 0);
+                                } else {
+                                  const value = stock.unit_display === 'шт.' 
+                                    ? Math.max(0, parseInt(inputValue) || 0)
+                                    : Math.max(0, parseFloat(inputValue) || 0);
+                                  const maxValue = typeof stock.quantity === 'number' ? stock.quantity : parseFloat(stock.quantity) || 0;
+                                  updateStock(index, 'reserved_quantity', Math.min(value, maxValue));
+                                }
+                              }}
+                              className={styles.quantityInput}
+                              placeholder="0"
+                              title={`Зарезервированное количество (недоступно для продажи, максимум ${stock.quantity || 0})`}
+                            />
+                            <span className={styles.unitLabel}>{stock.unit_display || 'шт.'}</span>
                           </div>
+
                           <label className={styles.checkboxLabel}>
                             <input type="checkbox" checked={stock.is_available_for_sale} onChange={(e) => updateStock(index, 'is_available_for_sale', e.target.checked)} /> Доступен
                           </label>
+
+                          <div className={styles.activeFlagsSection}>
+                            <div className={styles.activeFlagsTitle}>Активность товара:</div>
+                            <div className={styles.activeFlagsList}>
+                              <label className={styles.activeFlagItem}>
+                                <input
+                                  type="checkbox"
+                                  checked={stock.is_active_on_marketplace || false}
+                                  onChange={(e) => updateStock(index, 'is_active_on_marketplace', e.target.checked)}
+                                  disabled={!stock.quantity || stock.quantity === 0}
+                                  title={!stock.quantity || stock.quantity === 0 ? 'Укажите количество товара' : ''}
+                                />
+                                <span className={styles.flagLabel}>
+                                  На маркетплейсе
+                                </span>
+                              </label>
+                              <label className={styles.activeFlagItem}>
+                                <input
+                                  type="checkbox"
+                                  checked={stock.is_active_for_offline_sale || false}
+                                  onChange={(e) => updateStock(index, 'is_active_for_offline_sale', e.target.checked)}
+                                  disabled={!stock.quantity || stock.quantity === 0}
+                                  title={!stock.quantity || stock.quantity === 0 ? 'Укажите количество товара' : ''}
+                                />
+                                <span className={styles.flagLabel}>
+                                  Оффлайн продажа
+                                </span>
+                              </label>
+                              <label className={styles.activeFlagItem}>
+                                <input
+                                  type="checkbox"
+                                  checked={stock.is_active_on_own_site || false}
+                                  onChange={(e) => updateStock(index, 'is_active_on_own_site', e.target.checked)}
+                                  disabled={!stock.quantity || stock.quantity === 0}
+                                  title={!stock.quantity || stock.quantity === 0 ? 'Укажите количество товара' : ''}
+                                />
+                                <span className={styles.flagLabel}>
+                                  На личном сайте
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+
                           <button type="button" className={styles.removeButton} onClick={() => removeStock(index)}><FaTrash /></button>
                         </div>
 
@@ -456,7 +645,22 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
                             <div className={styles.defectFormRow}>
                               <div className={styles.inputWithLabel}>
                                 <label className={styles.fieldLabel}>Количество брака</label>
-                                <input type="number" min="1" value={defectQuantity} onChange={(e) => setDefectQuantity(parseInt(e.target.value) || 0)} className={styles.quantityInput} placeholder="0" />
+                                <input
+                                  type="number"
+                                  min="0.001"
+                                  step={stocks[editingDefect]?.unit_display === 'шт.' ? '1' : '0.001'}
+                                  value={defectQuantity}
+                                  onChange={(e) => {
+                                    const unitDisplay = stocks[editingDefect]?.unit_display || 'шт.';
+                                    const value = unitDisplay === 'шт.' 
+                                      ? parseInt(e.target.value) || 0
+                                      : parseFloat(e.target.value) || 0;
+                                    setDefectQuantity(value);
+                                  }}
+                                  className={styles.quantityInput}
+                                  placeholder="0"
+                                />
+                                <span className={styles.unitLabel}>{stocks[editingDefect]?.unit_display || 'шт.'}</span>
                               </div>
                               <div className={styles.inputWithLabel}>
                                 <label className={styles.fieldLabel}>Причина брака</label>
@@ -477,7 +681,7 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
                               <div className={styles.defectsList}>
                                 {stock.defects.map((defect, defectIdx) => (
                                   <div key={defectIdx} className={styles.defectItem}>
-                                    <span className={styles.defectQuantity}>{defect.quantity} шт.</span>
+                                    <span className={styles.defectQuantity}>{defect.quantity} {stock.unit_display || 'шт.'}</span>
                                     <span className={styles.defectReason}>— {defect.reason}</span>
                                     <button type="button" className={styles.removeDefectBtn} onClick={() => handleRemoveDefect(index, defectIdx)}>
                                       <FaTrash size={12} />
@@ -497,19 +701,19 @@ const BatchDetailModal = ({ businessSlug, batch, onClose, onUpdate, onDelete }) 
                         </div>
                         <div className={styles.infoRow}>
                           <span className={styles.infoLabel}>Количество:</span>
-                          <span className={styles.infoValue}>{stock.quantity}</span>
+                          <span className={styles.infoValue}>{stock.quantity} {stock.unit_display || 'шт.'}</span>
                         </div>
                         <div className={styles.infoRow}>
                           <span className={styles.infoLabel}>Резервировано:</span>
-                          <span className={styles.infoValue}>{stock.reserved_quantity || 0}</span>
+                          <span className={styles.infoValue}>{stock.reserved_quantity || 0} {stock.unit_display || 'шт.'}</span>
                         </div>
                         <div className={styles.infoRow}>
                           <span className={styles.infoLabel}>Брак:</span>
-                          <span className={styles.infoValue}>{stock.defect_quantity || 0}</span>
+                          <span className={styles.infoValue}>{stock.defect_quantity || 0} {stock.unit_display || 'шт.'}</span>
                         </div>
                         <div className={styles.infoRow}>
                           <span className={styles.infoLabel}>Доступно:</span>
-                          <span className={styles.infoValue}>{stock.available_quantity || 0}</span>
+                          <span className={styles.infoValue}>{stock.available_quantity || 0} {stock.unit_display || 'шт.'}</span>
                         </div>
                         <div className={styles.infoRow}>
                           <span className={styles.infoLabel}>Статус:</span>

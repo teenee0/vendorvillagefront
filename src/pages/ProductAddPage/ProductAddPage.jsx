@@ -141,6 +141,7 @@ const ProductAddPage = () => {
   const [productName, setProductName] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [unitOfMeasureId, setUnitOfMeasureId] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [isVisibleOnMarketplace, setIsVisibleOnMarketplace] = useState(true);
   const [isVisibleOnOwnSite, setIsVisibleOnOwnSite] = useState(true);
@@ -152,6 +153,10 @@ const ProductAddPage = () => {
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Единицы измерения
+  const [unitsOfMeasure, setUnitsOfMeasure] = useState([]);
+  const [isLoadingUnits, setIsLoadingUnits] = useState(true);
 
   // Локации (склады)
   const [locations, setLocations] = useState([]);
@@ -185,12 +190,17 @@ const ProductAddPage = () => {
         const locationsResponse = await axios.get(`/api/business/${business_slug}/locations/`);
         setLocations(locationsResponse.data.results || locationsResponse.data);
 
+        const unitsResponse = await axios.get(`/api/units-of-measure/`);
+        setUnitsOfMeasure(unitsResponse.data);
+
         setIsLoadingCategories(false);
         setIsLoadingLocations(false);
+        setIsLoadingUnits(false);
       } catch (err) {
         setError(err.message);
         setIsLoadingCategories(false);
         setIsLoadingLocations(false);
+        setIsLoadingUnits(false);
         console.error('Ошибка при загрузке данных:', err);
       }
     };
@@ -236,7 +246,6 @@ const ProductAddPage = () => {
   const handleAddVariant = () => {
     const newVariant = {
       id: variantCounter,
-      showThis: true,
       attributes: categoryAttributes.reduce((acc, attr) => {
         acc[String(attr.id)] = attr.values.length > 0 ?
           (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
@@ -280,7 +289,6 @@ const ProductAddPage = () => {
 
     const newVariant = {
       id: variantCounter,
-      showThis: lastVariant.showThis,
       attributes: copiedAttributes
     };
 
@@ -449,11 +457,11 @@ const ProductAddPage = () => {
       name: productName,
       description: productDescription,
       category: categoryId,
+      unit_of_measure: unitOfMeasureId || null,
       is_active: isActive,
       is_visible_on_marketplace: isVisibleOnMarketplace,
       is_visible_on_own_site: isVisibleOnOwnSite,
       variants: variants.map(variant => ({
-        show_this: variant.showThis,
         attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
           const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
           return {
@@ -633,6 +641,23 @@ const ProductAddPage = () => {
                       disabled={isLoadingCategories || !!error}
                     />
                   </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="product-unit" className={styles.formLabel}>Единица измерения</label>
+                    <select
+                      id="product-unit"
+                      className={styles.formControl}
+                      value={unitOfMeasureId}
+                      onChange={(e) => setUnitOfMeasureId(e.target.value)}
+                      disabled={isLoadingUnits}
+                    >
+                      <option value="">Выберите единицу измерения</option>
+                      {unitsOfMeasure.map(unit => (
+                        <option key={unit.id} value={unit.id}>
+                          {unit.name} ({unit.short_name})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className={styles.formGroup}>
                   <label htmlFor="product-description" className={styles.formLabel}>Описание товара *</label>
@@ -709,7 +734,6 @@ const ProductAddPage = () => {
                             <thead>
                               <tr>
                                 <th className={styles.stickyColumn}>№</th>
-                                <th>Активность</th>
                                 {categoryAttributes.map(attr => (
                                   <th key={attr.id}>
                                     {attr.name}
@@ -722,7 +746,7 @@ const ProductAddPage = () => {
                             <tbody>
                               {variants.length === 0 ? (
                                 <tr>
-                                  <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
+                                  <td colSpan={categoryAttributes.length + 2} className={styles.noVariants}>
                                     Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
                                   </td>
                                 </tr>
@@ -730,18 +754,6 @@ const ProductAddPage = () => {
                                 variants.map((variant, index) => (
                                   <tr key={variant.id}>
                                     <td className={styles.stickyColumn}>{index + 1}</td>
-                                    <td>
-                                      <input
-                                        type="checkbox"
-                                        className={styles.formControltd}
-                                        checked={variant.showThis}
-                                        onChange={(e) => handleVariantChange(
-                                          variant.id,
-                                          'showThis',
-                                          e.target.checked
-                                        )}
-                                      />
-                                    </td>
                                     {categoryAttributes.map(attr => (
                                       <td key={attr.id}>
                                         {attr.has_predefined_values ? (

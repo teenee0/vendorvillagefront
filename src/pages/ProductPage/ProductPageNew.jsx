@@ -58,8 +58,6 @@ const ProductPageNew = () => {
     const [batchesPagination, setBatchesPagination] = useState(null);
     const [defectsPagination, setDefectsPagination] = useState(null);
     const [batchesLoading, setBatchesLoading] = useState(false);
-    const [stockOverviewLocationFilter, setStockOverviewLocationFilter] = useState(null);
-    const [stockOverviewVariantFilter, setStockOverviewVariantFilter] = useState(null);
     const [analyticsData, setAnalyticsData] = useState(null);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
     const [analyticsPeriod, setAnalyticsPeriod] = useState('day');
@@ -482,68 +480,6 @@ const ProductPageNew = () => {
         return Array.from(variantsMap.values());
     }, [product]);
 
-    // Подготовка данных для таблицы общих остатков
-    const stockOverviewData = useMemo(() => {
-        if (!product || !product.locations) return [];
-        
-        const rows = [];
-        product.locations.forEach(location => {
-            if (stockOverviewLocationFilter && location.id !== stockOverviewLocationFilter) return;
-            
-            location.variants.forEach(variant => {
-                if (stockOverviewVariantFilter && variant.id !== stockOverviewVariantFilter) return;
-                
-                rows.push({
-                    id: `${location.id}-${variant.id}`,
-                    locationId: location.id,
-                    locationName: location.name,
-                    variantId: variant.id,
-                    variantName: variant.name,
-                    sku: variant.sku || '',
-                    quantity: variant.quantity || 0,
-                    availableQuantity: variant.available_quantity || 0,
-                    reservedQuantity: variant.reserved_quantity || 0,
-                    defectQuantity: (variant.quantity || 0) - (variant.available_quantity || 0) - (variant.reserved_quantity || 0),
-                });
-            });
-        });
-        
-        return rows;
-    }, [product, stockOverviewLocationFilter, stockOverviewVariantFilter]);
-
-    // Экспорт данных в CSV
-    const exportStockOverviewToCSV = () => {
-        if (stockOverviewData.length === 0) {
-            alert('Нет данных для экспорта');
-            return;
-        }
-
-        const headers = ['Локация', 'Вариант', 'SKU', 'Всего', 'Доступно', 'Зарезервировано', 'Брак'];
-        const rows = stockOverviewData.map(row => [
-            row.locationName,
-            row.variantName,
-            row.sku,
-            row.quantity,
-            row.availableQuantity,
-            row.reservedQuantity,
-            row.defectQuantity,
-        ]);
-
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-        ].join('\n');
-
-        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `остатки_${product.name}_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     const createEmptyBatchLine = () => ({
         tempId: `${Date.now()}-${Math.random()}`,
@@ -744,7 +680,7 @@ const ProductPageNew = () => {
             return;
         }
         if (qty > defectModal.availableQuantity) {
-            setDefectError(`Количество не может превышать доступное: ${formatNumber(defectModal.availableQuantity)} шт.`);
+            setDefectError(`Количество не может превышать доступное: ${formatNumber(defectModal.availableQuantity)} ${product?.unit_display || 'шт.'}`);
             return;
         }
 
@@ -875,13 +811,13 @@ const ProductPageNew = () => {
                         <div className={styles.statItem}>
                             <span className={styles.statLabel}>Доступно всего:</span>
                             <span className={styles.statValue}>
-                                {(product.total_available || 0).toLocaleString('ru-RU')} шт.
+                                {(product.total_available || 0).toLocaleString('ru-RU')} {product?.unit_display || 'шт.'}
                             </span>
                         </div>
                         <div className={styles.statItem}>
                             <span className={styles.statLabel}>Брак всего:</span>
                             <span className={`${styles.statValue} ${styles.statValueDefect}`}>
-                                {(product.total_defect || 0).toLocaleString('ru-RU')} шт.
+                                {(product.total_defect || 0).toLocaleString('ru-RU')} {product?.unit_display || 'шт.'}
                             </span>
                         </div>
                     </div>
@@ -900,12 +836,6 @@ const ProductPageNew = () => {
                     onClick={() => setActiveTab('batches')}
                 >
                     Партии и брак
-                </button>
-                <button
-                    className={`${styles.tab} ${activeTab === 'stockOverview' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('stockOverview')}
-                >
-                    Общие остатки
                 </button>
                 <button
                     className={`${styles.tab} ${activeTab === 'salesHistory' ? styles.activeTab : ''}`}
@@ -1032,6 +962,9 @@ const ProductPageNew = () => {
                                                         min="0"
                                                         step="0.01"
                                                     />
+                                                    <span className={styles.priceUnitLabel}>
+                                                        ₸ за {product?.unit_display || 'шт.'}
+                                                    </span>
                                                     <div className={styles.editButtons}>
                                                         <button
                                                             onClick={() => handleSaveNewPrice(location.id, variant.id, addingPrice)}
@@ -1058,6 +991,9 @@ const ProductPageNew = () => {
                                                         min="0"
                                                         step="0.01"
                                                     />
+                                                    <span className={styles.priceUnitLabel}>
+                                                        ₸ за {product?.unit_display || 'шт.'}
+                                                    </span>
                                                     <div className={styles.editButtons}>
                                                         <button
                                                             onClick={() => handleSavePrice(location.id, variant.id, variant.price_id, editedPrice)}
@@ -1080,7 +1016,7 @@ const ProductPageNew = () => {
                                                         <div className={styles.priceInfo}>
                                                             <span className={styles.priceLabel}>Цена:</span>
                                                             <span className={styles.priceValue}>
-                                                                {parseFloat(variant.price).toLocaleString('ru-RU')} ₸
+                                                                {parseFloat(variant.price).toLocaleString('ru-RU')} ₸ за {product?.unit_display || 'шт.'}
                                                             </span>
                                                             <label className={styles.isActiveToggle}>
                                                                 <input
@@ -1167,16 +1103,16 @@ const ProductPageNew = () => {
                                             <div className={styles.stockInfo}>
                                                 <div className={styles.stockItem}>
                                                     <span>Доступно:</span>
-                                                    <strong>{variant.available_quantity} шт.</strong>
+                                                    <strong>{variant.available_quantity} {product?.unit_display || 'шт.'}</strong>
                                                 </div>
                                                 <div className={styles.stockItem}>
                                                     <span>Резерв:</span>
-                                                    <strong>{variant.reserved_quantity} шт.</strong>
+                                                    <strong>{variant.reserved_quantity} {product?.unit_display || 'шт.'}</strong>
                                                 </div>
                                                 <div className={styles.stockItem}>
                                                     <span>Брак:</span>
                                                     <strong className={styles.defectQuantity}>
-                                                        {variant.defect_quantity || 0} шт.
+                                                        {variant.defect_quantity || 0} {product?.unit_display || 'шт.'}
                                                     </strong>
                                                 </div>
                                             </div>
@@ -1262,19 +1198,19 @@ const ProductPageNew = () => {
                                         <div className={styles.batchTotals}>
                                             <div>
                                                 <span>Всего</span>
-                                                <strong>{formatNumber(batch.totalQuantity)} шт.</strong>
+                                                <strong>{formatNumber(batch.totalQuantity)} {product?.unit_display || 'шт.'}</strong>
                                             </div>
                                             <div>
                                                 <span>Доступно</span>
-                                                <strong>{formatNumber(batch.totalAvailable)} шт.</strong>
+                                                <strong>{formatNumber(batch.totalAvailable)} {product?.unit_display || 'шт.'}</strong>
                                             </div>
                                             <div>
                                                 <span>Резерв</span>
-                                                <strong>{formatNumber(batch.totalReserved)} шт.</strong>
+                                                <strong>{formatNumber(batch.totalReserved)} {product?.unit_display || 'шт.'}</strong>
                                             </div>
                                             <div>
                                                 <span>Брак</span>
-                                                <strong>{formatNumber(batch.totalDefect)} шт.</strong>
+                                                <strong>{formatNumber(batch.totalDefect)} {product?.unit_display || 'шт.'}</strong>
                                             </div>
                                         </div>
                                     </div>
@@ -1288,10 +1224,19 @@ const ProductPageNew = () => {
                                                     </div>
                                                     <div className={styles.batchLineLocation}>{line.locationName}</div>
                                                     <div className={styles.batchLineStats}>
-                                                        <span>Поступило: {formatNumber(line.quantity)} шт.</span>
-                                                        <span>Доступно: {formatNumber(line.availableQuantity)} шт.</span>
-                                                        <span>Резерв: {formatNumber(line.reservedQuantity)} шт.</span>
-                                                        <span>Брак: {formatNumber(line.defectQuantity)} шт.</span>
+                                                        <span>Поступило: {formatNumber(line.quantity)} {line.unit_display || 'шт.'}</span>
+                                                        <span>Доступно: {formatNumber(line.availableQuantity)} {line.unit_display || 'шт.'}</span>
+                                                        <span>Продано: {formatNumber(line.soldQuantity || 0)} {line.unit_display || 'шт.'}</span>
+                                                        {line.returnedQuantity !== undefined && line.returnedQuantity !== null && line.returnedQuantity > 0 && (
+                                                            <span>Возврат: {formatNumber(line.returnedQuantity)} {line.unit_display || 'шт.'}</span>
+                                                        )}
+                                                        <span>Резерв: {formatNumber(line.reservedQuantity)} {line.unit_display || 'шт.'}</span>
+                                                        <span>Брак: {formatNumber(line.defectQuantity)} {line.unit_display || 'шт.'}</span>
+                                                        {line.inventoryAdjustment !== undefined && line.inventoryAdjustment !== null && line.inventoryAdjustment !== 0 && (
+                                                            <span className={line.inventoryAdjustment > 0 ? styles.inventorySurplus : styles.inventoryShortage}>
+                                                                {line.inventoryAdjustment > 0 ? 'Прибыло' : 'Убыло'} в результате инвентаризации: {formatNumber(Math.abs(line.inventoryAdjustment))} {line.unit_display || 'шт.'}
+                                                            </span>
+                                                        )}
                                                         {line.costPrice !== null && line.costPrice !== undefined && (
                                                             <span>
                                                                 Себестоимость: {parseFloat(line.costPrice).toLocaleString('ru-RU')} ₸
@@ -1313,7 +1258,7 @@ const ProductPageNew = () => {
                                                         {line.defects.map(defect => (
                                                             <div key={defect.id} className={styles.defectItem}>
                                                                 <div>
-                                                                    <strong>{formatNumber(defect.quantity)} шт.</strong>
+                                                                    <strong>{formatNumber(defect.quantity)} {product?.unit_display || 'шт.'}</strong>
                                                                     <span>{defect.reason || 'Без комментария'}</span>
                                                                 </div>
                                                                 <div className={styles.defectActions}>
@@ -1403,7 +1348,7 @@ const ProductPageNew = () => {
                                             <span>{defect.batchNumber || '—'}</span>
                                             <span>{defect.variantName}</span>
                                             <span>{defect.locationName}</span>
-                                            <span>{formatNumber(defect.quantity)} шт.</span>
+                                            <span>{formatNumber(defect.quantity)} {product?.unit_display || 'шт.'}</span>
                                             <span>{defect.reason || '—'}</span>
                                         </div>
                                     ))}
@@ -1431,111 +1376,6 @@ const ProductPageNew = () => {
                 </div>
             )}
 
-            {activeTab === 'stockOverview' && (
-                <div className={styles.stockOverviewSection}>
-                    <div className={styles.stockOverviewHeader}>
-                        <div>
-                            <h2>Общие остатки</h2>
-                            <p>Сводная таблица остатков по всем вариантам и локациям</p>
-                        </div>
-                        <button
-                            className={styles.primaryButton}
-                            onClick={exportStockOverviewToCSV}
-                        >
-                            <i className="fa fa-download"></i> Экспорт в CSV
-                        </button>
-                    </div>
-
-                    <div className={styles.stockOverviewFilters}>
-                        <div className={styles.filterGroup}>
-                            <label>Фильтр по локации:</label>
-                            <select
-                                value={stockOverviewLocationFilter || ''}
-                                onChange={(e) => setStockOverviewLocationFilter(e.target.value ? Number(e.target.value) : null)}
-                                className={styles.filterSelect}
-                            >
-                                <option value="">Все локации</option>
-                                {product?.locations?.map(location => (
-                                    <option key={location.id} value={location.id}>
-                                        {location.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className={styles.filterGroup}>
-                            <label>Фильтр по варианту:</label>
-                            <select
-                                value={stockOverviewVariantFilter || ''}
-                                onChange={(e) => setStockOverviewVariantFilter(e.target.value ? Number(e.target.value) : null)}
-                                className={styles.filterSelect}
-                            >
-                                <option value="">Все варианты</option>
-                                {allVariants.map(variant => (
-                                    <option key={variant.id} value={variant.id}>
-                                        {variant.name} {variant.sku ? `(${variant.sku})` : ''}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {stockOverviewData.length === 0 ? (
-                        <div className={styles.emptyState}>
-                            Нет данных об остатках для отображения
-                        </div>
-                    ) : (
-                        <div className={styles.stockOverviewTable}>
-                            <div className={styles.stockOverviewTableHead}>
-                                <span>Локация</span>
-                                <span>Вариант</span>
-                                <span>SKU</span>
-                                <span>Всего</span>
-                                <span>Доступно</span>
-                                <span>Зарезервировано</span>
-                                <span>Брак</span>
-                            </div>
-                            {stockOverviewData.map((row) => (
-                                <div key={row.id} className={styles.stockOverviewTableRow}>
-                                    <span>{row.locationName}</span>
-                                    <span>{row.variantName}</span>
-                                    <span>{row.sku || '—'}</span>
-                                    <span>{formatNumber(row.quantity)}</span>
-                                    <span className={styles.availableQuantity}>
-                                        {formatNumber(row.availableQuantity)}
-                                    </span>
-                                    <span className={styles.reservedQuantity}>
-                                        {formatNumber(row.reservedQuantity)}
-                                    </span>
-                                    <span className={styles.defectQuantity}>
-                                        {formatNumber(row.defectQuantity)}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {stockOverviewData.length > 0 && (
-                        <div className={styles.stockOverviewSummary}>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Всего записей:</span>
-                                <span className={styles.summaryValue}>{stockOverviewData.length}</span>
-                            </div>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Общее доступно:</span>
-                                <span className={`${styles.summaryValue} ${styles.summaryAvailable}`}>
-                                    {formatNumber(stockOverviewData.reduce((sum, row) => sum + row.availableQuantity, 0))}
-                                </span>
-                            </div>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Общий брак:</span>
-                                <span className={`${styles.summaryValue} ${styles.summaryDefect}`}>
-                                    {formatNumber(stockOverviewData.reduce((sum, row) => sum + row.defectQuantity, 0))}
-                                </span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
 
             {activeTab === 'salesHistory' && (
                 <ProductSalesHistory 
@@ -1581,7 +1421,7 @@ const ProductPageNew = () => {
                                 <div className={styles.analyticsStatCard}>
                                     <div className={styles.statLabel}>Продано товаров</div>
                                     <div className={styles.statValue}>
-                                        {formatNumber(analyticsData.totals?.quantity_sold || 0)} шт.
+                                        {formatNumber(analyticsData.totals?.quantity_sold || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                     </div>
                                 </div>
                                 <div className={styles.analyticsStatCard}>
@@ -1617,7 +1457,7 @@ const ProductPageNew = () => {
                                                 <span>{variant.name}</span>
                                                 <span>{variant.sku || '—'}</span>
                                                 <span>{formatNumber(variant.revenue)} ₸</span>
-                                                <span>{formatNumber(variant.quantity_sold)} шт.</span>
+                                                <span>{formatNumber(variant.quantity_sold)} {product?.unit_display || 'шт.'}</span>
                                                 <span>{formatNumber(variant.orders_count)}</span>
                                             </div>
                                         ))}
@@ -1637,7 +1477,7 @@ const ProductPageNew = () => {
                                             Выручка: {formatNumber(analyticsData.forecast?.next_7_days?.revenue || 0)} ₸
                                         </div>
                                         <div className={styles.forecastValue}>
-                                            Продажи: {formatNumber(analyticsData.forecast?.next_7_days?.quantity || 0)} шт.
+                                            Продажи: {formatNumber(analyticsData.forecast?.next_7_days?.quantity || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                         </div>
                                     </div>
                                     <div className={styles.forecastCard}>
@@ -1646,7 +1486,7 @@ const ProductPageNew = () => {
                                             Выручка: {formatNumber(analyticsData.forecast?.next_30_days?.revenue || 0)} ₸
                                         </div>
                                         <div className={styles.forecastValue}>
-                                            Продажи: {formatNumber(analyticsData.forecast?.next_30_days?.quantity || 0)} шт.
+                                            Продажи: {formatNumber(analyticsData.forecast?.next_30_days?.quantity || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                         </div>
                                     </div>
                                 </div>
@@ -1659,25 +1499,25 @@ const ProductPageNew = () => {
                                     <div className={styles.stockDynamicsItem}>
                                         <span className={styles.stockDynamicsLabel}>Всего:</span>
                                         <span className={styles.stockDynamicsValue}>
-                                            {formatNumber(analyticsData.stock_dynamics?.current?.total_quantity || 0)} шт.
+                                            {formatNumber(analyticsData.stock_dynamics?.current?.total_quantity || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                         </span>
                                     </div>
                                     <div className={styles.stockDynamicsItem}>
                                         <span className={styles.stockDynamicsLabel}>Доступно:</span>
                                         <span className={`${styles.stockDynamicsValue} ${styles.availableQuantity}`}>
-                                            {formatNumber(analyticsData.stock_dynamics?.current?.available_quantity || 0)} шт.
+                                            {formatNumber(analyticsData.stock_dynamics?.current?.available_quantity || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                         </span>
                                     </div>
                                     <div className={styles.stockDynamicsItem}>
                                         <span className={styles.stockDynamicsLabel}>Зарезервировано:</span>
                                         <span className={`${styles.stockDynamicsValue} ${styles.reservedQuantity}`}>
-                                            {formatNumber(analyticsData.stock_dynamics?.current?.reserved_quantity || 0)} шт.
+                                            {formatNumber(analyticsData.stock_dynamics?.current?.reserved_quantity || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                         </span>
                                     </div>
                                     <div className={styles.stockDynamicsItem}>
                                         <span className={styles.stockDynamicsLabel}>Брак:</span>
                                         <span className={`${styles.stockDynamicsValue} ${styles.defectQuantity}`}>
-                                            {formatNumber(analyticsData.stock_dynamics?.current?.defect_quantity || 0)} шт.
+                                            {formatNumber(analyticsData.stock_dynamics?.current?.defect_quantity || 0)} {analyticsData.unit_display || product?.unit_display || 'шт.'}
                                         </span>
                                     </div>
                                 </div>
@@ -1923,7 +1763,7 @@ const ProductPageNew = () => {
                                 <div className={styles.defectMetaRow}>
                                     <span className={styles.defectMetaLabel}>Доступно для брака:</span>
                                     <span className={`${styles.defectMetaValue} ${styles.availableQuantity}`}>
-                                        {formatNumber(defectModal.availableQuantity)} шт.
+                                        {formatNumber(defectModal.availableQuantity)} {product?.unit_display || 'шт.'}
                                     </span>
                                 </div>
                             </div>
@@ -1955,7 +1795,7 @@ const ProductPageNew = () => {
                                 />
                                 {defectModal.availableQuantity > 0 && (
                                     <span className={styles.inputHint}>
-                                        Максимум: {formatNumber(defectModal.availableQuantity)} шт.
+                                        Максимум: {formatNumber(defectModal.availableQuantity)} {product?.unit_display || 'шт.'}
                                     </span>
                                 )}
                             </label>

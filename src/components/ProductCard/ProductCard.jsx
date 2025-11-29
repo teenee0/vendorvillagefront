@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFileUtils } from '../../hooks/useFileUtils';
 import { useEnvironment } from '../../hooks/useEnvironment';
@@ -8,6 +8,8 @@ const ProductCard = ({ product }) => {
     const navigate = useNavigate();
     const { getImageUrl } = useFileUtils();
     const { logger } = useEnvironment();
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
 
     const goToProductPage = () => navigate(`/marketplace/products/${product.id}`);
     
@@ -23,6 +25,14 @@ const ProductCard = ({ product }) => {
 
     const variant = product.default_variant;
     const mainImage = product.main_image;
+
+    // Сбрасываем состояние загрузки при смене изображения
+    useEffect(() => {
+        if (mainImage?.image) {
+            setImageLoading(true);
+            setImageError(false);
+        }
+    }, [mainImage?.image]);
     
     const hasDiscount = variant && parseFloat(variant.discount) > 0;
     const currentPrice = variant?.current_price || product.min_price;
@@ -34,17 +44,26 @@ const ProductCard = ({ product }) => {
     return (
         <div className="product-card" onClick={goToProductPage}>
             <div className="product-image">
-                {mainImage?.image ? (
-                    <img
-                        src={getImageUrl(mainImage.image)}
-                        alt={product.name}
-                        loading="lazy"
-                        className="product-img"
-                        onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/200x200?text=No+Image';
-                        }}
-                    />
+                {mainImage?.image && !imageError ? (
+                    <>
+                        {imageLoading && (
+                            <div className="image-skeleton">
+                                <div className="skeleton-shimmer"></div>
+                            </div>
+                        )}
+                        <img
+                            src={getImageUrl(mainImage.image)}
+                            alt={product.name}
+                            loading="lazy"
+                            className={`product-img ${imageLoading ? 'image-hidden' : 'image-visible'}`}
+                            onLoad={() => setImageLoading(false)}
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                setImageError(true);
+                                setImageLoading(false);
+                            }}
+                        />
+                    </>
                 ) : (
                     <div className="no-image" aria-hidden="true">
                         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor">

@@ -16,6 +16,7 @@ const InventorySessionPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [updatingItem, setUpdatingItem] = useState(null);
+    const [localQuantities, setLocalQuantities] = useState({}); // Локальное состояние для значений ввода
     const scanInputRef = useRef(null);
 
     useEffect(() => {
@@ -155,15 +156,109 @@ const InventorySessionPage = () => {
         }
     };
 
-    const handleQuantityChange = async (itemId, newQuantity) => {
-        const qty = parseInt(newQuantity) || 0;
-        if (qty < 0) return;
+    // Обновление локального значения при вводе
+    const handleQuantityInputChange = (itemId, value) => {
+        const currentItem = items.find(i => i.id === itemId);
+        const unitDisplay = currentItem?.unit_display || 'шт.';
+        const isPieces = unitDisplay === 'шт.';
+        
+        // Разрешаем пустое значение для возможности очистки поля
+        if (value === '' || value === null) {
+            setLocalQuantities(prev => ({
+                ...prev,
+                [itemId]: ''
+            }));
+            return;
+        }
+        
+        // Для штук - округляем вниз при вводе дробных значений
+        if (isPieces && value.includes('.')) {
+            const intValue = Math.floor(parseFloat(value) || 0);
+            setLocalQuantities(prev => ({
+                ...prev,
+                [itemId]: intValue.toString()
+            }));
+            return;
+        }
+        
+        // Разрешаем ввод только цифр и точки
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue) && numValue >= 0) {
+            setLocalQuantities(prev => ({
+                ...prev,
+                [itemId]: value
+            }));
+        }
+    };
+
+    // Сохранение значения на сервер при потере фокуса
+    const handleQuantityBlur = async (itemId) => {
+        const localValue = localQuantities[itemId];
+        const currentItem = items.find(i => i.id === itemId);
+        const unitDisplay = currentItem?.unit_display || 'шт.';
+        const isPieces = unitDisplay === 'шт.';
+        
+        let qty;
+        
+        if (localValue === '' || localValue === null || localValue === undefined) {
+            qty = 0;
+        } else {
+            if (isPieces) {
+                // Для штук - только целые числа
+                qty = Math.max(0, Math.floor(parseFloat(localValue) || 0));
+            } else {
+                // Для других единиц - может быть дробным
+                // Сохраняем точность, отправляем как строку для точной передачи
+                const numValue = parseFloat(localValue) || 0;
+                if (numValue < 0) {
+                    qty = 0;
+                } else {
+                    // Используем toFixed для сохранения точности до 3 знаков
+                    // но отправляем как строку, чтобы избежать потери точности
+                    qty = parseFloat(numValue.toFixed(3));
+                }
+            }
+        }
+
+        // Очищаем локальное значение после сохранения
+        setLocalQuantities(prev => {
+            const newState = { ...prev };
+            delete newState[itemId];
+            return newState;
+        });
+
+        // Проверяем, изменилось ли значение
+        const currentCounted = parseFloat(currentItem?.counted_quantity || 0);
+        if (currentItem && Math.abs(currentCounted - qty) < 0.001) {
+            return; // Значение не изменилось, не отправляем запрос
+        }
 
         setUpdatingItem(itemId);
         try {
+            // Для дробных значений отправляем строку для сохранения точности
+            // DRF DecimalField правильно обработает строковое значение
+            let payloadValue;
+            if (isPieces) {
+                payloadValue = qty;
+            } else {
+                // Используем исходное строковое значение, если оно есть
+                if (localValue !== '' && localValue !== null && localValue !== undefined) {
+                    // Берем исходное значение и нормализуем до 3 знаков после запятой
+                    const numVal = parseFloat(localValue);
+                    if (!isNaN(numVal) && numVal >= 0) {
+                        // Форматируем до 3 знаков и отправляем как строку для точности
+                        payloadValue = numVal.toFixed(3);
+                    } else {
+                        payloadValue = qty.toFixed(3);
+                    }
+                } else {
+                    payloadValue = qty.toFixed(3);
+                }
+            }
+            
             const response = await axios.patch(
                 `/api/business/${business_slug}/inventory/${session_id}/items/${itemId}/`,
-                { counted_quantity: qty }
+                { counted_quantity: payloadValue }
             );
             
             setItems(items.map(i => 
@@ -359,30 +454,50 @@ const InventorySessionPage = () => {
                             <div className={styles.quantityRow}>
                                 <div className={styles.quantityItem}>
                                     <label>Ожидаемое:</label>
-                                    <span className={styles.expectedQty}>{item.expected_quantity} шт.</span>
+                                    <span className={styles.expectedQty}>
+                                        {item.expected_quantity} {item.unit_display || 'шт.'}
+                                    </span>
                                 </div>
                                 <div className={styles.quantityItem}>
                                     <label>Посчитано:</label>
-                                    {canEdit ? (
-                                        <input
-                                            id={`quantity-${item.id}`}
-                                            type="number"
-                                            min="0"
-                                            value={item.counted_quantity || 0}
-                                            onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                                            className={styles.quantityInput}
-                                            disabled={updatingItem === item.id}
-                                        />
-                                    ) : (
+                                    {canEdit ? (() => {
+                                        const unitDisplay = item.unit_display || 'шт.';
+                                        const isPieces = unitDisplay === 'шт.';
+                                        const step = isPieces ? 1 : 0.5;
+                                        const minValue = 0;
+                                        
+                                        return (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <input
+                                                    id={`quantity-${item.id}`}
+                                                    type="number"
+                                                    min={minValue}
+                                                    step={step}
+                                                    value={localQuantities[item.id] !== undefined 
+                                                        ? localQuantities[item.id] 
+                                                        : (item.counted_quantity !== null && item.counted_quantity !== undefined 
+                                                            ? (isPieces ? Math.floor(parseFloat(item.counted_quantity)) : parseFloat(item.counted_quantity))
+                                                            : 0)}
+                                                    onChange={(e) => handleQuantityInputChange(item.id, e.target.value)}
+                                                    onBlur={() => handleQuantityBlur(item.id)}
+                                                    className={styles.quantityInput}
+                                                    disabled={updatingItem === item.id}
+                                                />
+                                                <span style={{ fontSize: '0.9em', color: 'var(--silver-whisper)' }}>
+                                                    {unitDisplay}
+                                                </span>
+                                            </div>
+                                        );
+                                    })() : (
                                         <span className={styles.countedQty}>
-                                            {item.counted_quantity || 0} шт.
+                                            {item.counted_quantity || 0} {item.unit_display || 'шт.'}
                                         </span>
                                     )}
                                 </div>
                                 <div className={styles.quantityItem}>
                                     <label>Разница:</label>
                                     <span className={`${styles.differenceQty} ${item.difference > 0 ? styles.differenceSurplus : item.difference < 0 ? styles.differenceShortage : ''}`}>
-                                        {item.difference > 0 ? '+' : ''}{item.difference} шт.
+                                        {item.difference > 0 ? '+' : ''}{item.difference} {item.unit_display || 'шт.'}
                                     </span>
                                 </div>
                             </div>

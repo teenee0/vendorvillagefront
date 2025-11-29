@@ -19,13 +19,29 @@
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  background-color: var(--obsidian-elite);
+  aspect-ratio: 5 / 7;
+  width: 100%;
 }
 
 .product-img,
 .no-image {
   width: 100%;
+  height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.product-img.image-hidden {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.product-img.image-visible {
+  opacity: 1;
+  position: relative;
 }
 
 .no-image {
@@ -131,9 +147,7 @@
 
 /* Медиа-запросы для адаптивности */
 @media (max-width: 768px) {
-  .product-image {
-    height: 180px;
-  }
+  /* Соотношение сторон 5:7 сохраняется через aspect-ratio */
 }
 
 .product-list-info {
@@ -180,5 +194,52 @@
   min-height: 20px;
 }
 
+/* Скелетон загрузки изображения */
+.image-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--obsidian-elite) 0%,
+    var(--phantom-noir) 50%,
+    var(--obsidian-elite) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  z-index: 1;
+}
+
+.skeleton-shimmer {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
 
 /* Остальные стили остаются без изменений */

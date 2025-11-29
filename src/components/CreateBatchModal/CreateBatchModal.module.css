@@ -350,9 +350,29 @@
 
 .stockControls {
   display: grid;
-  grid-template-columns: 1.5fr 80px 120px 100px auto;
+  grid-template-columns: 1.5fr 140px 150px 120px auto;
   gap: 0.75rem;
   align-items: end;
+}
+
+.locationDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  line-height: 1.4;
+}
+
+.locationDisplay strong {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+}
+
+.priceDisplay {
+  color: var(--royal-emerald);
+  font-weight: 500;
+  margin-top: 0.25rem;
 }
 
 .select {
@@ -369,6 +389,15 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  position: relative;
+}
+
+.inputWithLabel .quantityInput {
+  padding-right: 2.5rem;
+}
+
+.inputWithLabel:has(.currencyLabel) .quantityInput {
+  padding-right: 1.75rem;
 }
 
 .fieldLabel {
@@ -382,10 +411,31 @@
   background: var(--obsidian-elite);
   border: 1px solid var(--gilded-shadow);
   color: var(--platinum-gleam);
-  padding: 0.5rem;
+  padding: 0.75rem 2.5rem 0.75rem 0.75rem;
   border-radius: 6px;
   outline: none;
-  text-align: center;
+  text-align: left;
+  font-size: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.unitLabel {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.currencyLabel {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+  pointer-events: none;
 }
 
 .checkboxLabel {
@@ -832,6 +882,12 @@
 
   .stockControls > button {
     width: 100%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .stockControls {
+    grid-template-columns: 1.2fr 130px 140px 110px auto;
   }
 }
 

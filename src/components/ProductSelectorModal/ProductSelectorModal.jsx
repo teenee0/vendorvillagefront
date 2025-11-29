@@ -39,6 +39,7 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
       const allBindingsData = [];
       response.data.products?.forEach(product => {
         const mainImage = product.main_image;
+        const unitDisplay = product.unit_display || 'шт.';
         product.variants?.forEach(variant => {
           variant.locations?.forEach(location => {
             allBindingsData.push({
@@ -57,6 +58,7 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
               price: location.price,
               quantity: location.quantity,
               variant_on_location_id: location.id, // Для создания ProductStock
+              unit_display: location.unit_display || unitDisplay, // Единица измерения
             });
           });
         });
