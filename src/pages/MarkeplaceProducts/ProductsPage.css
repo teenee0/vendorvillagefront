@@ -1,6 +1,6 @@
 .products-page {
   max-width: 1400px;
-  
+
   color: var(--text-primary);
   min-height: 100vh;
   width:100%;
@@ -687,18 +687,18 @@
     width: 36px;
     height: 36px;
     font-size: 0.9rem;
-  }
-  
+}
+
   .price-inputs {
     flex-direction: column;
-  }
-  
+}
+
   .price-input {
     flex: 1 1 100%;
     width: 100%;
-  }
-  
+}
+
   .price-separator {
     display: none;
-  }
+}
 }

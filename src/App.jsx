@@ -51,19 +51,26 @@ function App() {
     location.pathname.startsWith('/business/')
   );
 
-  // Управление классом body для бизнес-темы
+  // Определяем клиентские маршруты (маркетплейс) - все, что НЕ начинается с /business
+  const isMarketplaceRoute = !isBusinessRoute;
+
+  // Управление классами body для разных тем
   useEffect(() => {
     if (isBusinessRoute) {
       document.body.classList.add('business-theme');
+      document.body.classList.remove('marketplace-theme');
     } else {
+      // Если не бизнес-маршрут, то маркетплейс
+      document.body.classList.add('marketplace-theme');
       document.body.classList.remove('business-theme');
     }
 
     // Очистка при размонтировании
     return () => {
       document.body.classList.remove('business-theme');
+      document.body.classList.remove('marketplace-theme');
     };
-  }, [isBusinessRoute]);
+  }, [isBusinessRoute, isMarketplaceRoute]);
 
   if (isBusinessRoute) {
     // Рендеринг для бизнес-страниц

@@ -1,18 +1,20 @@
 .product-card {
-  background-color: var(--bg-secondary);
-  border-radius: 8px;
+  background-color: var(--obsidian-elite);
+  border-radius: 15px;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s, box-shadow 0.3s;
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 200px;
+  width: 100%;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  border-color: var(--royal-emerald);
 }
 
 .product-image {
@@ -22,6 +24,7 @@
   background-color: var(--obsidian-elite);
   aspect-ratio: 5 / 7;
   width: 100%;
+  border-radius: 15px 15px 0 0;
 }
 
 .product-img,
@@ -132,17 +135,22 @@
 
 .add-to-cart-button {
   width: 100%;
-  background-color: var(--accent-color);
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
   color: white;
   border: none;
-  transition: background-color 0.2s;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s;
   margin-top: auto;
-  /* Это прижмет кнопку к низу */
-  /* Остальные стили */
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.2);
 }
 
 .add-to-cart-button:hover {
-  background-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(45, 175, 159, 0.3);
 }
 
 /* Медиа-запросы для адаптивности */
@@ -151,11 +159,12 @@
 }
 
 .product-list-info {
-  padding: 1rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   flex: 1;
   justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .price-section {
@@ -163,9 +172,9 @@
 }
 
 .current-price {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: var(--bg-green);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--royal-emerald);
 }
 
 
@@ -176,21 +185,22 @@
 }
 
 .product-name {
-  font-size: 0.95rem;
-  margin: 0.5rem 0;
-  color: var(--text-primary);
+  font-size: 1rem;
+  margin: 0;
+  color: var(--platinum-gleam);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 40px;
+  min-height: 48px;
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 .business-name {
-  margin-top: auto;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  margin: 0;
   min-height: 20px;
 }
 

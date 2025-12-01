@@ -88,13 +88,13 @@ const BatchCard = ({ batch, onView, onDelete }) => {
               </div>
             </div>
           ) : (
-            <div className={styles.statItem}>
-              <FaBoxes className={styles.statIcon} />
-              <div className={styles.statContent}>
-                <div className={styles.statValue}>{batch.total_items || 0}</div>
-                <div className={styles.statLabel}>Товаров</div>
-              </div>
+          <div className={styles.statItem}>
+            <FaBoxes className={styles.statIcon} />
+            <div className={styles.statContent}>
+              <div className={styles.statValue}>{batch.total_items || 0}</div>
+              <div className={styles.statLabel}>Товаров</div>
             </div>
+          </div>
           )}
 
           <div className={styles.statItem}>

@@ -12,6 +12,11 @@ body.business-theme {
   background-color: var(--onyx-midnight);
 }
 
+/* Стили для клиентской части (маркетплейс) */
+body.marketplace-theme {
+  background-color: var(--marketplace-bg-primary);
+}
+
 /* Основная структура */
 .content-wrapper {
   display: flex;
