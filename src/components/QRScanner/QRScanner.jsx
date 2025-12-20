@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import { Html5Qrcode } from 'html5-qrcode';
-import { FaQrcode, FaGift, FaPercent, FaDollarSign, FaCamera, FaKeyboard } from 'react-icons/fa';
+import { FaQrcode, FaGift, FaPercent, FaDollarSign, FaCamera, FaKeyboard, FaSync } from 'react-icons/fa';
 import ModalCloseButton from '../ModalCloseButton/ModalCloseButton';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import styles from './QRScanner.module.css';
@@ -20,6 +20,8 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
   const [useCamera, setUseCamera] = useState(true);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraPermission, setCameraPermission] = useState(null);
+  const [facingMode, setFacingMode] = useState('environment'); // 'environment' (задняя) или 'user' (передняя)
+  const [availableCameras, setAvailableCameras] = useState([]);
   const scannerRef = useRef(null);
   const html5QrCodeRef = useRef(null);
   const lastScannedToken = useRef(null);
@@ -126,6 +128,22 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
     }
   }, [cameraActive]);
 
+  // Функция переключения камеры
+  const switchCamera = React.useCallback(async () => {
+    if (!cameraActive || !isMobile) return;
+    
+    const newFacingMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newFacingMode);
+    
+    // Останавливаем текущую камеру
+    await stopCamera();
+    
+    // Небольшая задержка перед запуском новой камеры
+    setTimeout(() => {
+      // Эффект автоматически перезапустится благодаря изменению facingMode
+    }, 300);
+  }, [cameraActive, facingMode, isMobile, stopCamera]);
+
   // Инициализация и управление камерой
   useEffect(() => {
     // Если режим камеры выключен или есть данные клиента, останавливаем камеру
@@ -155,7 +173,7 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
       try {
         // Проверка разрешений камеры
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
           stream.getTracks().forEach(track => track.stop());
           setCameraPermission('granted');
         } catch (permErr) {
@@ -185,23 +203,37 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
           disableFlip: false, // Разрешаем переворот для лучшего распознавания
         };
 
-        // Пробуем сначала заднюю камеру, потом любую доступную
+        // Получаем список доступных камер
         let cameraId = null;
         try {
           const devices = await Html5Qrcode.getCameras();
-          const backCamera = devices.find(device => 
-            device.label.toLowerCase().includes('back') || 
-            device.label.toLowerCase().includes('rear') ||
-            device.label.toLowerCase().includes('environment')
-          );
-          cameraId = backCamera ? backCamera.id : devices[0]?.id;
+          setAvailableCameras(devices);
+          
+          // Ищем камеру с нужным facingMode
+          if (facingMode === 'environment') {
+            // Ищем заднюю камеру
+            const backCamera = devices.find(device => 
+              device.label.toLowerCase().includes('back') || 
+              device.label.toLowerCase().includes('rear') ||
+              device.label.toLowerCase().includes('environment')
+            );
+            cameraId = backCamera ? backCamera.id : devices.find(d => d.id)?.id;
+          } else {
+            // Ищем переднюю камеру
+            const frontCamera = devices.find(device => 
+              device.label.toLowerCase().includes('front') || 
+              device.label.toLowerCase().includes('user') ||
+              device.label.toLowerCase().includes('facing')
+            );
+            cameraId = frontCamera ? frontCamera.id : devices.find(d => d.id)?.id;
+          }
         } catch (err) {
           // Игнорируем ошибки получения списка камер
         }
 
         const videoConstraints = cameraId 
           ? { deviceId: { exact: cameraId } }
-          : { facingMode: 'environment' };
+          : { facingMode };
 
         await html5QrCode.start(
           videoConstraints,
@@ -263,7 +295,7 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
       }
       stopCamera();
     };
-  }, [useCamera, customerData, handleScanWithToken, stopCamera, cameraActive, isMobile]);
+  }, [useCamera, customerData, handleScanWithToken, stopCamera, cameraActive, isMobile, facingMode]);
 
   // Обработка закрытия модального окна
   const handleClose = React.useCallback(async () => {
@@ -322,9 +354,20 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
                     </div>
                   )}
                   {cameraActive && !scanning && (
-                    <div className={styles.scanningHint}>
-                      <p>Наведите камеру на QR-код</p>
-                    </div>
+                    <>
+                      <div className={styles.scanningHint}>
+                        <p>Наведите камеру на QR-код</p>
+                      </div>
+                      {isMobile && availableCameras.length > 1 && (
+                        <button
+                          className={styles.switchCameraButton}
+                          onClick={switchCamera}
+                          title={facingMode === 'environment' ? 'Переключить на переднюю камеру' : 'Переключить на заднюю камеру'}
+                        >
+                          <FaSync />
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               ) : (
