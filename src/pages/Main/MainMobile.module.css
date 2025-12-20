@@ -629,7 +629,7 @@
 
   .sectionSubtitle {
     font-size: 0.875rem;
-  }
+}
 
   .productsGrid {
     grid-template-columns: repeat(2, 1fr);
