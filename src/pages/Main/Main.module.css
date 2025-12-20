@@ -1,5 +1,5 @@
 /* Main Page - Dark Theme */
-.main-page {
+.mainPage {
   padding-top: 0;
   min-height: 100vh;
   background: var(--onyx-midnight);
@@ -7,7 +7,7 @@
   overflow-x: hidden;
 }
 
-.main-page-container {
+.mainPageContainer {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
@@ -16,7 +16,7 @@
 }
 
 /* Hero Section */
-.hero-section {
+.heroSection {
   position: relative;
   min-height: 80vh;
   display: flex;
@@ -27,7 +27,7 @@
   background: transparent;
 }
 
-.hero-content {
+.heroContent {
   position: relative;
   text-align: center;
   max-width: 900px;
@@ -35,11 +35,11 @@
   animation: fadeInUp 1s ease-out;
 }
 
-.hero-title {
+.heroTitle {
   margin-bottom: 2rem;
 }
 
-.hero-title-main {
+.heroTitleMain {
   display: block;
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 800;
@@ -48,20 +48,20 @@
   letter-spacing: -0.02em;
 }
 
-.hero-title-main .text-type__content {
+.heroTitleMain :global(.text-type__content) {
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 50%, var(--imperial-gold) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.hero-title-main .text-type__cursor {
+.heroTitleMain :global(.text-type__cursor) {
   color: var(--royal-emerald);
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 800;
 }
 
-.hero-title-sub {
+.heroTitleSub {
   display: block;
   font-size: clamp(1.2rem, 3vw, 1.8rem);
   font-weight: 400;
@@ -69,7 +69,7 @@
   margin-top: 0.5rem;
 }
 
-.hero-description {
+.heroDescription {
   font-size: clamp(1rem, 2vw, 1.25rem);
   color: var(--palladium-mist);
   line-height: 1.8;
@@ -80,7 +80,7 @@
 }
 
 /* Search Bar */
-.search-bar {
+.searchBar {
   max-width: 600px;
   margin: 2rem auto 0;
   position: relative;
@@ -88,7 +88,7 @@
   align-items: center;
 }
 
-.search-bar input {
+.searchBar input {
   width: 100%;
   padding: 1rem 1.5rem;
   border-radius: 50px;
@@ -101,16 +101,16 @@
   padding-right: 140px;
 }
 
-.search-bar input:focus {
+.searchBar input:focus {
   border-color: var(--royal-emerald);
   box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
 }
 
-.search-bar input::placeholder {
+.searchBar input::placeholder {
   color: var(--palladium-mist);
 }
 
-.search-bar button {
+.searchBar button {
   position: absolute;
   right: 5px;
   top: 5px;
@@ -128,18 +128,28 @@
   gap: 0.5rem;
 }
 
-.search-bar button:hover {
+.searchBar button:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(45, 175, 159, 0.3);
 }
 
+/* Advertisement Logos Section */
+.advertisementLogosSection {
+  padding: 3rem 0;
+  background: var(--onyx-midnight);
+  max-width: 100%;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  overflow: hidden;
+}
+
 /* Services Carousel */
-.services-section {
+.servicesSection {
   padding: 4rem 0;
   position: relative;
 }
 
-.services-carousel-wrapper {
+.servicesCarouselWrapper {
   position: relative;
   width: 100%;
   display: flex;
@@ -147,19 +157,19 @@
   gap: 1rem;
 }
 
-.services-carousel-container {
+.servicesCarouselContainer {
   flex: 1;
   overflow: hidden;
   position: relative;
 }
 
-.services-carousel {
+.servicesCarousel {
   display: flex;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
 }
 
-.services-page {
+.servicesPage {
   min-width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -168,7 +178,7 @@
   box-sizing: border-box;
 }
 
-.service-card {
+.serviceCard {
   position: relative;
   background: var(--obsidian-elite);
   border-radius: 20px;
@@ -183,17 +193,15 @@
   box-sizing: border-box;
 }
 
-
-
-.service-card:hover .service-card-background {
+.serviceCard:hover .serviceCardBackground {
   opacity: 0.1;
 }
 
-.service-card:hover .service-icon {
+.serviceCard:hover .serviceIcon {
   transform: scale(1.1) rotate(5deg);
 }
 
-.service-card-background {
+.serviceCardBackground {
   position: absolute;
   top: 0;
   right: 0;
@@ -205,31 +213,31 @@
   filter: blur(60px);
 }
 
-.marketplace-gradient .service-card-background {
+.marketplaceGradient .serviceCardBackground {
   background: radial-gradient(circle, var(--royal-emerald) 0%, transparent 70%);
 }
 
-.restaurants-gradient .service-card-background {
+.restaurantsGradient .serviceCardBackground {
   background: radial-gradient(circle, var(--imperial-gold) 0%, transparent 70%);
 }
 
-.business-gradient .service-card-background {
+.businessGradient .serviceCardBackground {
   background: radial-gradient(circle, var(--luminous-sapphire) 0%, transparent 70%);
 }
 
-.trc-gradient .service-card-background {
+.trcGradient .serviceCardBackground {
   background: radial-gradient(circle, var(--imperial-gold) 0%, transparent 70%);
 }
 
-.business-solutions-gradient .service-card-background {
+.businessSolutionsGradient .serviceCardBackground {
   background: radial-gradient(circle, var(--royal-emerald) 0%, transparent 70%);
 }
 
-.item-route-gradient .service-card-background {
+.itemRouteGradient .serviceCardBackground {
   background: radial-gradient(circle, var(--luminous-sapphire) 0%, transparent 70%);
 }
 
-.service-card-content {
+.serviceCardContent {
   position: relative;
   z-index: 1;
   flex: 1;
@@ -238,7 +246,7 @@
   justify-content: space-between;
 }
 
-.service-icon {
+.serviceIcon {
   width: 70px;
   height: 70px;
   border-radius: 16px;
@@ -250,50 +258,50 @@
   transition: all 0.3s;
 }
 
-.marketplace-gradient .service-icon {
+.marketplaceGradient .serviceIcon {
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(45, 175, 159, 0.3);
 }
 
-.restaurants-gradient .service-icon {
+.restaurantsGradient .serviceIcon {
   background: linear-gradient(135deg, var(--imperial-gold) 0%, rgba(212, 175, 55, 0.8) 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
 }
 
-.business-gradient .service-icon {
+.businessGradient .serviceIcon {
   background: linear-gradient(135deg, var(--luminous-sapphire) 0%, rgba(58, 93, 168, 0.8) 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(58, 93, 168, 0.3);
 }
 
-.trc-gradient .service-icon {
+.trcGradient .serviceIcon {
   background: linear-gradient(135deg, var(--imperial-gold) 0%, rgba(212, 175, 55, 0.8) 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
 }
 
-.business-solutions-gradient .service-icon {
+.businessSolutionsGradient .serviceIcon {
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(45, 175, 159, 0.3);
 }
 
-.item-route-gradient .service-icon {
+.itemRouteGradient .serviceIcon {
   background: linear-gradient(135deg, var(--luminous-sapphire) 0%, rgba(58, 93, 168, 0.8) 100%);
   color: white;
   box-shadow: 0 8px 24px rgba(58, 93, 168, 0.3);
 }
 
-.service-title {
+.serviceTitle {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--platinum-gleam);
   margin-bottom: 0.75rem;
 }
 
-.service-description {
+.serviceDescription {
   font-size: 0.95rem;
   color: var(--silver-whisper);
   line-height: 1.5;
@@ -301,11 +309,12 @@
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.service-link {
+.serviceLink {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -318,19 +327,19 @@
   padding-top: 1rem;
 }
 
-.service-link:hover {
+.serviceLink:hover {
   gap: 0.75rem;
   color: var(--luminous-sapphire);
 }
 
-.service-link.coming-soon {
+.serviceLinkComingSoon {
   color: var(--palladium-mist);
   cursor: not-allowed;
   margin-top: auto;
   padding-top: 1rem;
 }
 
-.service-card-overlay {
+.serviceCardOverlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -343,8 +352,8 @@
 }
 
 /* Carousel Controls */
-.carousel-indicators {
-  display: flex;
+.carouselIndicators {
+  display: none; /* Скрываем индикаторы карусели */
   justify-content: center;
   gap: 0.75rem;
   margin-top: 2.5rem;
@@ -353,7 +362,7 @@
   width: 100%;
 }
 
-.carousel-indicator {
+.carouselIndicator {
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -361,15 +370,16 @@
   cursor: pointer;
   transition: all 0.3s;
   padding: 0;
+  border: none;
 }
 
-.carousel-indicator.active {
+.carouselIndicatorActive {
   background: var(--royal-emerald);
   width: 32px;
   border-radius: 6px;
 }
 
-.carousel-nav {
+.carouselNav {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -386,24 +396,24 @@
   flex-shrink: 0;
 }
 
-.carousel-nav:hover:not(:disabled) {
+.carouselNav:hover:not(:disabled) {
   border-color: var(--royal-emerald);
   background: var(--phantom-noir);
   transform: scale(1.1);
 }
 
-.carousel-nav:disabled {
+.carouselNav:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 
 /* Marketplace Section */
-.marketplace-section {
+.marketplaceSection {
   padding: 4rem 0;
   position: relative;
 }
 
-.section-header {
+.sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -412,11 +422,11 @@
   gap: 1.5rem;
 }
 
-.section-header-content {
+.sectionHeaderContent {
   flex: 1;
 }
 
-.section-title {
+.sectionTitle {
   font-size: clamp(2rem, 4vw, 2.5rem);
   font-weight: 700;
   color: var(--platinum-gleam);
@@ -426,7 +436,7 @@
   gap: 1rem;
 }
 
-.section-title-icon {
+.sectionTitleIcon {
   width: 50px;
   height: 50px;
   border-radius: 12px;
@@ -438,14 +448,14 @@
   font-size: 1.25rem;
 }
 
-.section-subtitle {
+.sectionSubtitle {
   font-size: 1.1rem;
   color: var(--silver-whisper);
   margin: 0;
   max-width: 600px;
 }
 
-.section-view-all {
+.sectionViewAll {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -459,27 +469,27 @@
   transition: all 0.3s;
 }
 
-.section-view-all:hover {
+.sectionViewAll:hover {
   background: var(--phantom-noir);
   border-color: var(--royal-emerald);
   gap: 0.75rem;
   transform: translateX(-2px);
 }
 
-.products-grid {
+.productsGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
 }
 
-.loader-container {
+.loaderContainer {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 400px;
 }
 
-.error-message {
+.errorMessage {
   text-align: center;
   padding: 3rem;
   color: var(--velvet-ruby);
@@ -492,17 +502,17 @@
   gap: 1rem;
 }
 
-.error-message i {
+.errorMessage i {
   font-size: 3rem;
   opacity: 0.7;
 }
 
-.error-message p {
+.errorMessage p {
   margin: 0;
   font-size: 1.1rem;
 }
 
-.no-products {
+.noProducts {
   text-align: center;
   padding: 4rem 2rem;
   color: var(--palladium-mist);
@@ -515,97 +525,14 @@
   gap: 1rem;
 }
 
-.no-products i {
+.noProducts i {
   font-size: 3rem;
   opacity: 0.5;
 }
 
-.no-products p {
+.noProducts p {
   margin: 0;
   font-size: 1.2rem;
-}
-
-/* Advertisement Section */
-.advertisement-section {
-  padding: 4rem 0;
-  position: relative;
-}
-
-.advertisement-card {
-  position: relative;
-  background: var(--obsidian-elite);
-  border-radius: 24px;
-  padding: 4rem;
-  overflow: hidden;
-  border: 1px solid var(--gilded-shadow);
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.advertisement-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(45, 175, 159, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(58, 93, 168, 0.05) 0%, transparent 50%);
-  opacity: 0.5;
-}
-
-.advertisement-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  max-width: 500px;
-}
-
-.advertisement-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  font-size: 2.5rem;
-  color: white;
-  box-shadow: 0 8px 24px rgba(45, 175, 159, 0.3);
-}
-
-.advertisement-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--platinum-gleam);
-  margin-bottom: 0.75rem;
-}
-
-.advertisement-text {
-  font-size: 1.1rem;
-  color: var(--silver-whisper);
-  margin-bottom: 2rem;
-}
-
-.advertisement-button {
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
-  color: white;
-  border: none;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 8px 24px rgba(45, 175, 159, 0.3);
-}
-
-.advertisement-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(45, 175, 159, 0.4);
 }
 
 /* Animations */
@@ -631,96 +558,88 @@
 
 /* Responsive Design */
 @media (max-width: 1400px) {
-  .products-grid {
+  .productsGrid {
     grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
   }
 }
 
 @media (max-width: 1200px) {
-  .products-grid {
+  .productsGrid {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
   }
 
-  .services-page {
+  .servicesPage {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .main-page-container {
+  .mainPageContainer {
     padding: 0 1.5rem;
   }
 
-  .hero-section {
+  .heroSection {
     min-height: 70vh;
     padding: 4rem 0;
   }
 
-  .search-bar {
+  .searchBar {
     max-width: 100%;
   }
 
-  .search-bar input {
+  .searchBar input {
     padding-right: 120px;
     font-size: 0.9rem;
   }
 
-  .search-bar button {
+  .searchBar button {
     padding: 0.7rem 1.2rem;
     font-size: 0.85rem;
   }
 
-  .services-section {
+  .servicesSection {
     padding: 3rem 0;
   }
 
-  .services-page {
+  .servicesPage {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
 
-  .service-card {
+  .serviceCard {
     aspect-ratio: 1;
     padding: 2rem;
   }
 
-  .services-carousel-wrapper {
+  .servicesCarouselWrapper {
     flex-direction: column;
     gap: 1rem;
   }
 
-  .carousel-nav {
+  .carouselNav {
     position: static;
     align-self: center;
   }
 
-  .marketplace-section,
-  .advertisement-section {
-    padding: 3rem 0;
-  }
-
-  .section-header {
+  .marketplaceSection,
+  .sectionHeader {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .section-view-all {
+  .sectionViewAll {
     width: 100%;
     justify-content: center;
   }
 
-  .products-grid {
+  .productsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 
-  .advertisement-card {
-    padding: 3rem 2rem;
-  }
-
-  .carousel-nav {
+  .carouselNav {
     width: 40px;
     height: 40px;
     font-size: 1rem;
@@ -728,44 +647,41 @@
 }
 
 @media (max-width: 480px) {
-  .hero-title-main {
+  .heroTitleMain {
     font-size: 2rem;
   }
 
-  .hero-title-sub {
+  .heroTitleSub {
     font-size: 1rem;
   }
 
-  .hero-description {
+  .heroDescription {
     font-size: 0.95rem;
   }
 
-  .search-bar input {
+  .searchBar input {
     padding: 0.9rem 1.2rem;
     padding-right: 100px;
   }
 
-  .search-bar button {
+  .searchBar button {
     padding: 0.6rem 1rem;
     font-size: 0.8rem;
   }
 
-  .service-card {
+  .serviceCard {
     padding: 1.5rem;
     min-height: 320px;
   }
 
-  .service-icon {
+  .serviceIcon {
     width: 60px;
     height: 60px;
     font-size: 1.8rem;
   }
 
-  .products-grid {
+  .productsGrid {
     grid-template-columns: 1fr;
   }
-
-  .advertisement-card {
-    padding: 2rem 1.5rem;
-  }
 }
+

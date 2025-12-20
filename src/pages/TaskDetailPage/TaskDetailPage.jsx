@@ -1,6 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
+import {
+  FaArrowLeft,
+  FaCalendar,
+  FaClock,
+  FaFileAlt,
+  FaTasks,
+  FaCheckSquare,
+  FaPaperclip,
+  FaComments,
+  FaInfoCircle,
+  FaCog,
+  FaEdit,
+  FaCheck,
+  FaExchangeAlt,
+  FaTrash,
+  FaTimes,
+  FaFile,
+  FaExternalLinkAlt,
+  FaPlus,
+  FaCaretDown,
+  FaMapMarkerAlt,
+  FaUser,
+  FaEnvelope,
+  FaPaperPlane
+} from 'react-icons/fa';
 import styles from './TaskDetailPage.module.css';
 import Loader from '../../components/Loader';
 import dayjs from 'dayjs';
@@ -370,7 +395,11 @@ const TaskDetailPage = () => {
     };
 
     if (loading) {
-        return <Loader />;
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Loader size="large" />
+            </div>
+        );
     }
 
     if (error || !task) {
@@ -383,7 +412,7 @@ const TaskDetailPage = () => {
                     className={styles.backButton}
                     onClick={() => navigate(`/business/${business_slug}/tasks`)}
                 >
-                    Вернуться к списку задач
+                    <FaArrowLeft /> Вернуться к списку задач
                 </button>
             </div>
         );
@@ -400,7 +429,7 @@ const TaskDetailPage = () => {
                     className={styles.backButtonHeader}
                     onClick={() => navigate(`/business/${business_slug}/tasks`)}
                 >
-                    <i className="fa fa-arrow-left"></i> Назад
+                    <FaArrowLeft /> Назад
                 </button>
                 <div className={styles.taskHeaderContent}>
                     <div className={styles.taskHeaderLeft}>
@@ -417,13 +446,13 @@ const TaskDetailPage = () => {
                     <div className={styles.taskHeaderRight}>
                         {task.created_at && (
                             <div className={styles.taskHeaderMeta}>
-                                <i className="fa fa-calendar"></i>
+                                <FaCalendar />
                                 <span>Создано: {formatDate(task.created_at)}</span>
                             </div>
                         )}
                         {task.due_date && (
                             <div className={styles.taskHeaderMeta}>
-                                <i className="fa fa-clock-o"></i>
+                                <FaClock />
                                 <span>Дедлайн: {formatDate(task.due_date)}</span>
                             </div>
                         )}
@@ -438,7 +467,7 @@ const TaskDetailPage = () => {
                     {task.description && (
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
-                                <i className="fa fa-file-text"></i>
+                                <FaFileAlt />
                                 <h3>Описание задачи</h3>
                             </div>
                             <div className={styles.cardBody}>
@@ -455,7 +484,7 @@ const TaskDetailPage = () => {
                     {progress.total > 0 && (
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
-                                <i className="fa fa-tasks"></i>
+                                <FaTasks />
                                 <h3>Прогресс выполнения</h3>
                             </div>
                             <div className={styles.cardBody}>
@@ -483,7 +512,7 @@ const TaskDetailPage = () => {
                     {/* Чек-лист */}
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
-                            <i className="fa fa-check-square"></i>
+                            <FaCheckSquare />
                             <h3>Чек-лист</h3>
                         </div>
                         <div className={styles.cardBody}>
@@ -506,7 +535,7 @@ const TaskDetailPage = () => {
                                             onClick={() => handleDeleteChecklistItem(item.id)}
                                             title="Удалить"
                                         >
-                                            <i className="fa fa-times"></i>
+                                            <FaTimes />
                                         </button>
                                     </div>
                                 ))}
@@ -534,7 +563,7 @@ const TaskDetailPage = () => {
                                     disabled={!newChecklistItem.trim() || savingChecklist}
                                     className={styles.checklistAddButton}
                                 >
-                                    {savingChecklist ? '...' : <i className="fa fa-plus"></i>}
+                                    {savingChecklist ? '...' : <FaPlus />}
                                 </button>
                             </div>
                         </div>
@@ -544,7 +573,7 @@ const TaskDetailPage = () => {
                     {task.files && task.files.length > 0 && (
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
-                                <i className="fa fa-paperclip"></i>
+                                <FaPaperclip />
                                 <h3>Вложения</h3>
                             </div>
                             <div className={styles.cardBody}>
@@ -557,9 +586,9 @@ const TaskDetailPage = () => {
                                             rel="noopener noreferrer"
                                             className={styles.fileItem}
                                         >
-                                            <i className="fa fa-file"></i>
+                                            <FaFile />
                                             <span>{file.name}</span>
-                                            <i className="fa fa-external-link"></i>
+                                            <FaExternalLinkAlt />
                                         </a>
                                     ))}
                                 </div>
@@ -570,7 +599,7 @@ const TaskDetailPage = () => {
                     {/* Комментарии */}
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
-                            <i className="fa fa-comments"></i>
+                            <FaComments />
                             <h3>Комментарии ({comments.length})</h3>
                         </div>
                         <div className={styles.cardBody}>
@@ -615,7 +644,7 @@ const TaskDetailPage = () => {
                                         disabled={!newComment.trim() || savingComment}
                                         className={styles.commentButton}
                                     >
-                                        <i className="fa fa-send"></i> Отправить
+                                        <FaPaperPlane /> Отправить
                                     </button>
                                 </div>
                             </div>
@@ -628,7 +657,7 @@ const TaskDetailPage = () => {
                     {/* Информация */}
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
-                            <i className="fa fa-info-circle"></i>
+                            <FaInfoCircle />
                             <h3>Информация</h3>
                         </div>
                         <div className={styles.cardBody}>
@@ -668,7 +697,7 @@ const TaskDetailPage = () => {
                                         onClick={() => setQuickEditType(quickEditType === 'priority' ? null : 'priority')}
                                     >
                                         {task.priority_display}
-                                        <i className="fa fa-caret-down" style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}></i>
+                                        <FaCaretDown style={{ marginLeft: '8px', fontSize: '12px' }} />
                                     </span>
                                     {quickEditType === 'priority' && (
                                         <div className={styles.quickEditDropdown} onClick={(e) => e.stopPropagation()}>
@@ -695,7 +724,7 @@ const TaskDetailPage = () => {
                                         onClick={() => setQuickEditType(quickEditType === 'status' ? null : 'status')}
                                     >
                                         {task.status_display}
-                                        <i className="fa fa-caret-down" style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}></i>
+                                        <FaCaretDown style={{ marginLeft: '8px', fontSize: '12px' }} />
                                     </span>
                                     {quickEditType === 'status' && (
                                         <div className={styles.quickEditDropdown} onClick={(e) => e.stopPropagation()}>
@@ -718,7 +747,7 @@ const TaskDetailPage = () => {
                                 <div className={styles.infoItem}>
                                     <label>Локация:</label>
                                     <span className={styles.infoValue}>
-                                        <i className="fa fa-map-marker"></i> {location.name}
+                                        <FaMapMarkerAlt /> {location.name}
                                     </span>
                                 </div>
                             )}
@@ -737,7 +766,7 @@ const TaskDetailPage = () => {
                     {/* Действия */}
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
-                            <i className="fa fa-cog"></i>
+                            <FaCog />
                             <h3>Действия</h3>
                         </div>
                         <div className={styles.cardBody}>
@@ -746,27 +775,27 @@ const TaskDetailPage = () => {
                                     className={styles.actionButton}
                                     onClick={handleEditTask}
                                 >
-                                    <i className="fa fa-pencil"></i> Редактировать задачу
+                                    <FaEdit /> Редактировать задачу
                                 </button>
                                 {task.status !== 'done' && (
                                     <button 
                                         className={styles.actionButtonSuccess}
                                         onClick={handleCompleteTask}
                                     >
-                                        <i className="fa fa-check"></i> Завершить задачу
+                                        <FaCheck /> Завершить задачу
                                     </button>
                                 )}
                                 <button 
                                     className={styles.actionButtonWarning}
                                     onClick={handleTransferTask}
                                 >
-                                    <i className="fa fa-exchange"></i> Передать задачу
+                                    <FaExchangeAlt /> Передать задачу
                                 </button>
                                 <button 
                                     className={styles.actionButtonDanger}
                                     onClick={handleDeleteTask}
                                 >
-                                    <i className="fa fa-trash"></i> Удалить задачу
+                                    <FaTrash /> Удалить задачу
                                 </button>
                             </div>
                         </div>
@@ -784,7 +813,7 @@ const TaskDetailPage = () => {
                                 className={styles.modalClose}
                                 onClick={() => setEditModalOpen(false)}
                             >
-                                <i className="fa fa-times"></i>
+                                <FaTimes />
                             </button>
                         </div>
                         <div className={styles.modalBody}>
@@ -909,7 +938,7 @@ const TaskDetailPage = () => {
                                 className={styles.modalClose}
                                 onClick={() => setTransferModalOpen(false)}
                             >
-                                <i className="fa fa-times"></i>
+                                <FaTimes />
                             </button>
                         </div>
                         <div className={styles.modalBody}>

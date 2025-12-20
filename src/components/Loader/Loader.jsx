@@ -1,18 +1,29 @@
 import React from 'react';
 import styles from './Loader.module.css';
+import logoIcon from '../../assets/logo.svg';
 
 const Loader = ({ size = 'medium', className = '' }) => {
   const sizeClass = styles[`loader-${size}`];
   
   return (
     <div className={`${styles.loaderContainer} ${className}`}>
-      <div className={`${styles.loader} ${sizeClass}`}>
-        <div className={`${styles.segment} ${styles.yellow}`}></div>
-        <div className={`${styles.segment} ${styles.orange}`}></div>
-        <div className={`${styles.segment} ${styles.red}`}></div>
-        <div className={`${styles.segment} ${styles.purple}`}></div>
-        <div className={`${styles.segment} ${styles.blue}`}></div>
-        <div className={styles.centerGlow}></div>
+      <div className={`${styles.loaderWrapper} ${sizeClass}`}>
+        {/* Вращающееся кольцо с градиентом */}
+        <div className={styles.rotatingRing}>
+          <div className={styles.ringSegment}></div>
+          <div className={styles.ringSegment}></div>
+          <div className={styles.ringSegment}></div>
+        </div>
+        
+        {/* Логотип в центре с пульсацией */}
+        <div className={styles.logoContainer}>
+          <img 
+            src={logoIcon} 
+            alt="Loading" 
+            className={styles.logo}
+          />
+          <div className={styles.logoGlow}></div>
+        </div>
       </div>
     </div>
   );

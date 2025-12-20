@@ -6,23 +6,44 @@ import { useState, useEffect } from 'react';
  * @returns {boolean} - true если устройство мобильное
  */
 export const useIsMobile = (breakpoint = 768) => {
-  const [isMobile, setIsMobile] = useState(false);
+  // Инициализируем с правильным значением сразу, если window доступен
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= breakpoint;
+    }
+    return false;
+  });
 
   useEffect(() => {
-    const checkIsMobile = () => {
-      const isMobileDevice = window.innerWidth <= breakpoint;
-      setIsMobile(isMobileDevice);
+    if (typeof window === 'undefined') return;
+
+    // Используем matchMedia для более надежного определения
+    const mediaQuery = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    
+    // Функция для обновления состояния
+    const updateIsMobile = (e) => {
+      setIsMobile(e.matches);
     };
 
-    // Проверяем при монтировании
-    checkIsMobile();
+    // Устанавливаем начальное значение
+    setIsMobile(mediaQuery.matches);
 
-    // Добавляем слушатель изменения размера окна
-    window.addEventListener('resize', checkIsMobile);
+    // Добавляем слушатель изменений
+    // Современные браузеры поддерживают addEventListener
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', updateIsMobile);
+    } else {
+      // Fallback для старых браузеров
+      mediaQuery.addListener(updateIsMobile);
+    }
 
     // Очищаем слушатель при размонтировании
     return () => {
-      window.removeEventListener('resize', checkIsMobile);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', updateIsMobile);
+      } else {
+        mediaQuery.removeListener(updateIsMobile);
+      }
     };
   }, [breakpoint]);
 

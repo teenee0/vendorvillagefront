@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import { useFileUtils } from '../../hooks/useFileUtils';
 import {
@@ -17,11 +17,17 @@ import {
     FaMinus,
     FaChevronLeft,
     FaChevronRight,
-    FaPercentage
+    FaPercentage,
+    FaChevronDown,
+    FaChevronUp,
+    FaQrcode,
+    FaGift
 } from 'react-icons/fa';
+import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
 import { openReceiptPdf, printReceiptPdf } from '../../utils/printUtils';
 import styles from './SalesPage.module.css';
 import Loader from '../../components/Loader';
+import QRScanner from '../../components/QRScanner/QRScanner';
 
 // Компонент поиска для селектора
 const SearchableSelect = ({
@@ -176,17 +182,29 @@ const SearchableSelect = ({
 
 const SalesPage = () => {
     const { business_slug } = useParams();
+    const navigate = useNavigate();
     const { getFileUrl } = useFileUtils();
     const [cart, setCart] = useState([]);
+    const [cart2, setCart2] = useState([]); // Вторая корзина
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedVariant, setSelectedVariant] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(''); // Текущее значение в поле ввода
+    const [activeSearchQuery, setActiveSearchQuery] = useState(''); // Активный поисковый запрос для API
     const [selectedCategory, setSelectedCategory] = useState('');
     const [inStockOnly, setInStockOnly] = useState(true); // Фильтр "Есть в наличии"
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [showQRScanner, setShowQRScanner] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [bonusSettings, setBonusSettings] = useState(null);
+    const [bonusPercentOverride, setBonusPercentOverride] = useState(null);
+    const [bonusAccrualMode, setBonusAccrualMode] = useState('tier'); // 'tier' или 'settings'
+    const [bonusRedemptionPercent, setBonusRedemptionPercent] = useState(0);
+    const [bonusRedemptionAmount, setBonusRedemptionAmount] = useState(0);
+    const [bonusRedemptionType, setBonusRedemptionType] = useState('percent');
+    const [showBonusRedemption, setShowBonusRedemption] = useState(false);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -194,17 +212,25 @@ const SalesPage = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [paymentMethods, setPaymentMethods] = useState([]);
     const [showDiscountModal, setShowDiscountModal] = useState(false);
+    const [discountModalCart, setDiscountModalCart] = useState(1); // В какую корзину применяется скидка
     const [discountType, setDiscountType] = useState('percent');
     const [discountValue, setDiscountValue] = useState(0);
+    const [discountValue2, setDiscountValue2] = useState(0); // Скидка для второй корзины
+    const [discountType2, setDiscountType2] = useState('percent');
     const [showItemDiscountModal, setShowItemDiscountModal] = useState(false);
     const [currentItemForDiscount, setCurrentItemForDiscount] = useState(null);
+    const [currentItemCartNumber, setCurrentItemCartNumber] = useState(1); // В какой корзине товар для скидки
     const [itemDiscountType, setItemDiscountType] = useState('percent');
     const [itemDiscountValue, setItemDiscountValue] = useState(0);
     const [saleCompleted, setSaleCompleted] = useState(false);
     const [salePosting, setSalePosting] = useState(false);
     const [receiptData, setReceiptData] = useState(null);
+    const [activeCartForSale, setActiveCartForSale] = useState(1); // Какая корзина используется для продажи
     const [scannerActive, setScannerActive] = useState(false); // подсветка режима
+    const [isScanning, setIsScanning] = useState(false); // флаг активного сканирования
     const searchInputRef = useRef(null); // ссылка на поле ввода
+    const scanTimeoutRef = useRef(null); // таймер для автоматического поиска при сканировании
+    const skipNextFetchRef = useRef(false); // флаг для пропуска следующего запроса (при очистке после сканирования)
     
     // Состояния для локаций
     const [locations, setLocations] = useState([]);
@@ -214,6 +240,7 @@ const SalesPage = () => {
     // Состояния для партий и FIFO - теперь для каждого товара
     const [itemFifoStates, setItemFifoStates] = useState({}); // {variantId: boolean}
     const [showFifoTooltip, setShowFifoTooltip] = useState(null); // variantId товара для которого показываем тултип
+    const [expandedAttributes, setExpandedAttributes] = useState(new Set()); // Set с ID вариантов, у которых раскрыты атрибуты
 
     // Fetch locations
     const fetchLocations = useCallback(async () => {
@@ -236,25 +263,70 @@ const SalesPage = () => {
         }
     }, [business_slug]);
 
+    // Fetch bonus settings for location
+    const fetchBonusSettings = useCallback(async () => {
+        if (!selectedLocation) return;
+        try {
+            const response = await axios.get(
+                `api/business/${business_slug}/bonus-settings/?location=${selectedLocation}`
+            );
+            setBonusSettings(response.data);
+        } catch (err) {
+            console.error('Failed to fetch bonus settings:', err);
+            setBonusSettings(null);
+        }
+    }, [business_slug, selectedLocation]);
+
     // Fetch products from API
     const fetchProducts = useCallback(async () => {
         if (!selectedLocation) {
             return; // Не загружаем товары без выбранной локации
         }
         
+        // Пропускаем запрос только если это автоматическая очистка после сканирования
+        // (когда activeSearchQuery становится пустым после успешного сканирования)
+        if (skipNextFetchRef.current && scannerActive && !activeSearchQuery) {
+            skipNextFetchRef.current = false;
+            return;
+        }
+        // Сбрасываем флаг в любом случае после проверки
+        skipNextFetchRef.current = false;
+        
         try {
             setLoading(true);
+            setError(null); // Сбрасываем предыдущие ошибки
+            
+            // Убеждаемся, что location передается как строка (API ожидает строку)
             const params = {
-                location: selectedLocation // Обязательный параметр
+                location: String(selectedLocation) // Обязательный параметр, преобразуем в строку
             };
-            if (searchQuery) params.search = searchQuery;
+            if (activeSearchQuery) params.search = activeSearchQuery;
             if (selectedCategory) params.category = selectedCategory;
             if (inStockOnly) params.in_stock = 'true'; // Фильтр "Есть в наличии"
 
+            console.log('Fetching products with params:', params); // Логирование для отладки
+            
             const response = await axios.get(`/api/business/${business_slug}/sales-products/`, { params });
-            setProducts(response.data.products);
+            
+            console.log('Products response:', response.data); // Логирование для отладки
+            
+            setProducts(response.data.products || []);
             setLoading(false);
-            if (scannerActive) setSearchQuery('');
+            
+            // В режиме сканера после получения результатов очищаем поле и возвращаем фокус
+            if (scannerActive) {
+                // Устанавливаем флаг чтобы пропустить следующий запрос (который будет вызван при очистке activeSearchQuery)
+                skipNextFetchRef.current = true;
+                setSearchQuery('');
+                setActiveSearchQuery('');
+                setIsScanning(false);
+                // Возвращаем фокус на поле ввода для следующего сканирования
+                setTimeout(() => {
+                    if (searchInputRef.current) {
+                        searchInputRef.current.focus();
+                    }
+                }, 100);
+            }
         } catch (err) {
             if (err.response?.data?.error === 'location_required') {
                 setError('Пожалуйста, выберите локацию');
@@ -262,15 +334,77 @@ const SalesPage = () => {
                 setError(err.message);
             }
             setLoading(false);
+            // В режиме сканера даже при ошибке очищаем поле
+            if (scannerActive) {
+                skipNextFetchRef.current = true;
+                setSearchQuery('');
+                setActiveSearchQuery('');
+                setIsScanning(false);
+                setTimeout(() => {
+                    if (searchInputRef.current) {
+                        searchInputRef.current.focus();
+                    }
+                }, 100);
+            }
         }
-    }, [business_slug, searchQuery, selectedCategory, selectedLocation, scannerActive, inStockOnly]);
+    }, [business_slug, activeSearchQuery, selectedCategory, selectedLocation, scannerActive, inStockOnly]);
 
     const handleSearch = async () => {
-        await fetchProducts();
-        if (scannerActive && searchInputRef.current) {
-            searchInputRef.current.focus();
+        // Сбрасываем флаг пропуска (пользователь явно нажал кнопку поиска)
+        skipNextFetchRef.current = false;
+        setActiveSearchQuery(searchQuery); // Устанавливаем активный запрос из поля ввода (может быть пустым)
+        if (scannerActive) {
+            setIsScanning(true);
         }
-        setSearchQuery('');
+        // fetchProducts вызовется автоматически через useEffect
+    };
+
+    // Обработка ввода в режиме сканера
+    const handleScannerInput = (e) => {
+        const value = e.target.value;
+        const previousLength = searchQuery.length;
+        
+        // Если в режиме сканера и длина текста значительно уменьшилась (начался новый ввод)
+        // Это означает что пользователь начал сканировать новый штрих-код
+        if (scannerActive && previousLength > 0 && value.length < previousLength && value.length < 5) {
+            // Начался новый ввод - очищаем предыдущий запрос
+            setActiveSearchQuery('');
+            setIsScanning(false);
+            // Очищаем таймер если был
+            if (scanTimeoutRef.current) {
+                clearTimeout(scanTimeoutRef.current);
+                scanTimeoutRef.current = null;
+            }
+        }
+        
+        setSearchQuery(value);
+        
+        // В режиме сканера автоматически отправляем запрос при достижении длины штрих-кода (13 символов)
+        if (scannerActive && value.length >= 13) {
+            // Очищаем предыдущий таймер
+            if (scanTimeoutRef.current) {
+                clearTimeout(scanTimeoutRef.current);
+            }
+            // Автоматически отправляем запрос через небольшую задержку (на случай если сканер еще вводит)
+            const barcodeValue = value; // Сохраняем значение для использования в таймере
+            scanTimeoutRef.current = setTimeout(() => {
+                // Проверяем что значение все еще актуально (не изменилось)
+                if (searchInputRef.current && searchInputRef.current.value === barcodeValue && barcodeValue.length >= 13) {
+                    setActiveSearchQuery(barcodeValue);
+                    setIsScanning(true);
+        }
+            }, 150);
+        }
+    };
+
+    // Обработка нажатия клавиш в режиме сканера
+    const handleScannerKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (searchQuery.trim()) {
+                handleSearch();
+            }
+        }
     };
 
     // Fetch categories
@@ -322,12 +456,46 @@ const SalesPage = () => {
         fetchPaymentMethods();
     }, [fetchLocations, fetchCategories, fetchPaymentMethods]);
 
-    // Загружаем товары когда выбрана локация
+    // Загружаем товары когда выбрана локация или изменился активный поисковый запрос
     useEffect(() => {
         if (selectedLocation) {
+            // Сбрасываем флаг пропуска при изменении локации или других фильтров
+            skipNextFetchRef.current = false;
             fetchProducts();
+        } else {
+            // Если локация не выбрана, очищаем список товаров
+            setProducts([]);
         }
-    }, [selectedLocation, fetchProducts]);
+    }, [selectedLocation, activeSearchQuery, selectedCategory, inStockOnly, fetchProducts]);
+
+    // Загружаем настройки бонусов при изменении локации
+    useEffect(() => {
+        fetchBonusSettings();
+    }, [fetchBonusSettings]);
+
+    // При активации/деактивации сканера управляем фокусом
+    useEffect(() => {
+        if (scannerActive) {
+            // При активации сканера очищаем поле и устанавливаем фокус
+            skipNextFetchRef.current = true; // Пропускаем запрос при очистке
+            setSearchQuery('');
+            setActiveSearchQuery('');
+            setIsScanning(false);
+            setTimeout(() => {
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus();
+                }
+            }, 100);
+        } else {
+            // При деактивации очищаем таймер
+            if (scanTimeoutRef.current) {
+                clearTimeout(scanTimeoutRef.current);
+                scanTimeoutRef.current = null;
+            }
+            setIsScanning(false);
+            skipNextFetchRef.current = false;
+        }
+    }, [scannerActive]);
 
 
     const handleActivateScanner = () => {
@@ -338,7 +506,9 @@ const SalesPage = () => {
     };
 
     // Add to cart function
-    const addToCart = (product, variant) => {
+    const addToCart = (product, variant, targetCart = 1) => {
+        const targetCartState = targetCart === 1 ? cart : cart2;
+        const setTargetCart = targetCart === 1 ? setCart : setCart2;
         // Используем доступное количество в выбранной локации
         // Используем ?? вместо || чтобы 0 не считался falsy значением
         const availableQty = variant.available_quantity_in_location ?? 0;
@@ -353,7 +523,7 @@ const SalesPage = () => {
             return;
         }
 
-        setCart(prevCart => {
+        setTargetCart(prevCart => {
             const existingItem = prevCart.find(
                 item => item.variantId === variant.id && item.productId === product.id
             );
@@ -483,49 +653,145 @@ const SalesPage = () => {
         });
     };
 
-    // Calculate subtotal (without discounts)
-    const calculateSubtotal = () => {
-        return cart.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
+    // Calculate subtotal (without discounts) for specific cart
+    const calculateSubtotal = (currentCart) => {
+        return currentCart.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0);
     };
 
-    // Calculate total with discounts
-    const calculateTotal = () => {
+    // Calculate total with discounts for specific cart
+    const calculateTotal = (currentCart, currentDiscountValue = discountValue, currentDiscountType = discountType) => {
         // Сначала считаем сумму с учетом всех скидок на товары
-        const itemsTotal = cart.reduce((sum, item) => {
+        const itemsTotal = currentCart.reduce((sum, item) => {
             return sum + (calculateItemPrice(item) * item.quantity);
         }, 0);
 
         // Затем применяем общую скидку на чек (если есть)
         let total = itemsTotal;
-        if (discountType === 'percent' && discountValue > 0) {
-            total = total * (1 - discountValue / 100);
-        } else if (discountType === 'amount' && discountValue > 0) {
-            total = Math.max(0, total - discountValue);
+        if (currentDiscountType === 'percent' && currentDiscountValue > 0) {
+            total = total * (1 - currentDiscountValue / 100);
+        } else if (currentDiscountType === 'amount' && currentDiscountValue > 0) {
+            total = Math.max(0, total - currentDiscountValue);
         }
 
         return Math.round(total);
     };
-    // Calculate total discount amount
-    const calculateTotalDiscount = () => {
-        const subtotal = calculateSubtotal();
-        return subtotal - calculateTotal();
+
+    // Calculate total with discounts and bonus redemption
+    const calculateTotalWithBonuses = (currentCart, currentDiscountValue = discountValue, currentDiscountType = discountType) => {
+        // Сначала получаем сумму после всех скидок
+        let total = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
+        
+        // Вычитаем списанные бонусы (если есть)
+        if (selectedCustomer && bonusRedemptionType && showBonusRedemption) {
+            let bonusRedeemed = 0;
+            const customerBalance = parseFloat(selectedCustomer.balance || 0);
+            
+            if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
+                bonusRedeemed = customerBalance * bonusRedemptionPercent / 100;
+            } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
+                bonusRedeemed = bonusRedemptionAmount;
+            }
+            
+            // Нельзя списать больше, чем итоговая сумма покупки
+            bonusRedeemed = Math.min(bonusRedeemed, total);
+            
+            // Вычитаем бонусы из итоговой суммы
+            total = total - bonusRedeemed;
+        }
+        
+        // Итоговая сумма не может быть отрицательной
+        return Math.max(0, Math.round(total));
+    };
+    // Calculate total discount amount for specific cart
+    const calculateTotalDiscount = (currentCart, currentDiscountValue = discountValue, currentDiscountType = discountType) => {
+        const subtotal = calculateSubtotal(currentCart);
+        return subtotal - calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
+    };
+
+    // Calculate bonus prediction
+    const calculateBonusPrediction = (currentCart, currentDiscountValue = discountValue, currentDiscountType = discountType) => {
+        if (!selectedCustomer || !bonusSettings || !bonusSettings.is_enabled) {
+            return null;
+        }
+
+        const total = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
+        
+        // Проверяем минимальную сумму покупки
+        if (total < parseFloat(bonusSettings.min_purchase_amount || 0)) {
+            return null;
+        }
+
+        // Определяем процент начисления в зависимости от режима
+        let bonusPercent = 0;
+        
+        // Если процент фиксированный, всегда используем настройки (если нет переопределения)
+        if (bonusSettings.is_fixed_percent && bonusPercentOverride === null) {
+            bonusPercent = parseFloat(bonusSettings.bonus_percent || 0);
+        } else if (bonusPercentOverride !== null) {
+            // Если вручную указан процент, используем его
+            bonusPercent = parseFloat(bonusPercentOverride);
+        } else if (bonusAccrualMode === 'tier' && selectedCustomer.tier?.bonus_percent) {
+            // Используем процент из tier системы
+            bonusPercent = parseFloat(selectedCustomer.tier.bonus_percent);
+        } else if (bonusAccrualMode === 'settings') {
+            // Явно используем процент из общих настроек
+            bonusPercent = parseFloat(bonusSettings.bonus_percent || 0);
+        } else {
+            // Fallback: используем процент из общих настроек
+            bonusPercent = parseFloat(bonusSettings.bonus_percent || 0);
+        }
+
+        // Рассчитываем начисление бонусов
+        let bonusAccrual = total * bonusPercent / 100;
+
+        // Применяем лимиты
+        if (bonusSettings.max_bonus_percent) {
+            const maxByPercent = total * parseFloat(bonusSettings.max_bonus_percent) / 100;
+            bonusAccrual = Math.min(bonusAccrual, maxByPercent);
+        }
+
+        if (bonusSettings.max_bonus_amount) {
+            bonusAccrual = Math.min(bonusAccrual, parseFloat(bonusSettings.max_bonus_amount));
+        }
+
+        return Math.max(0, bonusAccrual);
     };
 
     // Complete sale
     const completeSale = async () => {
         if (salePosting) return;        // уже жмут второй раз
         
+        const currentCart = activeCartForSale === 1 ? cart : cart2;
+        const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
+        const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
+        
         // Проверяем, что для всех товаров с выключенным FIFO выбрана партия
-        const itemsWithoutBatch = cart.filter(item => item.useFifo === false && !item.batchId);
+        const itemsWithoutBatch = currentCart.filter(item => item.useFifo === false && !item.batchId);
         if (itemsWithoutBatch.length > 0) {
             alert('Для товаров с выключенным FIFO необходимо выбрать партию');
             return;
         }
         
+        // Проверяем валидность списания бонусов перед отправкой
+        if (selectedCustomer) {
+            const customerBalance = parseFloat(selectedCustomer.balance || 0);
+            if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > customerBalance) {
+                alert(`Недостаточно бонусов для списания. Доступно: ${customerBalance.toFixed(2)} баллов`);
+                return;
+            }
+            if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
+                const redemptionAmount = customerBalance * bonusRedemptionPercent / 100;
+                if (redemptionAmount > customerBalance) {
+                    alert(`Недостаточно бонусов для списания. Доступно: ${customerBalance.toFixed(2)} баллов`);
+                    return;
+                }
+            }
+        }
+        
         setSalePosting(true);
         try {
             const saleData = {
-                items: cart.map(item => {
+                items: currentCart.map(item => {
                     const unitDisplay = item.unitDisplay || 'шт.';
                     const isPieces = unitDisplay === 'шт.';
                     
@@ -552,11 +818,15 @@ const SalesPage = () => {
                     return itemData;
                 }),
                 payment_method: paymentMethod,
-                customer: null,
-                customer_name: customerName || null,
+                customer: selectedCustomer?.user?.id || null,
+                customer_name: customerName || selectedCustomer?.user?.full_name || null,
                 customer_phone: customerPhone || null,
-                discount_amount: discountType === 'amount' ? discountValue : 0,
-                discount_percent: discountType === 'percent' ? discountValue : 0
+                discount_amount: currentDiscountType === 'amount' ? currentDiscountValue : 0,
+                discount_percent: currentDiscountType === 'percent' ? currentDiscountValue : 0,
+                bonus_redemption_percent: bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0 ? bonusRedemptionPercent : null,
+                bonus_redemption_amount: bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0 ? bonusRedemptionAmount : null,
+                bonus_percent_override: bonusPercentOverride || null,
+                bonus_accrual_mode: bonusAccrualMode // 'tier' или 'settings'
             };
 
             console.log('Отправка данных продажи:', saleData); // Логируем отправляемые данные
@@ -570,8 +840,25 @@ const SalesPage = () => {
             setReceiptData(response.data);
             setSaleCompleted(true);
             await fetchProducts();
-            setCart([]);
+            // Очищаем корзину, которая была использована для продажи
+            if (activeCartForSale === 1) {
+                setCart([]);
+                setDiscountValue(0);
+            } else {
+                setCart2([]);
+                setDiscountValue2(0);
+            }
             setItemFifoStates({}); // Очищаем состояния FIFO
+            // Очищаем состояния бонусов
+            setSelectedCustomer(null);
+            setBonusPercentOverride(null);
+            setBonusAccrualMode('tier');
+            setBonusRedemptionPercent(0);
+            setBonusRedemptionAmount(0);
+            setBonusRedemptionType('percent');
+            setShowBonusRedemption(false);
+            setCustomerName('');
+            setCustomerPhone('');
         } catch (err) {
             console.error('Sale error:', err.response?.data || err.message); // Улучшенное логирование ошибок
             alert('Ошибка при оформлении продажи: ' + (err.response?.data?.message || err.message));
@@ -620,6 +907,12 @@ const SalesPage = () => {
             setShowPaymentModal(false);
             setCustomerName('');
             setCustomerPhone('');
+            setSelectedCustomer(null);
+            setBonusPercentOverride(null);
+            setBonusRedemptionPercent(0);
+            setBonusRedemptionAmount(0);
+            setBonusRedemptionType('percent');
+            setShowBonusRedemption(false);
             setDiscountValue(0);
             setDiscountType('percent');
             setSaleCompleted(false);
@@ -634,12 +927,19 @@ const SalesPage = () => {
 
     // Apply cart discount
     const applyCartDiscount = () => {
+        if (discountModalCart === 1) {
+            // Скидка применяется к первой корзине - уже сохранена в discountValue и discountType
+        } else {
+            // Скидка применяется ко второй корзине
+            setDiscountValue2(discountValue);
+            setDiscountType2(discountType);
+        }
         setShowDiscountModal(false);
     };
 
     // Apply item discount
-    const applyItemDiscount = () => {
-        setCart(prevCart =>
+    const applyItemDiscount = (targetCart, setTargetCart) => {
+        setTargetCart(prevCart =>
             prevCart.map(item =>
                 item.variantId === currentItemForDiscount
                     ? {
@@ -653,6 +953,139 @@ const SalesPage = () => {
         );
         setShowItemDiscountModal(false);
         setItemDiscountValue(0);
+    };
+
+    // Render cart footer
+    const renderCartFooter = (currentCart, setCurrentCart, cartNumber) => {
+        const currentDiscountValue = cartNumber === 1 ? discountValue : discountValue2;
+        const currentDiscountType = cartNumber === 1 ? discountType : discountType2;
+        const subtotal = calculateSubtotal(currentCart);
+        const total = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
+        const totalWithBonuses = calculateTotalWithBonuses(currentCart, currentDiscountValue, currentDiscountType);
+
+        return (
+            <div className={styles.cartFooter}>
+                <div className={styles.cartTotals}>
+                    {/* Сумма без скидок */}
+                    <div className={styles.totalRow}>
+                        <span>Сумма без скидок:</span>
+                        <span>{subtotal.toLocaleString()} ₸</span>
+                    </div>
+
+                    {/* Оригинальные Изначальная скидка */}
+                    {currentCart.some(item => item.hasOriginalDiscount) && (
+                        <div className={styles.totalRow}>
+                            <span>Изначальная скидка:</span>
+                            <span className={styles.discountValue}>
+                                -{currentCart.reduce((sum, item) => {
+                                    if (!item.hasOriginalDiscount) return sum;
+                                    return sum + (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
+                                }, 0).toLocaleString()} ₸
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Скидки на товары */}
+                    {currentCart.some(item => item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0) && (
+                        <div className={styles.totalRow}>
+                            <span>Дополнительные скидки:</span>
+                            <span className={styles.discountValue}>
+                                -{currentCart.reduce((sum, item) => {
+                                    const priceAfterOriginalDiscount = item.hasOriginalDiscount
+                                        ? Math.round(item.originalPrice * (1 - item.discount / 100))
+                                        : item.originalPrice;
+                                    const finalPrice = calculateItemPrice(item);
+                                    return sum + (priceAfterOriginalDiscount - finalPrice) * item.quantity;
+                                }, 0).toLocaleString()} ₸
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Общая скидка на чек */}
+                    {(currentDiscountValue > 0) && (
+                        <div className={styles.totalRow}>
+                            <span>Общая скидка на чек:</span>
+                            <span className={styles.discountValue}>
+                                -{(
+                                    currentDiscountType === 'percent'
+                                        ? (subtotal -
+                                            currentCart.reduce((sum, item) => {
+                                                if (item.hasOriginalDiscount) {
+                                                    sum += (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
+                                                }
+                                                const priceAfterOriginal = item.hasOriginalDiscount
+                                                    ? Math.round(item.originalPrice * (1 - item.discount / 100))
+                                                    : item.originalPrice;
+                                                const finalPrice = calculateItemPrice(item);
+                                                sum += (priceAfterOriginal - finalPrice) * item.quantity;
+                                                return sum;
+                                            }, 0)) * currentDiscountValue / 100
+                                        : currentDiscountValue
+                                ).toLocaleString()} ₸
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Итоговая сумма с учетом бонусов */}
+                    <div className={`${styles.totalRow} ${styles.grandTotal}`}>
+                        <span>Итого к оплате:</span>
+                        <span>{totalWithBonuses.toLocaleString()} ₸</span>
+                    </div>
+                    
+                    {/* Информация о списанных бонусах */}
+                    {selectedCustomer && bonusRedemptionType && showBonusRedemption && (() => {
+                        const customerBalance = parseFloat(selectedCustomer.balance || 0);
+                        let bonusRedeemed = 0;
+                        if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
+                            bonusRedeemed = Math.min(customerBalance * bonusRedemptionPercent / 100, total);
+                        } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
+                            bonusRedeemed = Math.min(bonusRedemptionAmount, total);
+                        }
+                        return bonusRedeemed > 0 ? (
+                            <div className={styles.totalRow} style={{ color: 'var(--accent-green)', fontSize: '14px', marginTop: '4px' }}>
+                                <span>Списано бонусов:</span>
+                                <span>-{bonusRedeemed.toFixed(2)} баллов</span>
+                            </div>
+                        ) : null;
+                    })()}
+                </div>
+
+                <div className={styles.cartActions}>
+                    <button
+                        className={styles.discountButton}
+                        onClick={() => {
+                            setDiscountModalCart(cartNumber);
+                            setShowDiscountModal(true);
+                        }}
+                        disabled={currentCart.length === 0}
+                    >
+                        <FaPercentage /> Скидка
+                    </button>
+                    <button
+                        className={styles.clearCartButton}
+                        onClick={() => {
+                            setCurrentCart([]);
+                            if (cartNumber === 1) {
+                                setItemFifoStates({});
+                            }
+                        }}
+                        disabled={currentCart.length === 0}
+                    >
+                        <FaTrashAlt /> Очистить
+                    </button>
+                    <button
+                        className={styles.checkoutButton}
+                        onClick={() => {
+                            setActiveCartForSale(cartNumber);
+                            setShowPaymentModal(true);
+                        }}
+                        disabled={currentCart.length === 0}
+                    >
+                        <FaCashRegister /> Продать
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     const handlePrintReceipt = async () => {
@@ -711,6 +1144,32 @@ const SalesPage = () => {
                         const mainImage = product.images.find(img => img.is_main)?.image || product.images[0]?.image;
                         const hasPrice = variant.price !== null && variant.price !== undefined;
 
+                        // Проверяем, раскрыты ли атрибуты для этого варианта
+                        const variantKey = `${product.id}-${variant.id}`;
+                        const isExpanded = expandedAttributes.has(variantKey);
+                        const displayedAttributes = isExpanded 
+                            ? variant.attributes 
+                            : variant.attributes.slice(0, 2);
+                        const hasMoreAttributes = variant.attributes.length > 2;
+                        const finalPrice = hasPrice && variant.discount > 0 
+                            ? Math.round(variant.price * (1 - variant.discount / 100))
+                            : (hasPrice ? parseFloat(variant.price) : null);
+                        const originalPrice = hasPrice ? parseFloat(variant.price) : null;
+                        
+                        // Функция для переключения раскрытия атрибутов
+                        const toggleAttributes = (e) => {
+                            e.stopPropagation(); // Предотвращаем клик по карточке
+                            setExpandedAttributes(prev => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(variantKey)) {
+                                    newSet.delete(variantKey);
+                                } else {
+                                    newSet.add(variantKey);
+                                }
+                                return newSet;
+                            });
+                        };
+
                         return (
                             <div
                                 key={`${product.id}-${variant.id}`}
@@ -721,58 +1180,131 @@ const SalesPage = () => {
                                     setCurrentImageIndex(0);
                                 }}
                             >
-                                <div className={styles.productImage}>
-                                    <img
-                                        src={mainImage}
-                                        alt={product.name}
-                                        onError={(e) => {
-                                            e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
-                                        }}
-                                    />
-                                </div>
-                                <div className={styles.productInfo}>
-                                    <h4>{product.name}</h4>
-                                    <div className={styles.attributes}>
-                                        {variant.attributes.map(attr => (
-                                            <span key={attr.id} className={styles.attributeBadge}>
-                                                {attr.custom_value || attr.predefined_value_name}
-                                            </span>
-                                        ))}
+                                <div className={styles.productImageWrapper}>
+                                    <div className={styles.productImage}>
+                                        <img
+                                            src={mainImage}
+                                            alt={product.name}
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
+                                            }}
+                                        />
                                     </div>
-                                    <div className={styles.priceSection}>
-                                        {hasPrice ? (
-                                            variant.discount > 0 ? (
-                                                <>
-                                                    <span className={styles.discountedPrice}>
-                                                        {Math.round(variant.price * (1 - variant.discount / 100)).toLocaleString()} ₸
-                                                    </span>
-                                                    <span className={styles.originalPrice}>
-                                                        {parseFloat(variant.price).toLocaleString()} ₸
-                                                    </span>
-                                                    <span className={styles.discountBadge}>-{variant.discount}%</span>
-                                                </>
-                                            ) : (
-                                                <span>{parseFloat(variant.price).toLocaleString()} ₸</span>
-                                            )
-                                        ) : (
-                                            <span className={styles.noPrice}>Цена не установлена</span>
+                                    {variant.discount > 0 && hasPrice && (
+                                        <div className={styles.discountBadgeOverlay}>
+                                            -{variant.discount}%
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className={styles.productInfo}>
+                                    <div className={styles.productHeader}>
+                                        <h4 className={styles.productTitle} title={product.name}>
+                                            {product.name}
+                                        </h4>
+                                        {variant.sku && (
+                                            <span className={styles.productSku} title={`Артикул: ${variant.sku}`}>
+                                                {variant.sku}
+                                            </span>
                                         )}
                                     </div>
-                                    <div className={styles.stockInfo}>
-                                        <span className={`${styles.stockBadge} ${availableQty > 0 ? styles.inStock : styles.outOfStock}`}>
-                                            {availableQty > 0 ? `В наличии: ${availableQty} ${product?.unit_display || 'шт.'}` : 'Нет в наличии'}
-                                        </span>
+
+                                    {displayedAttributes.length > 0 && (
+                                        <div className={styles.attributesContainer}>
+                                            <div className={styles.attributes}>
+                                                {displayedAttributes.map(attr => (
+                                                    <span key={attr.id} className={styles.attributeBadge} title={`${attr.category_attribute_name}: ${attr.custom_value || attr.predefined_value_name}`}>
+                                                        {attr.custom_value || attr.predefined_value_name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {hasMoreAttributes && (
+                                                <button
+                                                    className={styles.expandAttributesButton}
+                                                    onClick={toggleAttributes}
+                                                    title={isExpanded ? "Свернуть атрибуты" : "Показать все атрибуты"}
+                                                >
+                                                    {isExpanded ? (
+                                                        <>
+                                                            <FaChevronUp /> Свернуть
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FaChevronDown /> Показать все ({variant.attributes.length - 2})
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className={styles.productDetails}>
+                                        <div className={styles.priceSection}>
+                                            {hasPrice ? (
+                                                variant.discount > 0 ? (
+                                                    <div className={styles.priceContainer}>
+                                                        <div className={styles.priceRow}>
+                                                            <span className={styles.discountedPrice}>
+                                                                {finalPrice.toLocaleString()} ₸
+                                                            </span>
+                                                            <span className={styles.originalPrice}>
+                                                                {originalPrice.toLocaleString()} ₸
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className={styles.priceContainer}>
+                                                        <span className={styles.regularPrice}>
+                                                            {originalPrice.toLocaleString()} ₸
+                                                        </span>
+                                                    </div>
+                                                )
+                                            ) : (
+                                                <span className={styles.noPrice}>Цена не установлена</span>
+                                            )}
+                                        </div>
+
+                                        <div className={styles.stockInfo}>
+                                            <span className={`${styles.stockBadge} ${availableQty > 0 ? styles.inStock : styles.outOfStock}`}>
+                                                {availableQty > 0 ? (
+                                                    <>
+                                                        <span className={styles.stockIcon}>✓</span>
+                                                        {availableQty} {product?.unit_display || 'шт.'}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className={styles.stockIcon}>✗</span>
+                                                        Нет в наличии
+                                                    </>
+                                                )}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <button
-                                        className={styles.addToCartButton}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            addToCart(product, variant);
-                                        }}
-                                        disabled={availableQty <= 0 || !hasPrice}
-                                    >
-                                        <FaPlus /> В корзину
-                                    </button>
+
+                                    <div className={styles.productActions}>
+                                        <button
+                                            className={`${styles.addToCartButton} ${styles.cartButton1}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                addToCart(product, variant, 1);
+                                            }}
+                                            disabled={availableQty <= 0 || !hasPrice}
+                                            title="Добавить в корзину 1"
+                                        >
+                                            <FaPlus /> Корзина 1
+                                        </button>
+                                        <button
+                                            className={`${styles.addToCartButton} ${styles.cartButton2}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                addToCart(product, variant, 2);
+                                            }}
+                                            disabled={availableQty <= 0 || !hasPrice}
+                                            title="Добавить в корзину 2"
+                                        >
+                                            <FaPlus /> Корзина 2
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -782,8 +1314,8 @@ const SalesPage = () => {
     };
 
     // Render cart items
-    const renderCartItems = () => {
-        if (cart.length === 0) {
+    const renderCartItems = (currentCart, setCurrentCart, cartNumber) => {
+        if (currentCart.length === 0) {
             return (
                 <div className={styles.emptyCart}>
                     <FaShoppingCart size="2em" />
@@ -794,7 +1326,7 @@ const SalesPage = () => {
 
         return (
             <div className={styles.cartItems}>
-                {cart.map(item => {
+                {currentCart.map(item => {
                     const finalPrice = calculateItemPrice(item);
                     const priceAfterOriginalDiscount = item.hasOriginalDiscount
                         ? Math.round(item.originalPrice * (1 - item.discount / 100))
@@ -835,7 +1367,7 @@ const SalesPage = () => {
                                                     checked={item.useFifo !== false}
                                                     onChange={(e) => {
                                                         const useFifo = e.target.checked;
-                                                        setCart(prevCart =>
+                                                        setCurrentCart(prevCart =>
                                                             prevCart.map(cartItem =>
                                                                 cartItem.variantId === item.variantId
                                                                     ? {
@@ -887,7 +1419,7 @@ const SalesPage = () => {
                                                             received_date: stock.batch_info.received_date
                                                         } : null;
 
-                                                        setCart(prevCart =>
+                                                        setCurrentCart(prevCart =>
                                                             prevCart.map(cartItem =>
                                                                 cartItem.variantId === item.variantId
                                                                     ? { ...cartItem, batchId, batchInfo }
@@ -925,7 +1457,11 @@ const SalesPage = () => {
                             <div className={styles.cartItemControls}>
                                 <button
                                     className={styles.removeItemButton}
-                                    onClick={() => removeFromCart(item.variantId)}
+                                    onClick={() => {
+                                        setCurrentCart(prevCart => prevCart.filter(cartItem => 
+                                            !(cartItem.variantId === item.variantId && (item.batchId === null || cartItem.batchId === item.batchId))
+                                        ));
+                                    }}
                                 >
                                     <FaTimes />
                                 </button>
@@ -943,7 +1479,25 @@ const SalesPage = () => {
                                                     className={styles.quantityButton}
                                                     onClick={() => {
                                                         const newQty = item.quantity - step;
-                                                        updateQuantity(item.variantId, newQty);
+                                                        const itemInCart = currentCart.find(cartItem => cartItem.variantId === item.variantId);
+                                                        if (!itemInCart) return;
+                                                        const unitDisplay = itemInCart.unitDisplay || 'шт.';
+                                                        const isPieces = unitDisplay === 'шт.';
+                                                        let normalizedQuantity;
+                                                        if (isPieces) {
+                                                            normalizedQuantity = Math.max(1, Math.floor(newQty) || 1);
+                                                        } else {
+                                                            normalizedQuantity = Math.max(0.001, parseFloat(newQty) || 0.001);
+                                                        }
+                                                        if (normalizedQuantity > itemInCart.stock) {
+                                                            alert('Недостаточно товара на складе');
+                                                            normalizedQuantity = itemInCart.stock;
+                                                        }
+                                                        setCurrentCart(prevCart => prevCart.map(cartItem =>
+                                                            cartItem.variantId === item.variantId
+                                                                ? { ...cartItem, quantity: normalizedQuantity }
+                                                                : cartItem
+                                                        ));
                                                     }}
                                                 >
                                                     <FaMinus />
@@ -956,7 +1510,7 @@ const SalesPage = () => {
                                                             const value = e.target.value;
                                                             // Разрешаем пустое значение для возможности очистки поля
                                                             if (value === '' || value === null) {
-                                                                setCart(prevCart => 
+                                                                setCurrentCart(prevCart => 
                                                                     prevCart.map(cartItem =>
                                                                         cartItem.variantId === item.variantId
                                                                             ? { ...cartItem, quantity: '' }
@@ -967,21 +1521,56 @@ const SalesPage = () => {
                                                             }
                                                             const numValue = parseFloat(value);
                                                             if (isNaN(numValue)) return;
-                                                            updateQuantity(item.variantId, numValue);
+                                                            const itemInCart = currentCart.find(cartItem => cartItem.variantId === item.variantId);
+                                                            if (!itemInCart) return;
+                                                            const unitDisplay = itemInCart.unitDisplay || 'шт.';
+                                                            const isPieces = unitDisplay === 'шт.';
+                                                            let normalizedQuantity;
+                                                            if (isPieces) {
+                                                                normalizedQuantity = Math.max(1, Math.floor(numValue) || 1);
+                                                            } else {
+                                                                normalizedQuantity = Math.max(0.001, parseFloat(numValue) || 0.001);
+                                                            }
+                                                            if (normalizedQuantity > itemInCart.stock) {
+                                                                alert('Недостаточно товара на складе');
+                                                                normalizedQuantity = itemInCart.stock;
+                                                            }
+                                                            setCurrentCart(prevCart => prevCart.map(cartItem =>
+                                                                cartItem.variantId === item.variantId
+                                                                    ? { ...cartItem, quantity: normalizedQuantity }
+                                                                    : cartItem
+                                                            ));
                                                         }}
                                                         onBlur={(e) => {
                                                             const value = e.target.value;
                                                             // Если поле пустое или значение меньше минимума, устанавливаем минимальное значение
                                                             if (value === '' || value === null || parseFloat(value) < minValue) {
-                                                                updateQuantity(item.variantId, minValue);
+                                                                const itemInCart = currentCart.find(cartItem => cartItem.variantId === item.variantId);
+                                                                if (!itemInCart) return;
+                                                                const unitDisplay = itemInCart.unitDisplay || 'шт.';
+                                                                const isPieces = unitDisplay === 'шт.';
+                                                                const normalizedValue = isPieces ? 1 : 0.1;
+                                                                setCurrentCart(prevCart => prevCart.map(cartItem =>
+                                                                    cartItem.variantId === item.variantId
+                                                                        ? { ...cartItem, quantity: normalizedValue }
+                                                                        : cartItem
+                                                                ));
                                                             } else {
                                                                 // Нормализуем значение при потере фокуса
                                                                 const numValue = parseFloat(value);
                                                                 if (!isNaN(numValue)) {
+                                                                    const itemInCart = currentCart.find(cartItem => cartItem.variantId === item.variantId);
+                                                                    if (!itemInCart) return;
+                                                                    const unitDisplay = itemInCart.unitDisplay || 'шт.';
+                                                                    const isPieces = unitDisplay === 'шт.';
                                                                     const normalizedValue = isPieces 
                                                                         ? Math.floor(numValue)
                                                                         : parseFloat(numValue.toFixed(3));
-                                                                    updateQuantity(item.variantId, normalizedValue);
+                                                                    setCurrentCart(prevCart => prevCart.map(cartItem =>
+                                                                        cartItem.variantId === item.variantId
+                                                                            ? { ...cartItem, quantity: normalizedValue }
+                                                                            : cartItem
+                                                                    ));
                                                                 }
                                                             }
                                                         }}
@@ -996,8 +1585,22 @@ const SalesPage = () => {
                                                     className={styles.quantityButton}
                                                     onClick={() => {
                                                         const newQty = item.quantity + step;
-                                                        if (newQty <= item.stock) {
-                                                            updateQuantity(item.variantId, newQty);
+                                                        const itemInCart = currentCart.find(cartItem => cartItem.variantId === item.variantId);
+                                                        if (!itemInCart) return;
+                                                        if (newQty <= itemInCart.stock) {
+                                                            const unitDisplay = itemInCart.unitDisplay || 'шт.';
+                                                            const isPieces = unitDisplay === 'шт.';
+                                                            let normalizedQuantity;
+                                                            if (isPieces) {
+                                                                normalizedQuantity = Math.floor(newQty);
+                                                            } else {
+                                                                normalizedQuantity = parseFloat(newQty.toFixed(3));
+                                                            }
+                                                            setCurrentCart(prevCart => prevCart.map(cartItem =>
+                                                                cartItem.variantId === item.variantId
+                                                                    ? { ...cartItem, quantity: normalizedQuantity }
+                                                                    : cartItem
+                                                            ));
                                                         }
                                                     }}
                                                     disabled={item.quantity >= item.stock}
@@ -1057,6 +1660,7 @@ const SalesPage = () => {
                                     className={styles.discountButton}
                                     onClick={() => {
                                         setCurrentItemForDiscount(item.variantId);
+                                        setCurrentItemCartNumber(cartNumber);
                                         setItemDiscountType(item.itemDiscountPercent > 0 ? 'percent' : 'amount');
                                         setItemDiscountValue(
                                             item.itemDiscountPercent > 0
@@ -1232,13 +1836,24 @@ const SalesPage = () => {
                         <small>Артикул: {selectedVariant.sku}</small>
                     </div>
 
-                    <button
-                        className={styles.addToCartButton}
-                        onClick={() => addToCart(selectedProduct, selectedVariant)}
-                        disabled={availableQty <= 0 || !hasPrice}
-                    >
-                        <FaPlus /> В корзину
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                        <button
+                            className={styles.addToCartButton}
+                            onClick={() => addToCart(selectedProduct, selectedVariant, 1)}
+                            disabled={availableQty <= 0 || !hasPrice}
+                            style={{ flex: 1 }}
+                        >
+                            <FaPlus /> В корзину 1
+                        </button>
+                        <button
+                            className={styles.addToCartButton}
+                            onClick={() => addToCart(selectedProduct, selectedVariant, 2)}
+                            disabled={availableQty <= 0 || !hasPrice}
+                            style={{ flex: 1 }}
+                        >
+                            <FaPlus /> В корзину 2
+                        </button>
+                    </div>
 
                     <div className={styles.description}>
                         <h5>Описание</h5>
@@ -1270,6 +1885,13 @@ const SalesPage = () => {
                     <FaCashRegister /> Система продаж
                 </h1>
                 <div className={styles.businessInfo}>
+                    <button
+                        onClick={() => navigate(`/business/${business_slug}/bonus-history`)}
+                        className={styles.bonusHistoryButton}
+                        title="История бонусов"
+                    >
+                        <FaGift /> История бонусов
+                    </button>
                     <span>{business_slug}</span>
                 </div>
             </div>
@@ -1290,7 +1912,13 @@ const SalesPage = () => {
                                     onChange={(locationId) => {
                                         setSelectedLocation(locationId);
                                         setCart([]); // Очищаем корзину при смене локации
+                                        setCart2([]); // Очищаем вторую корзину при смене локации
                                         setItemFifoStates({}); // Очищаем состояния FIFO
+                                        // Сбрасываем фильтры при смене локации
+                                        setSearchQuery('');
+                                        setActiveSearchQuery('');
+                                        setSelectedCategory('');
+                                        setError(null); // Сбрасываем ошибки
                                     }}
                                     disabled={locationsLoading}
                                     placeholder={locationsLoading ? "Загрузка..." : "Выберите локацию..."}
@@ -1341,10 +1969,10 @@ const SalesPage = () => {
                                 <input
                                     ref={searchInputRef}
                                     type="text"
-                                    placeholder="Поиск по названию, артикулу или штрих-коду..."
+                                    placeholder={scannerActive ? "Сканируйте штрих-код..." : "Поиск по названию, артикулу или штрих-коду..."}
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
+                                    onChange={scannerActive ? handleScannerInput : (e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={scannerActive ? handleScannerKeyDown : (e) => {
                                         if (e.key === 'Enter') handleSearch();
                                     }}
                                     disabled={!selectedLocation}
@@ -1377,123 +2005,33 @@ const SalesPage = () => {
                             {renderProductCards()}
                         </div>
                     </div>
+                </div>
 
+                {/* Right column - Carts */}
+                <div className={styles.rightColumn}>
+                    {/* Первая корзина */}
                     <div className={styles.cartCard}>
                         <div className={styles.cartHeader}>
-                            <h4>Выбранные товары</h4>
+                            <h4>Корзина 1</h4>
                         </div>
 
                         <div className={styles.cartBody}>
-                            {renderCartItems()}
+                            {renderCartItems(cart, setCart, 1)}
 
-                            <div className={styles.cartFooter}>
-                                <div className={styles.cartTotals}>
-                                    {/* Сумма без скидок */}
-                                    <div className={styles.totalRow}>
-                                        <span>Сумма без скидок:</span>
-                                        <span>{calculateSubtotal().toLocaleString()} ₸</span>
-                                    </div>
-
-                                    {/* Оригинальные Изначальная скидка */}
-                                    {cart.some(item => item.hasOriginalDiscount) && (
-                                        <div className={styles.totalRow}>
-                                            <span>Изначальная скидка:</span>
-                                            <span className={styles.discountValue}>
-                                                -{cart.reduce((sum, item) => {
-                                                    if (!item.hasOriginalDiscount) return sum;
-                                                    return sum + (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
-                                                }, 0).toLocaleString()} ₸
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Скидки на товары */}
-                                    {cart.some(item => item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0) && (
-                                        <div className={styles.totalRow}>
-                                            <span>Дополнительные скидки:</span>
-                                            <span className={styles.discountValue}>
-                                                -{cart.reduce((sum, item) => {
-                                                    const priceAfterOriginalDiscount = item.hasOriginalDiscount
-                                                        ? Math.round(item.originalPrice * (1 - item.discount / 100))
-                                                        : item.originalPrice;
-                                                    const finalPrice = calculateItemPrice(item);
-                                                    return sum + (priceAfterOriginalDiscount - finalPrice) * item.quantity;
-                                                }, 0).toLocaleString()} ₸
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Общая скидка на чек */}
-                                    {(discountValue > 0) && (
-                                        <div className={styles.totalRow}>
-                                            <span>Общая скидка на чек:</span>
-                                            <span className={styles.discountValue}>
-                                                -{(
-                                                    discountType === 'percent'
-                                                        ? (calculateSubtotal() -
-                                                            cart.reduce((sum, item) => {
-                                                                if (item.hasOriginalDiscount) {
-                                                                    sum += (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
-                                                                }
-                                                                const priceAfterOriginal = item.hasOriginalDiscount
-                                                                    ? Math.round(item.originalPrice * (1 - item.discount / 100))
-                                                                    : item.originalPrice;
-                                                                const finalPrice = calculateItemPrice(item);
-                                                                sum += (priceAfterOriginal - finalPrice) * item.quantity;
-                                                                return sum;
-                                                            }, 0)) * discountValue / 100
-                                                        : discountValue
-                                                ).toLocaleString()} ₸
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Итоговая сумма */}
-                                    <div className={`${styles.totalRow} ${styles.grandTotal}`}>
-                                        <span>Итого к оплате:</span>
-                                        <span>{calculateTotal().toLocaleString()} ₸</span>
-                                    </div>
-                                </div>
-
-                                <div className={styles.cartActions}>
-                                    <button
-                                        className={styles.discountButton}
-                                        onClick={() => setShowDiscountModal(true)}
-                                        disabled={cart.length === 0}
-                                    >
-                                        <FaPercentage /> Скидка
-                                    </button>
-                                    <button
-                                        className={styles.clearCartButton}
-                                        onClick={() => {
-                                            setCart([]);
-                                            setItemFifoStates({});
-                                        }}
-                                        disabled={cart.length === 0}
-                                    >
-                                        <FaTrashAlt /> Очистить
-                                    </button>
-                                    <button
-                                        className={styles.checkoutButton}
-                                        onClick={() => setShowPaymentModal(true)}
-                                        disabled={cart.length === 0}
-                                    >
-                                        <FaCashRegister /> Продать
-                                    </button>
-                                </div>
-                            </div>
+                            {renderCartFooter(cart, setCart, 1)}
                         </div>
                     </div>
-                </div>
 
-                {/* Right column - Product details and recent sales */}
-                <div className={styles.rightColumn}>
-                    <div className={styles.detailsCard}>
-                        <div className={styles.detailsHeader}>
-                            <h4>Информация о товаре</h4>
+                    {/* Вторая корзина */}
+                    <div className={styles.cartCard}>
+                        <div className={styles.cartHeader}>
+                            <h4>Корзина 2</h4>
                         </div>
-                        <div className={styles.detailsBody}>
-                            {renderProductDetails()}
+
+                        <div className={styles.cartBody}>
+                            {renderCartItems(cart2, setCart2, 2)}
+
+                            {renderCartFooter(cart2, setCart2, 2)}
                         </div>
                     </div>
                 </div>
@@ -1505,14 +2043,8 @@ const SalesPage = () => {
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal} tabIndex={-1} aria-modal="true" role="dialog">
                         <div className={styles.modalHeader}>
-                            <h4>Скидка на весь чек</h4>
-                            <button
-                                className={styles.closeButton}
-                                onClick={() => setShowDiscountModal(false)}
-                                aria-label="Закрыть"
-                            >
-                                &times;
-                            </button>
+                            <h4>Скидка на весь чек (Корзина {discountModalCart})</h4>
+                            <ModalCloseButton onClick={() => setShowDiscountModal(false)} />
                         </div>
                         <div className={styles.modalBody}>
                             <div className={styles.discountControls}>
@@ -1588,13 +2120,7 @@ const SalesPage = () => {
                     <div className={styles.modal} tabIndex={-1} aria-modal="true" role="dialog">
                         <div className={styles.modalHeader}>
                             <h4>Скидка на товар</h4>
-                            <button
-                                className={styles.closeButton}
-                                onClick={() => setShowItemDiscountModal(false)}
-                                aria-label="Закрыть"
-                            >
-                                &times;
-                            </button>
+                            <ModalCloseButton onClick={() => setShowItemDiscountModal(false)} />
                         </div>
                         <div className={styles.modalBody}>
                             <div className={styles.discountControls}>
@@ -1644,30 +2170,35 @@ const SalesPage = () => {
                                         </>
                                     )}
                                 </div>
-                                {currentItemForDiscount && (
-                                    <div className={styles.currentDiscountInfo}>
-                                        <p>
-                                            <span>Текущая цена:&nbsp;</span>
-                                            <span className={styles.nowPrice}>
-                                                {cart.find(i => i.variantId === currentItemForDiscount)?.price.toLocaleString()} ₸
-                                            </span>
-                                        </p>
-                                        <p>
-                                            <span>Оригинальная цена:&nbsp;</span>
-                                            <span className={styles.oldPrice}>
-                                                {cart.find(i => i.variantId === currentItemForDiscount)?.originalPrice.toLocaleString()} ₸
-                                            </span>
-                                        </p>
-                                        {cart.find(i => i.variantId === currentItemForDiscount)?.hasOriginalDiscount && (
+                                {currentItemForDiscount && (() => {
+                                    const targetCart = currentItemCartNumber === 1 ? cart : cart2;
+                                    const item = targetCart.find(i => i.variantId === currentItemForDiscount);
+                                    if (!item) return null;
+                                    return (
+                                        <div className={styles.currentDiscountInfo}>
                                             <p>
-                                                <span>Оригинальная скидка:&nbsp;</span>
-                                                <span className={styles.discountValueAccent}>
-                                                    {cart.find(i => i.variantId === currentItemForDiscount)?.discount}%
+                                                <span>Текущая цена:&nbsp;</span>
+                                                <span className={styles.nowPrice}>
+                                                    {item.price.toLocaleString()} ₸
                                                 </span>
                                             </p>
-                                        )}
-                                    </div>
-                                )}
+                                            <p>
+                                                <span>Оригинальная цена:&nbsp;</span>
+                                                <span className={styles.oldPrice}>
+                                                    {item.originalPrice.toLocaleString()} ₸
+                                                </span>
+                                            </p>
+                                            {item.hasOriginalDiscount && (
+                                                <p>
+                                                    <span>Оригинальная скидка:&nbsp;</span>
+                                                    <span className={styles.discountValueAccent}>
+                                                        {item.discount}%
+                                                    </span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
                         <div className={styles.modalFooter}>
@@ -1679,7 +2210,13 @@ const SalesPage = () => {
                             </button>
                             <button
                                 className={styles.primaryButton}
-                                onClick={applyItemDiscount}
+                                onClick={() => {
+                                    if (currentItemCartNumber === 1) {
+                                        applyItemDiscount(cart, setCart);
+                                    } else {
+                                        applyItemDiscount(cart2, setCart2);
+                                    }
+                                }}
                             >
                                 Применить
                             </button>
@@ -1694,36 +2231,45 @@ const SalesPage = () => {
                     <div className={styles.modal}>
                         <div className={styles.modalHeader}>
                             <h4>{saleCompleted ? 'Чек продажи' : 'Оформление продажи'}</h4>
-                            <button
-                                className={styles.closeButton}
+                            <ModalCloseButton
                                 onClick={() => {
                                     // Сначала сбрасываем состояние продажи
                                     if (saleCompleted) {
                                         setSaleCompleted(false);
                                         setReceiptData(null);
-                                        setCart([]);
+                                        if (activeCartForSale === 1) {
+                                            setCart([]);
+                                            setDiscountValue(0);
+                                        } else {
+                                            setCart2([]);
+                                            setDiscountValue2(0);
+                                        }
                                         setCustomerName('');
                                         setCustomerPhone('');
-                                        setDiscountValue(0);
+                                        setSelectedCustomer(null);
+                                        setBonusPercentOverride(null);
+                                        setBonusRedemptionPercent(0);
+                                        setBonusRedemptionAmount(0);
+                                        setBonusRedemptionType('percent');
+                                        setShowBonusRedemption(false);
                                     }
                                     // Затем закрываем модальное окно
                                     setShowPaymentModal(false);
                                 }}
-                            >
-                                &times;
-                            </button>
+                            />
                         </div>
                         <div className={styles.modalBody}>
                             {!saleCompleted ? (
                                 <>
-                                    <div className={styles.receiptPreview}>
+                                    <div className={styles.receiptAndBonusContainer}>
+                                        <div className={styles.receiptPreview}>
                                         <div className={styles.receiptHeader}>
                                             <h5>Чек #{new Date().getTime().toString().slice(-6)}</h5>
                                             <p>{new Date().toLocaleString('ru-RU')}</p>
                                         </div>
 
                                         <div className={styles.receiptItems}>
-                                            {cart.map(item => {
+                                            {(activeCartForSale === 1 ? cart : cart2).map(item => {
                                                 const itemPrice = calculateItemPrice(item);
                                                 const originalPrice = item.originalPrice;
                                                 const hasDiscount = item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0;
@@ -1792,16 +2338,26 @@ const SalesPage = () => {
 
                                         <div className={styles.receiptSummary}>
                                             <div className={styles.receiptSummarySection}>
+                                                {(() => {
+                                                    const currentCart = activeCartForSale === 1 ? cart : cart2;
+                                                    const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
+                                                    const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
+                                                    const subtotal = calculateSubtotal(currentCart);
+                                                    const total = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
+                                                    const totalDiscount = calculateTotalDiscount(currentCart, currentDiscountValue, currentDiscountType);
+                                                    
+                                                    return (
+                                                        <>
                                                 <div className={styles.receiptSummaryRow}>
                                                     <span>Товары:</span>
-                                                    <span>{calculateSubtotal().toLocaleString()} ₸</span>
+                                                    <span>{subtotal.toLocaleString()} ₸</span>
                                                 </div>
 
-                                                {cart.some(item => item.hasOriginalDiscount) && (
+                                                {currentCart.some(item => item.hasOriginalDiscount) && (
                                                     <div className={styles.receiptSummaryRow}>
                                                         <span>Изначальная скидка:</span>
                                                         <span className={styles.summaryDiscount}>
-                                                            -{cart.reduce((sum, item) => {
+                                                            -{currentCart.reduce((sum, item) => {
                                                                 if (!item.hasOriginalDiscount) return sum;
                                                                 return sum + (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
                                                             }, 0).toLocaleString()} ₸
@@ -1809,11 +2365,11 @@ const SalesPage = () => {
                                                     </div>
                                                 )}
 
-                                                {cart.some(item => item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0) && (
+                                                {currentCart.some(item => item.itemDiscountPercent > 0 || item.itemDiscountAmount > 0) && (
                                                     <div className={styles.receiptSummaryRow}>
                                                         <span>Ваши скидки:</span>
                                                         <span className={styles.summaryDiscount}>
-                                                            -{cart.reduce((sum, item) => {
+                                                            -{currentCart.reduce((sum, item) => {
                                                                 const priceAfterOriginal = item.hasOriginalDiscount
                                                                     ? Math.round(item.originalPrice * (1 - item.discount / 100))
                                                                     : item.originalPrice;
@@ -1824,13 +2380,13 @@ const SalesPage = () => {
                                                     </div>
                                                 )}
 
-                                                {discountValue > 0 && (
+                                                {currentDiscountValue > 0 && (
                                                     <div className={styles.receiptSummaryRow}>
                                                         <span>Общая скидка на чек:</span>
                                                         <span className={styles.summaryDiscount}>
-                                                            -{(discountType === 'percent'
-                                                                ? (calculateSubtotal() -
-                                                                    cart.reduce((sum, item) => {
+                                                            -{(currentDiscountType === 'percent'
+                                                                ? (subtotal -
+                                                                    currentCart.reduce((sum, item) => {
                                                                         if (item.hasOriginalDiscount) {
                                                                             sum += (item.originalPrice - Math.round(item.originalPrice * (1 - item.discount / 100))) * item.quantity;
                                                                         }
@@ -1840,25 +2396,350 @@ const SalesPage = () => {
                                                                         const finalPrice = calculateItemPrice(item);
                                                                         sum += (priceAfterOriginal - finalPrice) * item.quantity;
                                                                         return sum;
-                                                                    }, 0)) * discountValue / 100
-                                                                : discountValue
+                                                                    }, 0)) * currentDiscountValue / 100
+                                                                : currentDiscountValue
                                                             ).toLocaleString()} ₸
                                                         </span>
                                                     </div>
                                                 )}
+                                                        </>
+                                                    );
+                                                })()}
                                             </div>
                                             <div className={styles.receiptSummarySaleRow}>
                                                 <span>Конечная сумма скидки:</span>
-                                                <span className={styles.summaryDiscount}>-{calculateTotalDiscount().toLocaleString()} ₸</span>
+                                                <span className={styles.summaryDiscount}>-{(() => {
+                                                    const currentCart = activeCartForSale === 1 ? cart : cart2;
+                                                    const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
+                                                    const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
+                                                    return calculateTotalDiscount(currentCart, currentDiscountValue, currentDiscountType);
+                                                })().toLocaleString()} ₸</span>
                                             </div>
 
                                             <div className={styles.receiptTotalSection}>
                                                 <div className={styles.receiptTotalRow}>
                                                     <span>Итого к оплате:</span>
-                                                    <span className={styles.receiptGrandTotal}>{calculateTotal().toLocaleString()} ₸</span>
+                                                    <span className={styles.receiptGrandTotal}>{(() => {
+                                                        const currentCart = activeCartForSale === 1 ? cart : cart2;
+                                                        const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
+                                                        const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
+                                                        return calculateTotalWithBonuses(currentCart, currentDiscountValue, currentDiscountType);
+                                                    })().toLocaleString()} ₸</span>
                                                 </div>
+                                                {/* Информация о списанных бонусах в модальном окне */}
+                                                {selectedCustomer && bonusRedemptionType && showBonusRedemption && (() => {
+                                                    const currentCart = activeCartForSale === 1 ? cart : cart2;
+                                                    const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
+                                                    const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
+                                                    const totalBeforeBonuses = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
+                                                    const customerBalance = parseFloat(selectedCustomer.balance || 0);
+                                                    let bonusRedeemed = 0;
+                                                    if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
+                                                        bonusRedeemed = Math.min(customerBalance * bonusRedemptionPercent / 100, totalBeforeBonuses);
+                                                    } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
+                                                        bonusRedeemed = Math.min(bonusRedemptionAmount, totalBeforeBonuses);
+                                                    }
+                                                    return bonusRedeemed > 0 ? (
+                                                        <div className={styles.receiptTotalRow} style={{ color: 'var(--accent-green)', fontSize: '14px', marginTop: '8px' }}>
+                                                            <span>Списано бонусов:</span>
+                                                            <span>-{bonusRedeemed.toFixed(2)} баллов</span>
+                                                        </div>
+                                                    ) : null;
+                                                })()}
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Секция бонусов */}
+                                    {selectedCustomer && bonusSettings && bonusSettings.is_enabled && (
+                                        <div className={styles.bonusSection}>
+                                            <div className={styles.bonusSectionHeader}>
+                                                <h5><FaGift /> Бонусы</h5>
+                                            </div>
+                                            
+                                            {/* Информация о балансе и уровне */}
+                                            <div className={styles.bonusInfo}>
+                                                <div className={styles.bonusBalanceDisplay}>
+                                                    <div className={styles.bonusBalanceLabel}>Текущий баланс:</div>
+                                                    <div className={styles.bonusBalanceValue}>
+                                                        {parseFloat(selectedCustomer.balance || 0).toFixed(2)} баллов
+                                                        <span className={styles.bonusBalanceHint}> (1 балл = 1 ₸)</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {selectedCustomer.tier && (
+                                                    <div className={styles.bonusTierDisplay}>
+                                                        <div className={styles.bonusTierLabel}>Уровень:</div>
+                                                        <div className={styles.bonusTierValue}>
+                                                            {selectedCustomer.tier.name} ({selectedCustomer.tier.bonus_percent}%)
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Выбор режима начисления бонусов */}
+                                            <div className={styles.bonusAccrualModeSelector}>
+                                                <label>Способ начисления бонусов:</label>
+                                                <div className={styles.bonusAccrualModeOptions}>
+                                                    <label className={styles.bonusModeOption}>
+                                                        <input
+                                                            type="radio"
+                                                            name="bonusAccrualMode"
+                                                            value="tier"
+                                                            checked={bonusAccrualMode === 'tier'}
+                                                            onChange={(e) => {
+                                                                setBonusAccrualMode(e.target.value);
+                                                                setBonusPercentOverride(null);
+                                                            }}
+                                                            disabled={!selectedCustomer.tier || bonusSettings.is_fixed_percent}
+                                                        />
+                                                        <span>
+                                                            По уровню ({selectedCustomer.tier?.bonus_percent || bonusSettings.bonus_percent}%)
+                                                        </span>
+                                                    </label>
+                                                    <label className={styles.bonusModeOption}>
+                                                        <input
+                                                            type="radio"
+                                                            name="bonusAccrualMode"
+                                                            value="settings"
+                                                            checked={bonusAccrualMode === 'settings'}
+                                                            onChange={(e) => {
+                                                                setBonusAccrualMode(e.target.value);
+                                                                setBonusPercentOverride(null);
+                                                            }}
+                                                            disabled={bonusSettings.is_fixed_percent}
+                                                        />
+                                                        <span>
+                                                            По общим настройкам ({bonusSettings.bonus_percent}%)
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                                {bonusSettings.is_fixed_percent && (
+                                                    <div className={styles.bonusModeHint}>
+                                                        Процент фиксированный, режим выбран автоматически
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* История транзакций */}
+                                            {selectedCustomer.recent_transactions && selectedCustomer.recent_transactions.length > 0 && (
+                                                <div className={styles.bonusHistory}>
+                                                    <div className={styles.bonusHistoryTitle}>Последние транзакции:</div>
+                                                    <div className={styles.bonusHistoryList}>
+                                                        {selectedCustomer.recent_transactions.slice(0, 5).map((t) => (
+                                                            <div key={t.id} className={styles.bonusHistoryItem}>
+                                                                <div className={styles.bonusHistoryType}>
+                                                                    {t.type === 'accrual' ? 'Начисление' : 'Списание'}
+                                                                </div>
+                                                                <div className={`${styles.bonusHistoryAmount} ${
+                                                                    parseFloat(t.amount) >= 0 ? styles.positive : styles.negative
+                                                                }`}>
+                                                                    {parseFloat(t.amount) >= 0 ? '+' : ''}
+                                                                    {parseFloat(t.amount).toFixed(2)}
+                                                                </div>
+                                                                <div className={styles.bonusHistoryDate}>
+                                                                    {new Date(t.created_at).toLocaleDateString('ru-RU')}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Прогноз начисления бонусов */}
+                                            {(() => {
+                                                const currentCart = activeCartForSale === 1 ? cart : cart2;
+                                                const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
+                                                const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
+                                                const bonusPrediction = calculateBonusPrediction(currentCart, currentDiscountValue, currentDiscountType);
+                                                
+                                                // Определяем процент бонусов, который будет использован (та же логика, что и в calculateBonusPrediction)
+                                                let bonusPercentToUse = 0;
+                                                
+                                                // Если процент фиксированный, всегда используем настройки (если нет переопределения)
+                                                if (bonusSettings.is_fixed_percent && bonusPercentOverride === null) {
+                                                    bonusPercentToUse = parseFloat(bonusSettings.bonus_percent || 0);
+                                                } else if (bonusPercentOverride !== null) {
+                                                    bonusPercentToUse = bonusPercentOverride;
+                                                } else if (bonusAccrualMode === 'tier' && selectedCustomer.tier?.bonus_percent) {
+                                                    bonusPercentToUse = parseFloat(selectedCustomer.tier.bonus_percent);
+                                                } else if (bonusAccrualMode === 'settings') {
+                                                    // Явно используем процент из общих настроек
+                                                    bonusPercentToUse = parseFloat(bonusSettings.bonus_percent || 0);
+                                                } else {
+                                                    // Fallback: используем процент из общих настроек
+                                                    bonusPercentToUse = parseFloat(bonusSettings.bonus_percent || 0);
+                                                }
+                                                
+                                                if (bonusPrediction !== null && bonusPrediction > 0) {
+                                                    return (
+                                                        <div className={styles.bonusPredictionCard}>
+                                                            <div className={styles.bonusPredictionLabel}>После этой покупки:</div>
+                                                            <div className={styles.bonusPredictionValue}>
+                                                                +{bonusPrediction.toFixed(2)} баллов
+                                                            </div>
+                                                            <div className={styles.bonusPredictionHint}>
+                                                                (≈ {bonusPrediction.toFixed(2)} ₸)
+                                                            </div>
+                                                            <div className={styles.bonusPercentInfo}>
+                                                                Процент начисления: {parseFloat(bonusPercentToUse).toFixed(2)}%
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+
+                                            {/* Ручное управление процентом (если не фиксированный) */}
+                                            {!bonusSettings.is_fixed_percent && (
+                                                <div className={styles.bonusAccrualControl}>
+                                                    <label>Или укажите процент вручную (%):</label>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
+                                                        max="100"
+                                                        value={bonusPercentOverride !== null ? bonusPercentOverride : ''}
+                                                        onChange={(e) => setBonusPercentOverride(e.target.value ? parseFloat(e.target.value) : null)}
+                                                        placeholder={bonusAccrualMode === 'tier' && selectedCustomer.tier?.bonus_percent 
+                                                            ? selectedCustomer.tier.bonus_percent 
+                                                            : bonusSettings.bonus_percent || '5.00'}
+                                                        className={styles.bonusPercentInput}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Кнопка для списания бонусов */}
+                                            {parseFloat(selectedCustomer.balance || 0) > 0 && (
+                                                <div className={styles.bonusRedemptionButtonWrapper}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowBonusRedemption(!showBonusRedemption)}
+                                                        className={`${styles.bonusRedemptionToggleButton} ${
+                                                            showBonusRedemption ? styles.active : ''
+                                                        }`}
+                                                    >
+                                                        <FaGift /> {showBonusRedemption ? 'Скрыть списание бонусов' : 'Списать бонусы'}
+                                                    </button>
+                                                    
+                                                    {/* Секция управления списанием бонусов */}
+                                                    {showBonusRedemption && (
+                                                        <div className={styles.bonusRedemptionControl}>
+                                                            <label className={styles.bonusRedemptionLabel}>
+                                                                Списать бонусы:
+                                                            </label>
+                                                            <div className={styles.bonusRedemptionType}>
+                                                                <label className={styles.radioOption}>
+                                                                    <input
+                                                                        type="radio"
+                                                                        value="percent"
+                                                                        checked={bonusRedemptionType === 'percent'}
+                                                                        onChange={(e) => {
+                                                                            setBonusRedemptionType(e.target.value);
+                                                                            setBonusRedemptionAmount(0);
+                                                                        }}
+                                                                    />
+                                                                    <span>Процент от баланса</span>
+                                                                </label>
+                                                                <label className={styles.radioOption}>
+                                                                    <input
+                                                                        type="radio"
+                                                                        value="amount"
+                                                                        checked={bonusRedemptionType === 'amount'}
+                                                                        onChange={(e) => {
+                                                                            setBonusRedemptionType(e.target.value);
+                                                                            setBonusRedemptionPercent(0);
+                                                                        }}
+                                                                    />
+                                                                    <span>Фиксированная сумма</span>
+                                                                </label>
+                                                            </div>
+                                                            {bonusRedemptionType === 'percent' ? (
+                                                                <div className={styles.bonusRedemptionInputWrapper}>
+                                                                    <div className={styles.bonusRedemptionInput}>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            max="100"
+                                                                            step="1"
+                                                                            value={bonusRedemptionPercent || ''}
+                                                                            onChange={(e) => {
+                                                                                const value = e.target.value ? parseFloat(e.target.value) : 0;
+                                                                                setBonusRedemptionPercent(Math.min(100, Math.max(0, value)));
+                                                                            }}
+                                                                            placeholder="0"
+                                                                            className={bonusRedemptionPercent > 0 ? styles.hasValue : ''}
+                                                                        />
+                                                                        <span className={styles.inputSuffix}>%</span>
+                                                                    </div>
+                                                                    {bonusRedemptionPercent > 0 && (
+                                                                        <div className={styles.bonusRedemptionPreview}>
+                                                                            Будет списано: <span className={styles.bonusRedemptionPreviewValue}>
+                                                                                {(parseFloat(selectedCustomer.balance || 0) * bonusRedemptionPercent / 100).toFixed(2)} баллов
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className={styles.bonusRedemptionInputWrapper}>
+                                                                    <div className={styles.bonusRedemptionInput}>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            max={parseFloat(selectedCustomer.balance || 0)}
+                                                                            step="0.01"
+                                                                            value={bonusRedemptionAmount || ''}
+                                                                            onChange={(e) => {
+                                                                                const inputValue = e.target.value;
+                                                                                if (inputValue === '' || inputValue === null) {
+                                                                                    setBonusRedemptionAmount(0);
+                                                                                    return;
+                                                                                }
+                                                                                const value = parseFloat(inputValue);
+                                                                                if (isNaN(value)) {
+                                                                                    setBonusRedemptionAmount(0);
+                                                                                    return;
+                                                                                }
+                                                                                const maxBalance = parseFloat(selectedCustomer.balance || 0);
+                                                                                // Разрешаем вводить больше, но показываем ошибку
+                                                                                setBonusRedemptionAmount(Math.max(0, value));
+                                                                            }}
+                                                                            placeholder="0.00"
+                                                                            className={`${bonusRedemptionAmount > 0 ? styles.hasValue : ''} ${
+                                                                                bonusRedemptionAmount > parseFloat(selectedCustomer.balance || 0) 
+                                                                                    ? styles.inputError 
+                                                                                    : ''
+                                                                            }`}
+                                                                        />
+                                                                        <span className={styles.inputSuffix}>баллов</span>
+                                                                    </div>
+                                                                    {bonusRedemptionAmount > 0 && (
+                                                                        <div className={`${styles.bonusRedemptionPreview} ${
+                                                                            bonusRedemptionAmount > parseFloat(selectedCustomer.balance || 0) 
+                                                                                ? styles.bonusRedemptionPreviewError 
+                                                                                : ''
+                                                                        }`}>
+                                                                            Будет списано: <span className={styles.bonusRedemptionPreviewValue}>
+                                                                                {bonusRedemptionAmount.toFixed(2)} баллов
+                                                                            </span>
+                                                                            {bonusRedemptionAmount > parseFloat(selectedCustomer.balance || 0) && (
+                                                                                <span className={styles.bonusRedemptionError}>
+                                                                                    ⚠ Недостаточно бонусов
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                    <div className={styles.bonusRedemptionHint}>
+                                                                        Доступно: <strong>{parseFloat(selectedCustomer.balance || 0).toFixed(2)} баллов</strong>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                     </div>
 
                                     <div className={styles.paymentForm}>
@@ -1877,23 +2758,19 @@ const SalesPage = () => {
                                         </div>
 
                                         <div className={styles.formGroup}>
-                                            <label>Клиент (необязательно)</label>
-                                            <input
-                                                type="text"
-                                                value={customerName}
-                                                onChange={(e) => setCustomerName(e.target.value)}
-                                                placeholder="Имя клиента"
-                                            />
-                                        </div>
-
-                                        <div className={styles.formGroup}>
-                                            <label>Телефон (необязательно)</label>
-                                            <input
-                                                type="tel"
-                                                value={customerPhone}
-                                                onChange={(e) => setCustomerPhone(e.target.value)}
-                                                placeholder="+7 (XXX) XXX-XXXX"
-                                            />
+                                            <label>Сканировать QR-код клиента</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowQRScanner(true)}
+                                                className={styles.qrButtonLarge}
+                                                    title="Сканировать QR-код"
+                                                >
+                                                <FaQrcode size={32} />
+                                                <span className={styles.qrButtonText}>Сканировать QR-код</span>
+                                                </button>
+                                            <p className={styles.qrButtonDescription}>
+                                                Отсканируйте QR-код клиента для автоматического заполнения данных и применения бонусной программы
+                                            </p>
                                         </div>
                                     </div>
                                 </>
@@ -1936,6 +2813,39 @@ const SalesPage = () => {
                                         )}
                                         {receiptData.customer_phone && (
                                             <p><strong>Телефон:</strong> {receiptData.customer_phone}</p>
+                                        )}
+                                        
+                                        {/* Информация о бонусах */}
+                                        {receiptData.bonus_info && (
+                                            <div className={styles.receiptBonusInfo}>
+                                                <h6><FaGift /> Информация о бонусах</h6>
+                                                {receiptData.bonus_info.tier && (
+                                                    <p>
+                                                        <strong>Уровень покупателя:</strong>{' '}
+                                                        {receiptData.bonus_info.tier.name} ({receiptData.bonus_info.tier.bonus_percent}%)
+                                                    </p>
+                                                )}
+                                                <p>
+                                                    <strong>Процент бонусов:</strong>{' '}
+                                                    {parseFloat(receiptData.bonus_info.bonus_percent || 0).toFixed(2)}%
+                                                </p>
+                                                {parseFloat(receiptData.bonus_info.accrued || 0) > 0 && (
+                                                    <p>
+                                                        <strong>Начислено бонусов:</strong>{' '}
+                                                        +{parseFloat(receiptData.bonus_info.accrued).toFixed(2)} баллов
+                                                    </p>
+                                                )}
+                                                {parseFloat(receiptData.bonus_info.redeemed || 0) > 0 && (
+                                                    <p>
+                                                        <strong>Списано бонусов:</strong>{' '}
+                                                        -{parseFloat(receiptData.bonus_info.redeemed).toFixed(2)} баллов
+                                                    </p>
+                                                )}
+                                                <p>
+                                                    <strong>Баланс после транзакции:</strong>{' '}
+                                                    {parseFloat(receiptData.bonus_info.balance_after || 0).toFixed(2)} баллов
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -1985,6 +2895,11 @@ const SalesPage = () => {
                                             setCart([]);
                                             setCustomerName('');
                                             setCustomerPhone('');
+                                            setSelectedCustomer(null);
+                                            setBonusPercentOverride(null);
+                                            setBonusRedemptionPercent(0);
+                                            setBonusRedemptionAmount(0);
+                                            setBonusRedemptionType('percent');
                                             setDiscountValue(0);
                                         }}
                                     >
@@ -1995,6 +2910,27 @@ const SalesPage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* QR Scanner Modal */}
+            {showQRScanner && selectedLocation && (
+                <QRScanner
+                    locationId={selectedLocation}
+                    onCustomerSelected={(customerData) => {
+                        setSelectedCustomer(customerData);
+                        setCustomerName(customerData.user.full_name || customerData.user.username);
+                        // Сбрасываем значения списания из QR-сканера, если они были
+                        if (customerData.bonus_redemption_percent) {
+                            setBonusRedemptionType('percent');
+                            setBonusRedemptionPercent(customerData.bonus_redemption_percent);
+                        } else if (customerData.bonus_redemption_amount) {
+                            setBonusRedemptionType('amount');
+                            setBonusRedemptionAmount(customerData.bonus_redemption_amount);
+                        }
+                        setShowQRScanner(false);
+                    }}
+                    onClose={() => setShowQRScanner(false)}
+                />
             )}
         </div>
     );

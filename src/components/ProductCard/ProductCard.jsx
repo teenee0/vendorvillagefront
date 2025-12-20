@@ -29,10 +29,37 @@ const ProductCard = ({ product }) => {
     // Сбрасываем состояние загрузки при смене изображения
     useEffect(() => {
         if (mainImage?.image) {
-            setImageLoading(true);
+            const imageUrl = getImageUrl(mainImage.image);
+            const img = new Image();
+            
+            // Проверяем, загружено ли изображение уже в кэше браузера
+            img.onload = () => {
+                setImageLoading(false);
+                setImageError(false);
+            };
+            
+            img.onerror = () => {
+                setImageError(true);
+                setImageLoading(false);
+            };
+            
+            // Устанавливаем src - если изображение в кэше, complete будет true сразу
+            img.src = imageUrl;
+            
+            // Если изображение уже загружено в кэше, сразу скрываем скелетон
+            if (img.complete) {
+                setImageLoading(false);
+                setImageError(false);
+            } else {
+                // Иначе показываем скелетон пока загружается
+                setImageLoading(true);
+                setImageError(false);
+            }
+        } else {
+            setImageLoading(false);
             setImageError(false);
         }
-    }, [mainImage?.image]);
+    }, [mainImage?.image, getImageUrl]);
     
     const hasDiscount = variant && parseFloat(variant.discount) > 0;
     const currentPrice = variant?.current_price || product.min_price;

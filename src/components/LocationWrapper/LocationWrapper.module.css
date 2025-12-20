@@ -5,6 +5,12 @@
   width: 90%;
 }
 
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+  }
+}
+
 .loadingContainer {
   display: flex;
   align-items: center;

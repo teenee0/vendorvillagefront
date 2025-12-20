@@ -31,19 +31,80 @@
     height: 50px;
 }
   
-.logo a {
+.logoLink {
     text-decoration: none;
     display: flex;
     align-items: center;
     font-weight: 700;
     font-size: 1.5rem;
+    gap: 2px;
+    color: var(--platinum-gleam);
+    transition: opacity 0.3s ease;
 }
-  
-.vendor {
-    color: #4a6bff;
+
+.logoLink:hover {
+    opacity: 0.9;
 }
-  
-.villageBusiness {
-    color: #333;
-    margin-left: 5px;
+
+
+.logoIcon {
+    width: 1.3em;
+    height: 1.3em;
+    color: white;
+    filter: brightness(0) invert(1);
+    transition: opacity 0.3s ease;
+    display: inline-block;
+    vertical-align: baseline;
+    margin-right: -9px;
+    align-self: flex-end;
+    margin-bottom: 1px;
 }
+
+.logoText {
+    font-size: 1em;
+    background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 50%, var(--imperial-gold) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    color: transparent !important;
+    animation: shimmer 3s linear infinite;
+    display: inline-block;
+}
+
+.logoLink:hover .logoText {
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+}
+
+.businessText {
+    font-size: 1em;
+    background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 50%, var(--imperial-gold) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    color: transparent !important;
+    animation: shimmer 3s linear infinite;
+    opacity: 0.9;
+    display: inline-block;
+}
+
+.logoLink:hover .businessText {
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 0% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+

@@ -1,0 +1,1006 @@
+/* TasksPageMobile.module.css - Профессиональный мобильный интерфейс для страницы задач */
+
+.container {
+    padding: 0;
+    min-height: 100vh;
+    background: var(--onyx-midnight);
+    padding-bottom: env(safe-area-inset-bottom);
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+/* Sticky Header */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-bottom: 1px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-top: max(1rem, env(safe-area-inset-top));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 20px rgba(45, 175, 159, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.backButton {
+    background: transparent;
+    border: none;
+    color: var(--royal-emerald);
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.backButton:active {
+    opacity: 0.7;
+    background: rgba(45, 175, 159, 0.1);
+    transform: scale(0.95);
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    color: var(--royal-emerald);
+    margin: 0;
+    font-weight: 700;
+    flex: 1;
+}
+
+.createButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    border: none;
+    color: white;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.createButton:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 4px rgba(45, 175, 159, 0.3);
+}
+
+/* Filters Section */
+.filtersSection {
+    padding: 1rem;
+    background: var(--onyx-midnight);
+    border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.searchForm {
+    margin-bottom: 0.75rem;
+}
+
+.searchInputGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--obsidian-elite);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 0.5rem;
+    transition: all 0.3s;
+}
+
+.searchInputGroup:focus-within {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.searchIcon {
+    color: var(--silver-whisper);
+    font-size: 1rem;
+    margin-left: 0.5rem;
+}
+
+.searchInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    padding: 0.75rem;
+    outline: none;
+    min-height: 44px;
+}
+
+.searchInput::placeholder {
+    color: var(--silver-whisper);
+    opacity: 0.6;
+}
+
+.searchButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 80px;
+    min-height: 44px;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.searchButton:active {
+    transform: scale(0.95);
+}
+
+.filterToggle {
+    width: 100%;
+    background: var(--obsidian-elite);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.filterToggle:active {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.1);
+    transform: scale(0.98);
+}
+
+.filtersPanel {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.filterRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filterLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.filterSelect {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.filterSelect:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.checkboxLabel input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--royal-emerald);
+}
+
+/* Content */
+.content {
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: 2rem;
+}
+
+.error {
+    background: rgba(192, 57, 43, 0.15);
+    border: 1px solid var(--velvet-ruby);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--velvet-ruby);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: var(--silver-whisper);
+    text-align: center;
+    gap: 1rem;
+}
+
+.emptyIcon {
+    font-size: 3rem;
+    opacity: 0.5;
+    color: var(--imperial-gold);
+}
+
+.emptyState p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Task Cards */
+.tasksList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.taskCard {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.taskCard.subtask {
+    margin-left: 1rem;
+    border-left: 3px solid var(--imperial-gold);
+}
+
+.taskHeader {
+    padding: 1rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.taskHeader:active {
+    background: rgba(45, 175, 159, 0.05);
+}
+
+.taskTitleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.taskTitle {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--platinum-gleam);
+    margin: 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+    cursor: pointer;
+}
+
+.taskBadges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.badgeWrapper {
+    position: relative;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.clickableBadge {
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.clickableBadge:active {
+    transform: scale(0.95);
+}
+
+.quickEditDropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: var(--obsidian-elite);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    min-width: 150px;
+    overflow: hidden;
+}
+
+.quickEditOption {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.quickEditOption:active {
+    background: rgba(45, 175, 159, 0.1);
+}
+
+.quickEditOption.active {
+    background: rgba(45, 175, 159, 0.15);
+    font-weight: 600;
+}
+
+/* Priority Colors */
+.priorityLow {
+    background: rgba(100, 200, 100, 0.15);
+    color: #64c864;
+    border: 1px solid rgba(100, 200, 100, 0.3);
+}
+
+.priorityMedium {
+    background: rgba(212, 175, 55, 0.15);
+    color: #d4af37;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.priorityHigh {
+    background: rgba(255, 165, 0, 0.15);
+    color: #ffa500;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.priorityCritical {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+/* Status Colors */
+.statusTodo {
+    background: rgba(150, 150, 150, 0.15);
+    color: #969696;
+    border: 1px solid rgba(150, 150, 150, 0.3);
+}
+
+.statusInProgress {
+    background: rgba(100, 150, 255, 0.15);
+    color: #6496ff;
+    border: 1px solid rgba(100, 150, 255, 0.3);
+}
+
+.statusReview {
+    background: rgba(255, 200, 100, 0.15);
+    color: #ffc864;
+    border: 1px solid rgba(255, 200, 100, 0.3);
+}
+
+.statusDone {
+    background: rgba(100, 200, 100, 0.15);
+    color: #64c864;
+    border: 1px solid rgba(100, 200, 100, 0.3);
+}
+
+.statusCancelled {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.taskMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--silver-whisper);
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0.8;
+}
+
+.taskBody {
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.15);
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+}
+
+.taskDescription {
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.taskFiles {
+    margin-bottom: 1rem;
+}
+
+.taskFiles h4 {
+    font-size: 0.95rem;
+    color: var(--silver-whisper);
+    margin: 0 0 0.75rem 0;
+    font-weight: 600;
+}
+
+.fileItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: var(--onyx-midnight);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.fileLink {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--platinum-gleam);
+    text-decoration: none;
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.fileLink:active {
+    color: var(--royal-emerald);
+}
+
+.deleteFileButton {
+    background: transparent;
+    border: none;
+    color: var(--velvet-ruby);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.deleteFileButton:active {
+    background: rgba(192, 57, 43, 0.15);
+    transform: scale(0.95);
+}
+
+.taskActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.actionButton,
+.actionButtonDanger {
+    width: 100%;
+    background: var(--onyx-midnight);
+    border: 1.5px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.actionButton:active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.1);
+    transform: scale(0.98);
+}
+
+.actionButtonDanger {
+    border-color: var(--velvet-ruby);
+    color: var(--velvet-ruby);
+}
+
+.actionButtonDanger:active {
+    background: rgba(192, 57, 43, 0.15);
+    transform: scale(0.98);
+}
+
+.subtasks {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.subtasks h4 {
+    font-size: 0.95rem;
+    color: var(--silver-whisper);
+    margin: 0 0 0.75rem 0;
+    font-weight: 600;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.modal {
+    width: 100%;
+    max-height: 95vh;
+    background: var(--obsidian-elite);
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+    background: var(--onyx-midnight);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modalHeader h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--royal-emerald);
+    font-weight: 700;
+}
+
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.formRow {
+    margin-bottom: 1.25rem;
+}
+
+.formRow label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.formRow input,
+.formRow textarea,
+.formRow select {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    min-height: 48px;
+    font-family: inherit;
+}
+
+.formRow input:focus,
+.formRow textarea:focus,
+.formRow select:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.formRow textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.inputError {
+    border-color: var(--velvet-ruby) !important;
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1) !important;
+}
+
+.fieldError {
+    color: var(--velvet-ruby);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.formError {
+    background: rgba(192, 57, 43, 0.15);
+    border: 1px solid var(--velvet-ruby);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--velvet-ruby);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.employeeList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 10px;
+}
+
+.emptyEmployees {
+    color: var(--silver-whisper);
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.employeeButton {
+    width: 100%;
+    background: var(--obsidian-elite);
+    border: 1.5px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.employeeButton:active {
+    transform: scale(0.98);
+}
+
+.employeeButtonSelected {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.15);
+}
+
+.employeeInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.employeeNameRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.employeeIcon {
+    color: var(--royal-emerald);
+    font-size: 0.9rem;
+}
+
+.employeeName {
+    flex: 1;
+    color: var(--platinum-gleam);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.checkIcon {
+    color: var(--royal-emerald);
+    font-size: 1rem;
+}
+
+.employeeEmail {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.modalFooter {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border-top: 1px solid var(--gilded-shadow);
+    background: var(--onyx-midnight);
+    position: sticky;
+    bottom: 0;
+}
+
+.cancelButton,
+.saveButton {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.cancelButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+}
+
+.cancelButton:active {
+    border-color: var(--velvet-ruby);
+    color: var(--velvet-ruby);
+    transform: scale(0.98);
+}
+
+.saveButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+}
+
+.saveButton:active {
+    transform: scale(0.98);
+}
+
+.saveButton:disabled,
+.cancelButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* SearchableSelect */
+.searchableSelect {
+    position: relative;
+}
+
+.searchableSelectTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.searchableSelectTrigger:active {
+    border-color: var(--royal-emerald);
+}
+
+.searchableSelectValue {
+    flex: 1;
+    text-align: left;
+}
+
+.searchableSelectArrow {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    transition: transform 0.3s;
+}
+
+.searchableSelectDropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: var(--obsidian-elite);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.searchableSelectSearch {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--onyx-midnight);
+    border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.searchableSelectSearch svg {
+    color: var(--silver-whisper);
+}
+
+.searchableSelectSearch input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    outline: none;
+    min-height: 44px;
+}
+
+.searchableSelectSearch input::placeholder {
+    color: var(--silver-whisper);
+    opacity: 0.6;
+}
+
+.searchableSelectOptions {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.searchableSelectOption {
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.searchableSelectOption:active {
+    background: rgba(45, 175, 159, 0.15);
+}
+
+.searchableSelectOptionSelected {
+    background: rgba(45, 175, 159, 0.2);
+    font-weight: 600;
+    color: var(--royal-emerald);
+}
+
+.searchableSelectNoResults {
+    padding: 1rem;
+    text-align: center;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .header {
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .content {
+        padding: 0.75rem;
+    }
+
+    .taskCard {
+        border-radius: 12px;
+    }
+
+    .taskTitle {
+        font-size: 1rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+    }
+}
+

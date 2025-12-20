@@ -1252,6 +1252,80 @@
     font-size: 1.1rem;
 }
 
+.barcodeSection {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gilded-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.barcodeTitle {
+    margin: 0;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.barcodeImageContainer {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--phantom-noir);
+    border: 1px dashed var(--sage-green);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.barcodeImg {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    display: block;
+}
+
+.barcodeNumber {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.printBarcodeButton {
+    background: var(--imperial-gold);
+    color: var(--phantom-noir);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+}
+
+.printBarcodeButton:hover {
+    background: #c9a030;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+}
+
+.printBarcodeButton i {
+    font-size: 1rem;
+}
+
 .activeFlagsSection {
     margin-top: 1rem;
     padding: 1rem;

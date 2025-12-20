@@ -28,6 +28,22 @@
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
+:root.light-theme {
+  --white: #ffffff;
+  --light-gray: #f8fafc;
+  --gray: #e2e8f0;
+  --text-dark: #1e293b;
+  --text-light: #64748b;
+}
+
+:root.dark-theme {
+  --white: var(--background-card);
+  --light-gray: var(--obsidian-elite);
+  --gray: var(--gilded-shadow);
+  --text-dark: var(--text-main);
+  --text-light: var(--text-muted);
+}
+
 
 
 .container {
@@ -517,4 +533,59 @@
 .verificationCodeInput::placeholder {
   letter-spacing: normal;
   font-weight: normal;
+}
+
+/* Стили для чекбокса согласия на обработку ПДн */
+.checkboxGroup {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.checkbox {
+  margin-top: 0.2rem;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--blue);
+  flex-shrink: 0;
+}
+
+.checkboxText {
+  flex: 1;
+  color: var(--text-dark);
+}
+
+.privacyLink {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.privacyLink:hover {
+  color: var(--blue-dark);
+  text-decoration: underline;
+}
+
+:global(:root.dark-theme) .checkboxLabel,
+:global(:root.dark-theme) .checkboxText {
+  color: var(--platinum-gleam);
+}
+
+:global(:root.dark-theme) .privacyLink {
+  color: var(--royal-emerald);
+}
+
+:global(:root.dark-theme) .privacyLink:hover {
+  color: var(--luminous-sapphire);
 }

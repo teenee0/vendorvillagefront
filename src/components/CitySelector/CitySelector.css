@@ -1,0 +1,150 @@
+.city-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.city-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: fit-content; /* Минимальная ширина по содержимому */
+  max-width: 200px; /* Максимальная ширина */
+}
+
+.city-selector-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.city-selector-button i:first-child {
+  font-size: 0.9rem;
+  flex-shrink: 0; /* Иконка не сжимается */
+}
+
+.city-selector-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* Позволяет сжиматься */
+  flex: 0 1 auto; /* Может сжиматься, но не растягиваться */
+}
+
+.city-selector-button i:last-child {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.city-selector-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  background: var(--background-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 250px;
+  max-width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1001;
+  animation: dropdownSlideIn 0.2s ease-out;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.city-selector-loading {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.city-selector-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+}
+
+.city-selector-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+  color: var(--text-main);
+}
+
+.city-selector-item:hover {
+  background: var(--background-hover);
+}
+
+.city-selector-item.selected {
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  color: #667eea;
+  font-weight: 600;
+}
+
+.city-selector-item-name {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.city-selector-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.city-selector-item i.fa-check {
+  color: #667eea;
+  font-size: 0.8rem;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .city-selector-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .city-selector-text {
+    max-width: 100px;
+  }
+
+  .city-selector-dropdown {
+    left: auto;
+    right: 0;
+    min-width: 200px;
+  }
+}
+

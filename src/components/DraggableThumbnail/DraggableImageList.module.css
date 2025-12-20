@@ -132,7 +132,7 @@
     }
     /* Эффект при наведении */
     &:hover {
-        background-color: #fff;
+        background-color: var(--background-hover);
         transform: scale(1.15) translateY(-2px);
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }

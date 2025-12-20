@@ -1,0 +1,437 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.modal {
+  background: var(--background-card);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-light);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 5px;
+}
+
+.closeButton:hover {
+  color: var(--text-main);
+}
+
+.content {
+  padding: 20px;
+}
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.inputSection label {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.inputSection input {
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--background-hover);
+  color: var(--text-main);
+}
+
+.scanButton {
+  padding: 12px 24px;
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.scanButton:hover:not(:disabled) {
+  background: var(--text-success);
+}
+
+.scanButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--text-danger);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--text-danger);
+}
+
+.customerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.customerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.customerHeader h4 {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.clearButton {
+  padding: 8px 16px;
+  background: var(--background-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.clearButton:hover {
+  background: var(--gilded-shadow);
+}
+
+.balanceSection {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.balanceCard {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--luminous-sapphire) 0%, var(--accent-blue) 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(58, 93, 168, 0.3);
+}
+
+.balanceCard svg {
+  font-size: 32px;
+}
+
+.balanceLabel {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.balanceValue {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.tierCard {
+  flex: 1;
+  min-width: 150px;
+  padding: 20px;
+  background: var(--background-hover);
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.tierLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.tierValue {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--text-main);
+  margin-bottom: 5px;
+}
+
+.tierPercent {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.redemptionSection {
+  padding: 20px;
+  background: var(--background-hover);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.redemptionSection h5 {
+  margin: 0 0 15px 0;
+  color: var(--text-main);
+}
+
+.redemptionType {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.redemptionType label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-main);
+}
+
+.redemptionInput {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.redemptionInput input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--background-card);
+  color: var(--text-main);
+}
+
+.transactions {
+  padding: 20px;
+  background: var(--background-hover);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.transactions h5 {
+  margin: 0 0 15px 0;
+  color: var(--text-main);
+}
+
+.transactionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transactionItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--background-card);
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+}
+
+.transactionType {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.transactionAmount {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.transactionAmount.positive {
+  color: var(--accent-green);
+}
+
+.transactionAmount.negative {
+  color: var(--text-danger);
+}
+
+.transactionDate {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.footer {
+  padding: 20px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.applyButton {
+  padding: 12px 24px;
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.applyButton:hover {
+  background: var(--text-success);
+}
+
+/* Mode Toggle */
+.modeToggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  background: var(--background-hover);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.modeButton {
+  flex: 1;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.modeButton:hover:not(:disabled) {
+  background: var(--background-card);
+  color: var(--text-main);
+}
+
+.modeButton.active {
+  background: var(--accent-green);
+  color: white;
+}
+
+.modeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Camera Section */
+.cameraSection {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: var(--background-hover);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qrReader {
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+}
+
+.qrReader video {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.scanningOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.scanningText {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.cameraPlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.cameraPlaceholder svg {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.cameraPlaceholder p {
+  margin: 0;
+  font-size: 1rem;
+}

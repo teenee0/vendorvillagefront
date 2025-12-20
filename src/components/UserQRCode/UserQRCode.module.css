@@ -1,0 +1,162 @@
+.container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  color: var(--text-main);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.refreshButton {
+  padding: 10px;
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 16px;
+}
+
+.refreshButton:hover {
+  background: var(--luminous-sapphire);
+  transform: rotate(180deg);
+}
+
+.qrSection {
+  background: var(--background-card);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-light);
+}
+
+.qrCodeWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: var(--background-main);
+  border-radius: 8px;
+}
+
+.qrCode {
+  border: 4px solid var(--background-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info {
+  margin-top: 20px;
+}
+
+.description {
+  font-size: 16px;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.expiry {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.actions {
+  margin-top: 20px;
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin: 0 auto;
+}
+
+.copyButton:hover {
+  background: var(--text-success);
+}
+
+.bonusInfo {
+  background: var(--background-hover);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border-light);
+}
+
+.bonusInfo h3 {
+  margin: 0 0 15px 0;
+  color: var(--text-main);
+}
+
+.bonusInfo ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bonusInfo li {
+  padding: 8px 0;
+  padding-left: 25px;
+  position: relative;
+  color: var(--text-muted);
+}
+
+.bonusInfo li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent-green);
+  font-weight: bold;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--text-danger);
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid var(--text-danger);
+}
+
+.retryButton {
+  padding: 10px 20px;
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.retryButton:hover {
+  background: var(--luminous-sapphire);
+}

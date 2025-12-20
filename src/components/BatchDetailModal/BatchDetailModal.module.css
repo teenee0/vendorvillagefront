@@ -822,8 +822,98 @@
 }
 
 @media (max-width: 768px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+    background: rgba(0, 0, 0, 0.9);
+  }
+
+  .modal {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    animation: slideUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    background: var(--obsidian-elite);
+    z-index: 10;
+    padding: 1.25rem 1rem;
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+    border-bottom: 2px solid var(--gilded-shadow);
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .closeButton {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .content {
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+
   .infoGrid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .infoItem {
+    padding: 1rem;
+    background: var(--phantom-noir);
+    border-radius: 12px;
+    border: 1px solid var(--gilded-shadow);
+  }
+
+  .infoItem label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .infoItem input,
+  .infoItem select,
+  .infoItem textarea {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .infoItem textarea {
+    min-height: 100px;
   }
 
   .tableHeader,
@@ -834,17 +924,354 @@
   
   .stockControls {
     grid-template-columns: 1fr;
-    gap: 0.5rem;
+    gap: 1rem;
+  }
+
+  .stockControls > * {
+    width: 100%;
   }
   
   .infoRow {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
   }
 
-  
+  .stockRow {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
 
- }
+  .selectedProductCard {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .selectedProductImage,
+  .selectedNoImage {
+    width: 100px;
+    height: 140px;
+  }
+
+  .inputWithLabel {
+    width: 100%;
+  }
+
+  .quantityInput {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .checkboxLabel {
+    padding: 0.75rem;
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .activeFlagsSection {
+    padding: 1rem;
+  }
+
+  .activeFlagItem {
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+
+  .activeFlagItem input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  .addButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .addButton:active {
+    transform: scale(0.98);
+  }
+
+  .editButton,
+  .completeButton,
+  .deleteButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .editButton:active,
+  .completeButton:active,
+  .deleteButton:active {
+    transform: scale(0.98);
+  }
+
+  .actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--obsidian-elite);
+    border-top: 2px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    margin: 0 -1rem -1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .actions button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .actions button:active {
+    transform: scale(0.98);
+  }
+
+  .footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--obsidian-elite);
+    border-top: 2px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    margin: 0 -1rem -1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .deleteBatchButton,
+  .completeButton,
+  .closeBtn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    justify-content: center;
+  }
+
+  .deleteBatchButton:active,
+  .completeButton:active,
+  .closeBtn:active {
+    transform: scale(0.98);
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .sectionHeader h3 {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .sectionHeader .editButton {
+    width: 100%;
+  }
+
+  .summarySection {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--phantom-noir);
+    border-radius: 12px;
+  }
+
+  .summaryItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .documentCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .documentActions {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .documentActions a,
+  .documentActions button {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .defectFormRow {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .defectFormActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .addDefectBtn,
+  .cancelDefectBtn {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .addDefectButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .textInput {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .documentUploadForm {
+    padding: 1.25rem;
+  }
+
+  .documentUploadForm input,
+  .documentUploadForm textarea {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .documentUploadActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .documentUploadActions button {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .addDocumentButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .statusBadge {
+    padding: 1.25rem;
+  }
+
+  .status {
+    font-size: 1rem;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .defectFormRow {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .defectFormActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .addDefectBtn,
+  .cancelDefectBtn {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .documentUploadForm {
+    padding: 1.25rem;
+  }
+
+  .documentUploadForm input,
+  .documentUploadForm textarea {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .documentUploadActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .documentUploadActions button {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .addDocumentButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .removeButton,
+  .deleteStockButton {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+}
 
 .colStatus {
   text-align: center;
@@ -1175,17 +1602,4 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
-  .stockControls {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  
-  .infoGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .infoItemFull {
-    grid-column: 1;
-  }
-}
+/* Дублирующий медиа-запрос удален - стили уже добавлены выше */

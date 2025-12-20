@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
+import {
+  FaPlus,
+  FaSearch,
+  FaTimes,
+  FaTrash,
+  FaChevronLeft,
+  FaChevronRight,
+  FaClock,
+  FaCheck,
+  FaSpinner
+} from 'react-icons/fa';
 import styles from './InventoryListPage.module.css';
 import Loader from '../../components/Loader';
 import dayjs from 'dayjs';
@@ -144,16 +155,22 @@ const InventoryListPage = () => {
         <div className={styles.container}>
             <div className={styles.header}>
                 <h1>Инвентаризация</h1>
+                <div className={styles.businessInfo}>
+                    <span>Бизнес: {business_slug}</span>
+                </div>
                 <button
                     className={styles.createButton}
                     onClick={() => setModalOpen(true)}
                 >
-                    <i className="fa fa-plus"></i> Начать инвентаризацию
+                    <FaPlus /> Начать инвентаризацию
                 </button>
             </div>
 
+            <div className={styles.content}>
             {/* Фильтры */}
             <div className={styles.filters}>
+                    <div className={styles.searchBar}>
+                        <form onSubmit={(e) => { e.preventDefault(); }}>
                 <input
                     type="text"
                     placeholder="Поиск по складу или примечаниям..."
@@ -161,6 +178,11 @@ const InventoryListPage = () => {
                     onChange={(e) => setFilters({...filters, search: e.target.value})}
                     className={styles.searchInput}
                 />
+                            <button type="submit">
+                                <FaSearch />
+                            </button>
+                        </form>
+                    </div>
                 <select
                     value={filters.status}
                     onChange={(e) => setFilters({...filters, status: e.target.value})}
@@ -211,9 +233,9 @@ const InventoryListPage = () => {
                                         title="Удалить инвентаризацию"
                                     >
                                         {deletingId === inventory.id ? (
-                                            <i className="fa fa-spinner fa-spin"></i>
+                                            <FaSpinner style={{ animation: 'spin 1s linear infinite' }} />
                                         ) : (
-                                            <i className="fa fa-trash"></i>
+                                            <FaTrash />
                                         )}
                                     </button>
                                 )}
@@ -261,13 +283,13 @@ const InventoryListPage = () => {
 
                         {inventory.started_at && (
                             <div className={styles.meta}>
-                                <i className="fa fa-clock-o"></i>
+                                <FaClock />
                                 Начато: {formatDate(inventory.started_at)}
                             </div>
                         )}
                         {inventory.completed_at && (
                             <div className={styles.meta}>
-                                <i className="fa fa-check"></i>
+                                <FaCheck />
                                 Завершено: {formatDate(inventory.completed_at)}
                             </div>
                         )}
@@ -289,7 +311,7 @@ const InventoryListPage = () => {
                         disabled={pagination.page === 1}
                         className={styles.pageButton}
                     >
-                        <i className="fa fa-chevron-left"></i>
+                            <FaChevronLeft />
                     </button>
                     <span className={styles.pageInfo}>
                         Страница {pagination.page} из {pagination.total_pages}
@@ -299,10 +321,11 @@ const InventoryListPage = () => {
                         disabled={pagination.page >= pagination.total_pages}
                         className={styles.pageButton}
                     >
-                        <i className="fa fa-chevron-right"></i>
+                            <FaChevronRight />
                     </button>
                 </div>
             )}
+            </div>
 
             {/* Модальное окно создания */}
             {modalOpen && (
@@ -314,7 +337,7 @@ const InventoryListPage = () => {
                                 className={styles.closeButton}
                                 onClick={() => setModalOpen(false)}
                             >
-                                <i className="fa fa-times"></i>
+                                <FaTimes />
                             </button>
                         </div>
                         <div className={styles.modalBody}>

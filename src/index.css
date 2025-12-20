@@ -6,11 +6,21 @@
   
   /* Цветовая схема */
   color-scheme: light dark;
+  
+  /* Оптимизации рендеринга */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Темная тема (по умолчанию) */
+:root,
+:root.dark-theme {
   --text-primary: rgba(255, 255, 255, 0.87);
-  --bg-primary: #242424;
+  --bg-primary: #121212; /* var(--onyx-midnight) */
   --bg-secondary: #0c0c0c;
   --accent-color: #646cff;
-  /* --accent-color: #f40076; */
   --accent-hover: #535bf2;
   --bg-red: #e74c3c;
   --bg-red-hover: #da190b;
@@ -19,33 +29,23 @@
   --bg-blue: #3498db;
   --bg-blue-hover: #2980b9;
   --bg-purpule: #f40076;
+  
   /* бизнесовые */
-  --onyx-midnight: #121212;       /* Основной глубокий фон */
-  --obsidian-elite: #1a1a1a;      /* Вторичный фон, карточки */
-  --phantom-noir: #222222;        /* Акцентные элементы */
-  --gilded-shadow: #2b2b2b;       /* Границы, деликатные линии */
+  --onyx-midnight: #121212;
+  --obsidian-elite: #1a1a1a;
+  --phantom-noir: #222222;
+  --gilded-shadow: #2b2b2b;
   
-  --platinum-gleam: #e0e0e0;      /* Основной текст */
-  --silver-whisper: #b0b0b0;      /* Вторичный текст */
-  --palladium-mist: #808080;      /* Неактивные элементы */
+  --platinum-gleam: #e0e0e0;
+  --silver-whisper: #b0b0b0;
+  --palladium-mist: #808080;
   
-  --royal-emerald: #2daf9f;       /* Акцентный (премиум-зеленый/бирюза) */
-  --imperial-gold: #d4af37;       /* Золотой акцент (кнопки, выделение) */
-  --velvet-ruby: #a83a3a;         /* Опасные действия/предупреждения */
-  --luminous-sapphire: #3a5da8;   /* Информационные элементы */
-  /* Цветовая схема бизнес панели */
+  --royal-emerald: #2daf9f;
+  --imperial-gold: #d4af37;
+  --velvet-ruby: #a83a3a;
+  --luminous-sapphire: #3a5da8;
   --bg-bs-dark-primary: #060010;
-  --sage-green: #8a8a96;  
-
-  
-  
- 
-
-  /* Оптимизации рендеринга */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --sage-green: #8a8a96;
 
   --background-main: #111216;
   --background-card: #1a1b1f;
@@ -63,8 +63,56 @@
   --accent-red: #a83a3a;
 
   color: var(--text-primary);
-  
+}
 
+/* Светлая тема */
+:root.light-theme {
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --accent-color: #646cff;
+  --accent-hover: #747bff;
+  --bg-red: #e74c3c;
+  --bg-red-hover: #da190b;
+  --bg-green: #0cbf57;
+  --bg-green-hover: #009516;
+  --bg-blue: #3498db;
+  --bg-blue-hover: #2980b9;
+  --bg-purpule: #f40076;
+  
+  /* бизнесовые - адаптированы для светлой темы */
+  --onyx-midnight: #f8f9fa;
+  --obsidian-elite: #ffffff;
+  --phantom-noir: #e9ecef;
+  --gilded-shadow: #dee2e6;
+  
+  --platinum-gleam: #212529;
+  --silver-whisper: #495057;
+  --palladium-mist: #6c757d;
+  
+  --royal-emerald: #2daf9f;
+  --imperial-gold: #d4af37;
+  --velvet-ruby: #a83a3a;
+  --luminous-sapphire: #3a5da8;
+  --bg-bs-dark-primary: #f8f9fa;
+  --sage-green: #6c757d;
+
+  --background-main: #ffffff;
+  --background-card: #f8f9fa;
+  --background-hover: #e9ecef;
+  --border-light: #dee2e6;
+
+  --text-main: #212529;
+  --text-muted: #6c757d;
+  --text-danger: #dc3545;
+  --text-success: #198754;
+
+  --accent-gold: #d4af37;
+  --accent-green: #2daf9f;
+  --accent-blue: #3a5da8;
+  --accent-red: #a83a3a;
+
+  color: var(--text-primary);
 }
 
 /* Общие стили */
@@ -86,11 +134,12 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 /* Фон для клиентской части (маркетплейс) */
 body.marketplace-theme {
-  background-color: var(--marketplace-bg-primary);
+  background-color: var(--bg-primary);
 }
 
 #root {
@@ -130,11 +179,18 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--obsidian-elite);
+  color: var(--text-primary);
   cursor: pointer;
   transition: 
     border-color 0.25s,
-    transform 0.1s;
+    transform 0.1s,
+    background-color 0.3s ease;
+}
+
+:root.light-theme button {
+  background-color: #f9f9f9;
+  color: var(--text-primary);
 }
 
 button:hover {
@@ -148,17 +204,3 @@ button:active {
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-
-/* Адаптивные настройки */
-/* @media (prefers-color-scheme: light) {
-  :root {
-    --text-primary: #213547;
-    --bg-primary: #ffffff;
-    --accent-hover: #747bff;
-  }
-  
-  button {
-    background-color: #f9f9f9;
-  }
-} */
-

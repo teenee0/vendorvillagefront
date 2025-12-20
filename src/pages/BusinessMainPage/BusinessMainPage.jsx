@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaExclamationTriangle, FaTasks, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaExclamationTriangle, FaTasks, FaCheckCircle, FaArrowRight, FaChevronDown, FaChevronUp, FaGift } from 'react-icons/fa';
 import { FcLineChart } from "react-icons/fc";
 import { Chart } from 'chart.js/auto';
 import axios from '../../api/axiosDefault';
@@ -75,6 +75,7 @@ const BusinessMainPage = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionDetails, setTransactionDetails] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [expandedAttributes, setExpandedAttributes] = useState(new Set());
 
   const fetchData = async (start, end) => {
     try {
@@ -336,6 +337,19 @@ const BusinessMainPage = () => {
   const closeModal = () => {
     setSelectedTransaction(null);
     setTransactionDetails(null);
+    setExpandedAttributes(new Set());
+  };
+
+  const toggleAttributes = (saleId) => {
+    setExpandedAttributes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(saleId)) {
+        newSet.delete(saleId);
+      } else {
+        newSet.add(saleId);
+      }
+      return newSet;
+    });
   };
 
   // Используем централизованную утилиту из хука
@@ -347,6 +361,8 @@ const BusinessMainPage = () => {
     const totalDiscount = parseFloat(details?.discount_amount || 0);
     const totalReturnsAmount = parseFloat(details?.total_returns_amount || 0);
     const profitWithReturns = parseFloat(details?.profit_with_returns || details?.total_amount || 0);
+    const totalBonusAccrued = details?.sales?.reduce((sum, sale) => sum + parseFloat(sale.bonus_accrued || 0), 0) || 0;
+    const totalBonusRedeemed = details?.sales?.reduce((sum, sale) => sum + parseFloat(sale.bonus_redeemed || 0), 0) || 0;
 
     return (
       <div className={styles.modalOverlay}>
@@ -403,16 +419,38 @@ const BusinessMainPage = () => {
                       <p className={styles.sku}>SKU: {sale.variant.sku}</p>
                       
                       {/* Атрибуты товара */}
-                      <div className={styles.itemAttributes}>
-                        {sale.variant.attributes?.map(attr => (
-                          <div key={attr.id} className={styles.attribute}>
-                            <span>{attr.category_attribute_name}: </span>
-                            <strong>
+                      {sale.variant.attributes && sale.variant.attributes.length > 0 && (
+                        <div className={styles.attributesContainer}>
+                          <button
+                            className={styles.attributesToggle}
+                            onClick={() => toggleAttributes(sale.id)}
+                          >
+                            {expandedAttributes.has(sale.id) ? (
+                              <>
+                                <FaChevronUp /> Скрыть атрибуты
+                              </>
+                            ) : (
+                              <>
+                                <FaChevronDown /> Показать атрибуты ({sale.variant.attributes.length})
+                              </>
+                            )}
+                          </button>
+                          {expandedAttributes.has(sale.id) && (
+                            <div className={styles.productAttributes}>
+                              {sale.variant.attributes.map(attr => (
+                                <div key={attr.id} className={styles.attributeItem}>
+                                  <span className={styles.attributeName}>
+                                    {attr.category_attribute_name}:
+                                  </span>
+                                  <span className={styles.attributeValue}>
                               {attr.predefined_value_name || attr.custom_value || 'Не указано'}
-                            </strong>
+                                  </span>
                           </div>
                         ))}
                       </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Информация о складе */}
                       {sale.variant.stocks_data && (
@@ -444,6 +482,26 @@ const BusinessMainPage = () => {
                         {sale.variant.sold_quantity && (
                           <div className={styles.soldInfo}>
                             <small>Продано единиц: {sale.variant.sold_quantity}</small>
+                          </div>
+                        )}
+
+                        {/* Информация о бонусах */}
+                        {((sale.bonus_accrued && parseFloat(sale.bonus_accrued) > 0) || (sale.bonus_redeemed && parseFloat(sale.bonus_redeemed) > 0)) && (
+                          <div className={styles.bonusInfo}>
+                            {sale.bonus_accrued && parseFloat(sale.bonus_accrued) > 0 && (
+                              <div className={styles.bonusAccrued}>
+                                <FaGift className={styles.bonusIcon} />
+                                <span className={styles.bonusLabel}>Начислено:</span>
+                                <span className={styles.bonusValue}>+{parseFloat(sale.bonus_accrued).toFixed(2)}</span>
+                              </div>
+                            )}
+                            {sale.bonus_redeemed && parseFloat(sale.bonus_redeemed) > 0 && (
+                              <div className={styles.bonusRedeemed}>
+                                <FaGift className={styles.bonusIcon} />
+                                <span className={styles.bonusLabel}>Списано:</span>
+                                <span className={styles.bonusValue}>-{parseFloat(sale.bonus_redeemed).toFixed(2)}</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -531,6 +589,31 @@ const BusinessMainPage = () => {
                     <span className={styles.profitAmount}>
                       {profitWithReturns.toLocaleString('ru-RU')} ₸
                     </span>
+                  </div>
+                )}
+
+                {/* Информация о бонусах */}
+                {(totalBonusAccrued > 0 || totalBonusRedeemed > 0) && (
+                  <div className={styles.bonusSection}>
+                    <h4 className={styles.bonusSectionTitle}>
+                      <FaGift /> Бонусы по чеку
+                    </h4>
+                    {totalBonusAccrued > 0 && (
+                      <div className={styles.bonusRow}>
+                        <span>Начислено бонусов:</span>
+                        <span className={styles.bonusAccruedTotal}>
+                          +{totalBonusAccrued.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {totalBonusRedeemed > 0 && (
+                      <div className={styles.bonusRow}>
+                        <span>Списано бонусов:</span>
+                        <span className={styles.bonusRedeemedTotal}>
+                          -{totalBonusRedeemed.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 

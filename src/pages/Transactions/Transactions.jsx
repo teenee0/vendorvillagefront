@@ -9,25 +9,31 @@ import {
   FaChevronRight,
   FaFilePdf,
   FaReceipt,
-  FaTimes,
   FaCalendarAlt,
-  FaExchangeAlt
+  FaExchangeAlt,
+  FaChevronDown,
+  FaChevronUp
 } from 'react-icons/fa';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
+import { DatePicker, ConfigProvider } from 'antd';
+import ruRU from 'antd/locale/ru_RU';
 import { openReceiptPdf, printReceiptPdf } from '../../utils/printUtils';
 import styles from './TransactionsPage.module.css';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/ru';
 import Loader from '../../components/Loader';
+import { useFileUtils } from '../../hooks/useFileUtils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.locale('ru');
 
 const TransactionsPage = () => {
   const { business_slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { getFileUrl } = useFileUtils();
   const [activeTab, setActiveTab] = useState('receipts');
   const [receipts, setReceipts] = useState([]);
   const [returns, setReturns] = useState([]);
@@ -55,6 +61,7 @@ const TransactionsPage = () => {
     is_defect: false
   });
   const [returnLoading, setReturnLoading] = useState(false);
+  const [expandedAttributes, setExpandedAttributes] = useState(new Set());
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -172,14 +179,17 @@ const TransactionsPage = () => {
   };
 
   const handleDateChange = (dates) => {
-    const [start, end] = dates;
-    setDateRange([start, end]);
+    if (dates && dates.length === 2) {
+      setDateRange([dates[0]?.toDate() || null, dates[1]?.toDate() || null]);
+    } else {
+      setDateRange([null, null]);
+    }
   };
 
   const applyDateFilter = () => {
     if (activeTab === 'receipts') {
       fetchReceipts(1);
-    } else if (tab === 'returns') {
+    } else if (activeTab === 'returns') {
       fetchReturns(1);
     }
   };
@@ -251,7 +261,7 @@ const TransactionsPage = () => {
       <div className={styles.header}>
         <h1>История транзакций</h1>
         <div className={styles.businessInfo}>
-          <span>{business_slug}</span>
+          <span>Бизнес: {business_slug}</span>
         </div>
       </div>
       <div className={styles.tabs}>
@@ -290,18 +300,18 @@ const TransactionsPage = () => {
           <div className={styles.dateFilter}>
             <div className={styles.dateRangePicker}>
               <FaCalendarAlt className={styles.calendarIcon} />
-              <DatePicker
-                selectsRange
-                startDate={startDate}
-                endDate={endDate}
+              <ConfigProvider locale={ruRU}>
+                <DatePicker.RangePicker
+                  value={startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null}
                 onChange={handleDateChange}
-                dateFormat="dd.MM.yyyy"
+                  format="DD.MM.YYYY"
                 className={styles.dateInput}
-                maxDate={new Date()}
-                placeholderText="Выберите период"
-                calendarClassName={styles.calendarWrapper}
-                popperClassName={styles.datePickerPopper}
+                  disabledDate={(current) => current && current > dayjs().endOf('day')}
+                  placeholder={['Начало', 'Конец']}
+                  getPopupContainer={(trigger) => trigger.parentElement}
+                  popupClassName={styles.datePickerPopper}
               />
+              </ConfigProvider>
               {(startDate || endDate) && (
                 <div className={styles.datePickerActions}>
                   <button
@@ -347,10 +357,20 @@ const TransactionsPage = () => {
                 <tbody>
                   {receipts.map((receipt) => (
                     <tr key={receipt.id}>
-                      <td>{receipt.number}</td>
-                      <td>{new Date(receipt.created_at).toLocaleString()}</td>
-                      <td>{parseFloat(receipt.total_amount).toLocaleString()} ₸</td>
-                      <td>{receipt.payment_method}</td>
+                      <td>
+                        <strong>#{receipt.number}</strong>
+                      </td>
+                      <td>{new Date(receipt.created_at).toLocaleString('ru-RU', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</td>
+                      <td>
+                        <strong>{parseFloat(receipt.total_amount).toLocaleString('ru-RU')} ₸</strong>
+                      </td>
+                      <td>{receipt.payment_method || 'Не указано'}</td>
                       <td>
                         <span className={`${styles.status} ${receipt.is_paid ? styles.paid : styles.unpaid}`}>
                           {receipt.is_paid ? 'Оплачен' : 'Не оплачен'}
@@ -399,7 +419,9 @@ const TransactionsPage = () => {
                 <tbody>
                   {returns.map((returnItem) => (
                     <tr key={returnItem.id}>
-                      <td>{returnItem.receipt_number}</td>
+                      <td>
+                        <strong>#{returnItem.receipt_number}</strong>
+                      </td>
                       <td>
                         <div className={styles.productInfo}>
                           <div className={styles.productName}>
@@ -410,10 +432,20 @@ const TransactionsPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td>{returnItem.quantity}</td>
-                      <td>{new Date(returnItem.return_date).toLocaleString()}</td>
-                      <td>{returnItem.reason}</td>
-                      <td>{parseFloat(returnItem.refund_amount).toLocaleString()} ₸</td>
+                      <td>
+                        <strong>{returnItem.quantity}</strong>
+                      </td>
+                      <td>{new Date(returnItem.return_date).toLocaleString('ru-RU', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</td>
+                      <td>{returnItem.reason || '—'}</td>
+                      <td>
+                        <strong>{parseFloat(returnItem.refund_amount).toLocaleString('ru-RU')} ₸</strong>
+                      </td>
                       <td>
                         {returnItem.is_defect ? (
                           <span className={styles.defectYes}>Да</span>
@@ -472,22 +504,23 @@ const TransactionsPage = () => {
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2>Чек № {selectedReceipt.number}</h2>
-              <button
-                className={styles.closeButton}
-                onClick={() => setSelectedReceipt(null)}
-              >
-                <FaTimes />
-              </button>
+              <ModalCloseButton onClick={() => setSelectedReceipt(null)} />
             </div>
             <div className={styles.receiptDetails}>
               <div className={styles.receiptMeta}>
-                <div><strong>Дата:</strong> {new Date(selectedReceipt.created_at).toLocaleString()}</div>
-                <div><strong>Сумма:</strong> {parseFloat(selectedReceipt.total_amount).toLocaleString()} ₸</div>
-                <div><strong>Сумма возвращенных товаров:</strong> {parseFloat(selectedReceipt.total_returns_amount).toLocaleString()} ₸</div>
-                <div><strong>Итоговая сумма(Продажи - Возвраты):</strong> {parseFloat(selectedReceipt.profit_with_returns).toLocaleString()} ₸</div>
-                <div><strong>Оплата:</strong> {selectedReceipt.payment_method}</div>
+                <div><strong>Дата:</strong> {new Date(selectedReceipt.created_at).toLocaleString('ru-RU', { 
+                  day: '2-digit', 
+                  month: '2-digit', 
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</div>
+                <div><strong>Сумма:</strong> {parseFloat(selectedReceipt.total_amount).toLocaleString('ru-RU')} ₸</div>
+                <div><strong>Сумма возвращенных товаров:</strong> {parseFloat(selectedReceipt.total_returns_amount || 0).toLocaleString('ru-RU')} ₸</div>
+                <div><strong>Итоговая сумма (Продажи - Возвраты):</strong> {parseFloat(selectedReceipt.profit_with_returns || 0).toLocaleString('ru-RU')} ₸</div>
+                <div><strong>Оплата:</strong> {selectedReceipt.payment_method || 'Не указано'}</div>
                 {selectedReceipt.discount_amount > 0 && (
-                  <div><strong>Скидка (чек):</strong> {selectedReceipt.discount_amount} ₸</div>
+                  <div><strong>Скидка (чек):</strong> {parseFloat(selectedReceipt.discount_amount).toLocaleString('ru-RU')} ₸</div>
                 )}
                 {selectedReceipt.discount_percent > 0 && (
                   <div><strong>Скидка (чек):</strong> {selectedReceipt.discount_percent}%</div>
@@ -519,6 +552,7 @@ const TransactionsPage = () => {
                       <th>Итого</th>
                       <th>Сумма</th>
                       <th>Скидка</th>
+                      <th>Бонусы</th>
                       <th>Действия</th>
                     </tr>
                   </thead>
@@ -527,26 +561,65 @@ const TransactionsPage = () => {
                       <tr key={sale.id}>
                         <td>
                           <div className={styles.productInfo}>
-                            <div className={styles.productName}>
-                              {sale.variant.product_name}
-                            </div>
-                            <div className={styles.productAttributes}>
-                              {sale.variant.attributes.map(attr => (
-                                <div key={attr.id}>
-                                  <strong>{attr.category_attribute_name}:</strong> {attr.predefined_value_name || attr.custom_value}
+                            {sale.variant?.product_main_image?.image && (
+                              <img 
+                                src={sale.variant.product_main_image.image} 
+                                alt={sale.variant.product_name}
+                                className={styles.productImage}
+                              />
+                            )}
+                            <div className={styles.productDetails}>
+                              <div className={styles.productName}>
+                                {sale.variant?.product_name || 'Товар'}
+                              </div>
+                              <div className={styles.productSku}>
+                                Артикул: {sale.variant?.sku || '—'}
+                              </div>
+                              {sale.variant?.attributes && sale.variant.attributes.length > 0 && (
+                                <div className={styles.attributesContainer}>
+                                  <button
+                                    type="button"
+                                    className={styles.attributesToggle}
+                                    onClick={() => {
+                                      const newExpanded = new Set(expandedAttributes);
+                                      if (newExpanded.has(sale.id)) {
+                                        newExpanded.delete(sale.id);
+                                      } else {
+                                        newExpanded.add(sale.id);
+                                      }
+                                      setExpandedAttributes(newExpanded);
+                                    }}
+                                  >
+                                    {expandedAttributes.has(sale.id) ? (
+                                      <>
+                                        <FaChevronUp /> Скрыть атрибуты
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaChevronDown /> Показать атрибуты ({sale.variant.attributes.length})
+                                      </>
+                                    )}
+                                  </button>
+                                  {expandedAttributes.has(sale.id) && (
+                                    <div className={styles.productAttributes}>
+                                      {sale.variant.attributes.map(attr => (
+                                        <div key={attr.id} className={styles.attributeItem}>
+                                          <span className={styles.attributeName}>{attr.category_attribute_name}:</span>
+                                          <span className={styles.attributeValue}>{attr.predefined_value_name || attr.custom_value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
-                              ))}
-                            </div>
-                            <div className={styles.productSku}>
-                              Артикул: {sale.variant.sku}
+                              )}
                             </div>
                           </div>
                         </td>
-                        <td>{parseFloat(sale.final_price_per_unit || sale.price_per_unit).toLocaleString()} ₸</td>
-                        <td>{sale.quantity}</td>
+                        <td>{parseFloat(sale.final_price_per_unit || sale.price_per_unit).toLocaleString('ru-RU')} ₸</td>
+                        <td><strong>{sale.quantity}</strong></td>
                         <td>{sale.returned_quantity || 0}</td>
-                        <td>{(sale.quantity - (sale.returned_quantity || 0))}</td>
-                        <td>{parseFloat(sale.total_price).toLocaleString()} ₸</td>
+                        <td><strong>{(sale.quantity - (sale.returned_quantity || 0))}</strong></td>
+                        <td><strong>{parseFloat(sale.total_price).toLocaleString('ru-RU')} ₸</strong></td>
                         <td>
                           {(sale.discount_amount > 0 || sale.discount_percent > 0) && (
                             <div>
@@ -557,6 +630,26 @@ const TransactionsPage = () => {
                             </div>
                           )}
                           {!(sale.discount_amount > 0 || sale.discount_percent > 0 || selectedReceipt.discount_percent > 0) && '-'}
+                        </td>
+                        <td>
+                          {((sale.bonus_accrued && parseFloat(sale.bonus_accrued) > 0) || (sale.bonus_redeemed && parseFloat(sale.bonus_redeemed) > 0)) ? (
+                            <div className={styles.bonusInfo}>
+                              {sale.bonus_accrued && parseFloat(sale.bonus_accrued) > 0 && (
+                                <div className={styles.bonusAccrued}>
+                                  <span className={styles.bonusLabel}>Начислено:</span>
+                                  <span className={styles.bonusValue}>+{parseFloat(sale.bonus_accrued).toFixed(2)}</span>
+                                </div>
+                              )}
+                              {sale.bonus_redeemed && parseFloat(sale.bonus_redeemed) > 0 && (
+                                <div className={styles.bonusRedeemed}>
+                                  <span className={styles.bonusLabel}>Списано:</span>
+                                  <span className={styles.bonusValue}>-{parseFloat(sale.bonus_redeemed).toFixed(2)}</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span>-</span>
+                          )}
                         </td>
                         <td>
                           <button
@@ -605,9 +698,15 @@ const TransactionsPage = () => {
                               </div>
                             </td>
                             <td>{returnItem.quantity}</td>
-                            <td>{new Date(returnItem.return_date).toLocaleString()}</td>
+                            <td>{new Date(returnItem.return_date).toLocaleString('ru-RU', { 
+                              day: '2-digit', 
+                              month: '2-digit', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}</td>
                             <td>{returnItem.reason || '—'}</td>
-                            <td>{parseFloat(returnItem.refund_amount).toLocaleString()} ₸</td>
+                            <td><strong>{parseFloat(returnItem.refund_amount).toLocaleString('ru-RU')} ₸</strong></td>
                             <td>
                               {returnItem.is_defect ? (
                                 <span className={styles.defectYes}>Да</span>
@@ -646,9 +745,7 @@ const TransactionsPage = () => {
               <h2>
                 Возврат — {returnModal.sale?.variant?.product_name || 'Товар'} (продажа #{returnModal.sale?.id})
               </h2>
-              <button className={styles.closeButton} onClick={closeReturnModal}>
-                <FaTimes />
-              </button>
+              <ModalCloseButton onClick={closeReturnModal} />
             </div>
             <div className={styles.returnForm}>
               {error && <div className={styles.error}>{error}</div>}

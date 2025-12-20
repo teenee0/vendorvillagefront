@@ -1,0 +1,362 @@
+.container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--text-main);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.exportButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.exportButton:hover {
+  background: var(--luminous-sapphire);
+}
+
+.error {
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--text-danger);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border: 1px solid var(--text-danger);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: var(--background-card);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterGroup label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.filterGroup select,
+.filterGroup input {
+  padding: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--background-hover);
+  color: var(--text-main);
+}
+
+.tableContainer {
+  background: var(--background-card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-light);
+  margin-bottom: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: var(--background-hover);
+}
+
+.table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-main);
+  border-bottom: 2px solid var(--border-light);
+}
+
+.table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-muted);
+}
+
+.table tbody tr:hover {
+  background: var(--background-hover);
+}
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+}
+
+.typeCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.typeCell.accrual {
+  background: rgba(45, 175, 159, 0.2);
+  color: var(--accent-green);
+}
+
+.typeCell.redemption {
+  background: rgba(255, 107, 107, 0.2);
+  color: var(--text-danger);
+}
+
+.typeCell.expiry {
+  background: rgba(212, 175, 55, 0.2);
+  color: var(--imperial-gold);
+}
+
+.typeCell.adjustment {
+  background: rgba(58, 93, 168, 0.2);
+  color: var(--luminous-sapphire);
+}
+
+.amountCell {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.amountCell.positive {
+  color: var(--accent-green);
+}
+
+.amountCell.negative {
+  color: var(--text-danger);
+}
+
+.descriptionCell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receiptLink {
+  background: none;
+  border: none;
+  color: var(--accent-blue);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.receiptLink:hover {
+  color: var(--luminous-sapphire);
+}
+
+/* Пагинация */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--background-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.paginationButton {
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: var(--luminous-sapphire);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(58, 93, 168, 0.3);
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.paginationInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.paginationCount {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Вкладки */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  top: 2px;
+}
+
+.tab:hover {
+  color: var(--text-main);
+  background: var(--background-hover);
+}
+
+.tab.activeTab {
+  color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
+  background: transparent;
+}
+
+/* Поиск пользователей */
+.userSearch {
+  margin-bottom: 20px;
+}
+
+.searchInputWrapper {
+  position: relative;
+  max-width: 400px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--background-card);
+  color: var(--text-main);
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(58, 93, 168, 0.1);
+}
+
+/* Стили для таблицы пользователей */
+.balanceCell {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--accent-green);
+}
+
+.tierBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.noTier {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--background-hover);
+  color: var(--text-muted);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bonusPercent {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(45, 175, 159, 0.1);
+  color: var(--accent-green);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}

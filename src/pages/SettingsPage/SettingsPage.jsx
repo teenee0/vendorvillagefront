@@ -28,6 +28,7 @@ import {
 import styles from './SettingsPage.module.css';
 import Loader from '../../components/Loader';
 import EmployeesManagement from '../../components/EmployeesManagement/EmployeesManagement';
+import BonusSettings from '../../components/BonusSettings/BonusSettings';
 
 const BusinessSettings = () => {
   const { business_slug } = useParams();
@@ -43,6 +44,9 @@ const BusinessSettings = () => {
   });
   const [locations, setLocations] = useState([]);
   const [locationTypes, setLocationTypes] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -52,6 +56,7 @@ const BusinessSettings = () => {
     name: '',
     address: '',
     location_type: '',
+    city: '',
     contact_phone: '',
     is_active: true,
     description: '',
@@ -63,6 +68,8 @@ const BusinessSettings = () => {
     receiptPrinter: "",
     availablePrinters: [], // Будет заполняться при загрузке
   });
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState(null);
 
   useEffect(() => {
   if (activeTab === 'printers') {
@@ -107,15 +114,22 @@ const savePrinterSettings = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [businessRes, locationsRes, typesRes] = await Promise.all([
+        const [businessRes, locationsRes, typesRes, countriesRes] = await Promise.all([
           axios.get(`api/business/${business_slug}/settings/`),
           axios.get(`api/business/${business_slug}/locations/`),
-          axios.get('api/location-types/')
+          axios.get('api/location-types/'),
+          axios.get('api/countries/')
         ]);
 
         setBusiness(businessRes.data);
+        if (businessRes.data.business_logo) {
+          setLogoPreview(businessRes.data.business_logo);
+        } else {
+          setLogoPreview(null);
+        }
         setLocations(locationsRes.data);
         setLocationTypes(typesRes.data);
+        setCountries(countriesRes.data);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -126,6 +140,25 @@ const savePrinterSettings = () => {
     fetchData();
   }, [business_slug]);
 
+  // Загрузка городов при выборе страны
+  useEffect(() => {
+    const fetchCities = async () => {
+      if (selectedCountry) {
+        try {
+          const response = await axios.get(`api/cities/?country=${selectedCountry}`);
+          setCities(response.data);
+        } catch (err) {
+          console.error('Ошибка загрузки городов:', err);
+          setCities([]);
+        }
+      } else {
+        setCities([]);
+      }
+    };
+
+    fetchCities();
+  }, [selectedCountry]);
+
   // Обработчик сохранения бизнеса
   const handleSaveBusiness = async () => {
     try {
@@ -134,6 +167,63 @@ const savePrinterSettings = () => {
       setEditing(false);
     } catch (err) {
       setError(err.response?.data || err.message);
+    }
+  };
+
+  // Обработчик загрузки логотипа
+  const handleLogoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Проверяем тип файла
+    if (!file.type.startsWith('image/')) {
+      setError('Файл должен быть изображением');
+      return;
+    }
+
+    // Проверяем размер файла (макс 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    try {
+      setLogoUploading(true);
+      setError(null);
+
+      // Создаем предпросмотр
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Загружаем файл
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      const response = await axios.post(
+        `api/business/${business_slug}/upload-logo/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      // Обновляем бизнес с новым URL логотипа
+      const businessRes = await axios.get(`api/business/${business_slug}/settings/`);
+      setBusiness(businessRes.data);
+      setLogoPreview(response.data.logo_url || businessRes.data.business_logo);
+
+      alert('Логотип успешно загружен!');
+    } catch (err) {
+      console.error('Ошибка загрузки логотипа:', err);
+      setError(err.response?.data?.detail || 'Ошибка при загрузке логотипа');
+      setLogoPreview(null);
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -155,10 +245,13 @@ const savePrinterSettings = () => {
       }
       setLocationDialog(false);
       setCurrentLocation(null);
+      setSelectedCountry('');
+      setCities([]);
       setNewLocation({
         name: '',
         address: '',
         location_type: '',
+        city: '',
         contact_phone: '',
         is_active: true,
         description: '',
@@ -180,12 +273,28 @@ const savePrinterSettings = () => {
   };
 
   // Обработчик редактирования локации
-  const handleEditLocation = (location) => {
+  const handleEditLocation = async (location) => {
     setCurrentLocation(location);
+    
+    // Если у локации есть город, загружаем его страну и города
+    if (location.city_detail) {
+      const cityCountryId = location.city_detail.country_detail?.id;
+      if (cityCountryId) {
+        setSelectedCountry(cityCountryId);
+        try {
+          const response = await axios.get(`api/cities/?country=${cityCountryId}`);
+          setCities(response.data);
+        } catch (err) {
+          console.error('Ошибка загрузки городов:', err);
+        }
+      }
+    }
+    
     setNewLocation({
       name: location.name,
       address: location.address,
       location_type: location.location_type,
+      city: location.city || '',
       contact_phone: location.contact_phone,
       is_active: location.is_active,
       description: location.description,
@@ -281,10 +390,22 @@ const savePrinterSettings = () => {
               <FaUserCog /> Сотрудники
             </button>
             <button
+              className={`${styles.menuButton} ${activeTab === 'bonus' ? styles.active : ''}`}
+              onClick={() => setActiveTab('bonus')}
+            >
+              <FaTags /> Бонусы
+            </button>
+            <button
               className={`${styles.menuButton} ${activeTab === 'products' ? styles.active : ''}`}
               onClick={() => setActiveTab('products')}
             >
               <FaTags /> Товары
+            </button>
+            <button
+              className={`${styles.menuButton} ${activeTab === 'photos' ? styles.active : ''}`}
+              onClick={() => setActiveTab('photos')}
+            >
+              <FaImage /> Фото
             </button>
           </div>
         </div>
@@ -653,6 +774,102 @@ const savePrinterSettings = () => {
               </motion.div>
             )}
 
+            {/* Вкладка "Бонусы" */}
+            {activeTab === 'bonus' && (
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <BonusSettings />
+              </motion.div>
+            )}
+
+            {/* Вкладка "Фото" */}
+            {activeTab === 'photos' && (
+              <motion.div 
+                className={styles.settingsTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <h1>
+                  <FaImage /> Фото бизнеса
+                </h1>
+
+                <div className={styles.photoSection}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <h2>Логотип бизнеса</h2>
+                      <p>Загрузите логотип вашего бизнеса. Изображение будет автоматически конвертировано в формат WebP.</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.logoUploadContainer}>
+                    <div className={styles.logoPreview}>
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="Логотип бизнеса" className={styles.logoImage} />
+                      ) : (
+                        <div className={styles.logoPlaceholder}>
+                          <FaImage />
+                          <p>Логотип не загружен</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={styles.uploadControls}>
+                      <label htmlFor="logo-upload" className={styles.uploadButton}>
+                        {logoUploading ? (
+                          <>
+                            <FaSpinner className={styles.spinning} /> Загрузка...
+                          </>
+                        ) : (
+                          <>
+                            <FaImage /> {logoPreview ? 'Изменить логотип' : 'Загрузить логотип'}
+                          </>
+                        )}
+                      </label>
+                      <input
+                        type="file"
+                        id="logo-upload"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        disabled={logoUploading}
+                        style={{ display: 'none' }}
+                      />
+                      {logoPreview && (
+                        <button
+                          className={styles.removeButton}
+                          onClick={async () => {
+                            try {
+                              // Удаляем логотип через API
+                              await axios.patch(`api/business/${business_slug}/settings/`, {
+                                business_logo: null
+                              });
+                              const businessRes = await axios.get(`api/business/${business_slug}/settings/`);
+                              setBusiness(businessRes.data);
+                              setLogoPreview(null);
+                              alert('Логотип удален');
+                            } catch (err) {
+                              setError(err.response?.data?.detail || 'Ошибка при удалении логотипа');
+                            }
+                          }}
+                        >
+                          <FaTrashAlt /> Удалить логотип
+                        </button>
+                      )}
+                    </div>
+
+                    <div className={styles.uploadInfo}>
+                      <FaInfoCircle />
+                      <p>Рекомендуемый размер: 512x512px. Максимальный размер файла: 5MB. Поддерживаемые форматы: JPG, PNG, GIF, WebP.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Вкладка "Товары" */}
             {activeTab === 'products' && (
               <motion.div 
@@ -727,6 +944,42 @@ const savePrinterSettings = () => {
                   onChange={(e) => setNewLocation({ ...newLocation, address: e.target.value })}
                   className={styles.editField}
                 />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Страна</label>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => {
+                    setSelectedCountry(e.target.value);
+                    setNewLocation({ ...newLocation, city: '' }); // Очищаем город при смене страны
+                  }}
+                  className={styles.editField}
+                >
+                  <option value="">Выберите страну</option>
+                  {countries.map(country => (
+                    <option key={country.id} value={country.id}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Город</label>
+                <select
+                  value={newLocation.city}
+                  onChange={(e) => setNewLocation({ ...newLocation, city: e.target.value })}
+                  className={styles.editField}
+                  disabled={!selectedCountry}
+                >
+                  <option value="">Выберите город</option>
+                  {cities.map(city => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className={styles.formGroup}>

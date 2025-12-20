@@ -522,7 +522,8 @@ textarea.formControl {
 }
 
 .cropModalContent {
-  background: white;
+  background: var(--background-card);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 90%;
@@ -530,6 +531,7 @@ textarea.formControl {
   max-height: 90vh;
   overflow: auto;
   animation: fadeIn 0.3s ease-out;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 @keyframes fadeIn {

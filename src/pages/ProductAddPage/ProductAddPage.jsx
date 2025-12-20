@@ -462,6 +462,7 @@ const ProductAddPage = () => {
       is_visible_on_marketplace: isVisibleOnMarketplace,
       is_visible_on_own_site: isVisibleOnOwnSite,
       variants: variants.map(variant => ({
+        barcode: variant.barcode || '',
         attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
           const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
           return {
@@ -740,13 +741,14 @@ const ProductAddPage = () => {
                                     {attr.required && <span className={styles.requiredStar}>*</span>}
                                   </th>
                                 ))}
+                                <th className={styles.stickyColumn}>Штрих-код (опционально)</th>
                                 <th className={styles.stickyColumn}>Действия</th>
                               </tr>
                             </thead>
                             <tbody>
                               {variants.length === 0 ? (
                                 <tr>
-                                  <td colSpan={categoryAttributes.length + 2} className={styles.noVariants}>
+                                  <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
                                     Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
                                   </td>
                                 </tr>
@@ -792,6 +794,22 @@ const ProductAddPage = () => {
                                         )}
                                       </td>
                                     ))}
+                                    <td className={styles.stickyColumn}>
+                                      <input
+                                        type="text"
+                                        className={styles.formControltd}
+                                        value={variant.barcode || ''}
+                                        onChange={(e) => handleVariantChange(
+                                          variant.id,
+                                          'barcode',
+                                          e.target.value
+                                        )}
+                                        placeholder="EAN-13 (13 цифр)"
+                                        maxLength={13}
+                                        pattern="[0-9]{13}"
+                                        title="Введите 13-значный EAN-13 штрих-код"
+                                      />
+                                    </td>
                                     <td className={`${styles.stickyColumn} ${styles.variantActions}`}>
                                       <button
                                         type="button"

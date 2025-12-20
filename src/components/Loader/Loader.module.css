@@ -7,11 +7,11 @@
   background: transparent;
 }
 
-.loader {
+.loaderWrapper {
   position: relative;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Размеры лоадера */
@@ -30,65 +30,181 @@
   height: 200px;
 }
 
-.segment {
+/* Вращающееся кольцо */
+.rotatingRing {
   position: absolute;
   width: 100%;
   height: 100%;
-  clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-  border-radius: 50%;
+  animation: rotate 2s linear infinite;
 }
 
-.yellow { 
-  background: linear-gradient(135deg, #fcd72d 0%, #ffeb3b 100%);
-  transform: rotate(0deg);
-}
-
-.orange { 
-  background: linear-gradient(135deg, #ffa600 0%, #ffb347 100%);
-  transform: rotate(72deg);
-}
-
-.red { 
-  background: linear-gradient(135deg, #ff4b4b 0%, #ff6b6b 100%);
-  transform: rotate(144deg);
-}
-
-.purple { 
-  background: linear-gradient(135deg, #b45bff 0%, #c77dff 100%);
-  transform: rotate(216deg);
-}
-
-.blue { 
-  background: linear-gradient(135deg, #2bb3ff 0%, #4fc3f7 100%);
-  transform: rotate(288deg);
-}
-
-.centerGlow {
+.ringSegment {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%);
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  pointer-events: none;
+  border: 4px solid transparent;
+  border-top-color: var(--royal-emerald);
+  border-right-color: var(--luminous-sapphire);
+  border-bottom-color: var(--imperial-gold);
+  border-left-color: var(--royal-emerald);
+  opacity: 0.8;
 }
 
-/* Адаптивные размеры центрального свечения */
-.loader-small .centerGlow {
-  width: 30px;
-  height: 30px;
+.ringSegment:nth-child(1) {
+  animation: rotate 2s linear infinite;
+  border-top-color: var(--royal-emerald);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
 }
 
-.loader-large .centerGlow {
-  width: 70px;
-  height: 70px;
+.ringSegment:nth-child(2) {
+  animation: rotate 2s linear infinite 0.33s;
+  border-top-color: transparent;
+  border-right-color: var(--luminous-sapphire);
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  opacity: 0.6;
 }
 
-@keyframes spin {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.ringSegment:nth-child(3) {
+  animation: rotate 2s linear infinite 0.66s;
+  border-top-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: var(--imperial-gold);
+  border-left-color: transparent;
+  opacity: 0.4;
+}
+
+/* Контейнер логотипа */
+.logoContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Логотип */
+.logo {
+  width: 50%;
+  height: 50%;
+  max-width: 80px;
+  max-height: 80px;
+  filter: drop-shadow(0 4px 12px rgba(45, 175, 159, 0.4));
+  animation: logoFloat 3s ease-in-out infinite;
+  color: var(--royal-emerald);
+  transition: filter 0.3s ease;
+}
+
+:root.light-theme .logo {
+  filter: drop-shadow(0 4px 12px rgba(45, 175, 159, 0.3)) brightness(0);
+}
+
+:root.dark-theme .logo,
+:root:not(.light-theme) .logo {
+  filter: drop-shadow(0 4px 12px rgba(45, 175, 159, 0.4)) brightness(0) invert(1);
+}
+
+.loader-small .logo {
+  max-width: 40px;
+  max-height: 40px;
+}
+
+.loader-large .logo {
+  max-width: 100px;
+  max-height: 100px;
+}
+
+/* Свечение вокруг логотипа */
+.logoGlow {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(45, 175, 159, 0.2) 0%,
+    rgba(58, 93, 168, 0.15) 30%,
+    transparent 70%
+  );
+  animation: glowPulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+.loader-small .logoGlow {
+  width: 70%;
+  height: 70%;
+}
+
+.loader-large .logoGlow {
+  width: 90%;
+  height: 90%;
+}
+
+/* Анимации */
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(5px) rotate(-2deg);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Светлая тема */
+:root.light-theme .ringSegment {
+  border-top-color: var(--royal-emerald);
+  border-right-color: var(--luminous-sapphire);
+  border-bottom-color: var(--imperial-gold);
+}
+
+:root.light-theme .logoGlow {
+  background: radial-gradient(
+    circle,
+    rgba(45, 175, 159, 0.15) 0%,
+    rgba(58, 93, 168, 0.1) 30%,
+    transparent 70%
+  );
 }
 
 /* Варианты для полноэкранной загрузки */
@@ -98,8 +214,13 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(18, 18, 18, 0.9);
+  backdrop-filter: blur(5px);
   z-index: 9999;
+}
+
+:root.light-theme .fullscreen {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 /* Варианты для центрирования в родительском контейнере */

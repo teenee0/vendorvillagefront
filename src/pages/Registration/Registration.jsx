@@ -18,7 +18,8 @@ const AuthPage = () => {
     verificationCode: '',
     resetCode: '',
     newPassword1: '',
-    newPassword2: ''
+    newPassword2: '',
+    personalDataConsent: false
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -258,6 +259,10 @@ const AuthPage = () => {
         if (formData.password1 !== formData.password2) {
           newErrors.password2 = 'Пароли не совпадают';
         }
+
+        if (!formData.personalDataConsent) {
+          newErrors.personalDataConsent = 'Необходимо согласие на обработку персональных данных';
+        }
       }
     } else if (passwordResetStep === 1) {
       // Валидация для запроса сброса пароля
@@ -313,7 +318,8 @@ const AuthPage = () => {
             first_name: formData.first_name,
             email: formData.email,
             password1: formData.password1,
-            password2: formData.password2
+            password2: formData.password2,
+            personal_data_consent: formData.personalDataConsent
           }, { withCredentials: true });
           
           setPendingUser({
@@ -628,6 +634,32 @@ const AuthPage = () => {
                   />
                 </div>
                 {errors.password2 && <span className={styles.error}>{errors.password2}</span>}
+
+                <div className={styles.checkboxGroup}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      name="personalDataConsent"
+                      checked={formData.personalDataConsent}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, personalDataConsent: e.target.checked }));
+                        if (e.target.checked) {
+                          const newErrors = { ...errors };
+                          delete newErrors.personalDataConsent;
+                          setErrors(newErrors);
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    <span className={styles.checkboxText}>
+                      Я согласен на обработку персональных данных в соответствии с{' '}
+                      <Link to="/privacy" target="_blank" className={styles.privacyLink}>
+                        Политикой конфиденциальности
+                      </Link>
+                    </span>
+                  </label>
+                  {errors.personalDataConsent && <span className={styles.error}>{errors.personalDataConsent}</span>}
+                </div>
               </>
             )}
 

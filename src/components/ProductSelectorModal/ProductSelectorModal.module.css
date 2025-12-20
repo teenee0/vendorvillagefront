@@ -344,6 +344,16 @@
   font-weight: 500;
 }
 
+.attributeMore {
+  background: rgba(176, 176, 176, 0.1);
+  color: var(--silver-whisper);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-style: italic;
+}
+
 .locationInfo {
   display: flex;
   flex-direction: column;
@@ -459,17 +469,228 @@
 }
 
 @media (max-width: 768px) {
-  .productGrid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1rem;
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+    background: rgba(0, 0, 0, 0.9);
+  }
+
+  .modal {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    background: var(--obsidian-elite);
+    z-index: 10;
+    padding: 1.25rem 1rem;
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+    border-bottom: 2px solid var(--gilded-shadow);
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .closeButton {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .closeButton:active {
+    transform: scale(0.95);
+    background: rgba(45, 175, 159, 0.1);
   }
 
   .searchSection {
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+    position: sticky;
+    top: 60px;
+    background: var(--obsidian-elite);
+    z-index: 9;
+  }
+
+  .searchBox {
+    width: 100%;
+  }
+
+  .searchBox input {
+    padding: 1rem 1.25rem 1rem 3rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .searchIcon {
+    left: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .searchButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .searchButton:active {
+    transform: scale(0.98);
+  }
+
+  .filterSection {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
   }
 
   .locationFilter {
-    min-width: 150px;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .sortControl {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .sortButton {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 0.95rem;
+    justify-content: center;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .sortButton:active {
+    transform: scale(0.98);
+  }
+
+  .refreshButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .refreshButton:active {
+    transform: scale(0.98);
+  }
+
+  .content {
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .productCard {
+    padding: 0.875rem;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .productCard:active {
+    transform: scale(0.98);
+  }
+
+  .checkbox {
+    width: 32px;
+    height: 32px;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--obsidian-elite);
+    border-top: 2px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .selectedCount {
+    font-size: 1rem;
+    text-align: center;
+    padding: 0.75rem;
+  }
+
+  .actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .cancelButton,
+  .confirmButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .cancelButton:active,
+  .confirmButton:active {
+    transform: scale(0.98);
   }
 }
 

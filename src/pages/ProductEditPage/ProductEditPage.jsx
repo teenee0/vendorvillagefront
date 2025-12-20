@@ -48,6 +48,7 @@ const ProductEditPage = () => {
     // Варианты товара
     const [variants, setVariants] = useState([]);
     const [variantCounter, setVariantCounter] = useState(1);
+    const [generateBarcodeFlags, setGenerateBarcodeFlags] = useState({}); // {variantId: true/false}
     
     // Состояние отправки формы
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,7 +119,10 @@ const ProductEditPage = () => {
                             id: index + 1,
                             existing_id: variant.id,
                             attributes: attributesObj,
-                            attributesWithIds
+                            attributesWithIds,
+                            barcode: variant.barcode || '',
+                            is_barcode_auto_generated: variant.is_barcode_auto_generated || false,
+                            generateBarcode: false
                         };
                     });
 
@@ -148,7 +152,9 @@ const ProductEditPage = () => {
                 acc[String(attr.id)] = attr.values.length > 0 ?
                     (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
                 return acc;
-            }, {})
+            }, {}),
+            barcode: '',
+            generateBarcode: false
         };
 
         setVariants([...variants, newVariant]);
@@ -159,6 +165,10 @@ const ProductEditPage = () => {
     const handleVariantChange = (id, field, value, attributeId = null) => {
         setVariants(variants.map(variant => {
             if (variant.id === id) {
+                // Если изменяется штрих-код вручную, снимаем флаг генерации
+                if (field === 'barcode') {
+                    return { ...variant, [field]: value, generateBarcode: false };
+                }
                 if (attributeId !== null) {
                     return {
                         ...variant,
@@ -170,6 +180,21 @@ const ProductEditPage = () => {
                 } else {
                     return { ...variant, [field]: value };
                 }
+            }
+            return variant;
+        }));
+    };
+
+    // Обработка чекбокса генерации штрих-кода
+    const handleGenerateBarcodeChange = (variantId, checked) => {
+        setVariants(variants.map(variant => {
+            if (variant.id === variantId) {
+                return { 
+                    ...variant, 
+                    generateBarcode: checked,
+                    // Если включаем генерацию, очищаем введенный штрих-код
+                    barcode: checked ? '' : variant.barcode
+                };
             }
             return variant;
         }));
@@ -366,6 +391,9 @@ const ProductEditPage = () => {
             images_to_delete: imagesToDelete,
             variants: variants.map(variant => ({
                 id: variant.existing_id,
+                // Если флаг генерации установлен, отправляем пустую строку для автогенерации
+                barcode: variant.generateBarcode ? '' : (variant.barcode || ''),
+                generate_barcode: variant.generateBarcode || false,
                 attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
                     const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
                     const isPredefined = attribute?.has_predefined_values;
@@ -671,13 +699,14 @@ const ProductEditPage = () => {
                                                                         {attr.required && <span className={styles.requiredStar}>*</span>}
                                                                     </th>
                                                                 ))}
+                                                                <th className={styles.stickyColumn}>Штрих-код (опционально)</th>
                                                                 <th className={styles.stickyColumn}>Действия</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {variants.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={categoryAttributes.length + 2} className={styles.noVariants}>
+                                                                    <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
                                                                         Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
                                                                     </td>
                                                                 </tr>
@@ -723,6 +752,43 @@ const ProductEditPage = () => {
                                                                                 )}
                                                                             </td>
                                                                         ))}
+                                                                        <td className={styles.stickyColumn}>
+                                                                            <div className={styles.barcodeCell}>
+                                                                                <div className={styles.barcodeInputWrapper}>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        className={styles.formControltd}
+                                                                                        value={variant.barcode || ''}
+                                                                                        onChange={(e) => handleVariantChange(
+                                                                                            variant.id,
+                                                                                            'barcode',
+                                                                                            e.target.value
+                                                                                        )}
+                                                                                        placeholder={variant.generateBarcode ? "Будет сгенерирован автоматически" : "EAN-13 (13 цифр)"}
+                                                                                        maxLength={13}
+                                                                                        pattern="[0-9]{13}"
+                                                                                        title={variant.is_barcode_auto_generated ? "Штрих-код сгенерирован автоматически и не может быть изменен" : "Введите 13-значный EAN-13 штрих-код"}
+                                                                                        disabled={variant.is_barcode_auto_generated || variant.generateBarcode}
+                                                                                        readOnly={variant.is_barcode_auto_generated}
+                                                                                    />
+                                                                                </div>
+                                                                                {variant.is_barcode_auto_generated ? (
+                                                                                    <div className={styles.autoGeneratedBadge}>
+                                                                                        <span>Сгенерирован автоматически</span>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <label className={styles.generateBarcodeLabel}>
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={variant.generateBarcode || false}
+                                                                                            onChange={(e) => handleGenerateBarcodeChange(variant.id, e.target.checked)}
+                                                                                            className={styles.generateBarcodeCheckbox}
+                                                                                        />
+                                                                                        <span>Сгенерировать автоматически</span>
+                                                                                    </label>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
                                                                         <td className={`${styles.stickyColumn} ${styles.variantActions}`}>
                                                                             <button
                                                                                 type="button"

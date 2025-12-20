@@ -1,17 +1,31 @@
 /* Variables */
 :root {
-  --onyx-midnight: #0f172a;
-  --obsidian-elite: #1e293b;
-  --phantom-noir: #334155;
-  --gilded-shadow: #475569;
-  --platinum-gleam: #f8fafc;
-  --silver-whisper: #e2e8f0;
-  --royal-emerald: #10b981;
-  --imperial-gold: #f59e0b;
-  --velvet-ruby: #ef4444;
-  --accent-purple: #8b5cf6;
-  --accent-blue: #3b82f6;
-  --accent-cyan: #06b6d4;
+  --onyx-midnight: #121212;
+  --obsidian-elite: #1a1a1a;
+  --phantom-noir: #222222;
+  --gilded-shadow: #2b2b2b;
+  --platinum-gleam: #e0e0e0;
+  --silver-whisper: #b0b0b0;
+  --palladium-mist: #808080;
+  --royal-emerald: #2daf9f;
+  --imperial-gold: #d4af37;
+  --velvet-ruby: #a83a3a;
+  --luminous-sapphire: #3a5da8;
+  --bg-bs-dark-primary: #060010;
+  
+  /* Новые переменные для улучшенного дизайна */
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-hard: 0 12px 36px rgba(0, 0, 0, 0.5);
+  --shadow-glow-emerald: 0 0 20px rgba(45, 175, 159, 0.3);
+  --shadow-glow-gold: 0 0 20px rgba(212, 175, 55, 0.3);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
 }
 
 /* Base Styles */
@@ -142,17 +156,17 @@
   background: rgba(71, 85, 105, 0.5);
   color: var(--platinum-gleam);
   transform: translateX(5px);
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(45, 175, 159, 0.3);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .menuButton.active {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, #259489 100%);
   color: white;
   transform: translateX(5px);
   border-color: transparent;
   box-shadow: 
-    0 8px 20px rgba(16, 185, 129, 0.4),
+    0 8px 20px rgba(45, 175, 159, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -165,9 +179,14 @@
   transform: translateY(-50%);
   width: 4px;
   height: 60%;
-  background: white;
+  background: var(--platinum-gleam);
   border-radius: 2px 0 0 2px;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+:root.light-theme .sliderThumb {
+  background: var(--royal-emerald);
 }
 
 .menuButton svg {
@@ -193,16 +212,17 @@
   align-items: center;
   gap: 16px;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(135deg, #f8fafc 0%, #10b981 100%);
+  background: linear-gradient(135deg, var(--platinum-gleam) 0%, var(--royal-emerald) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.5px;
 }
 
 .settingsTab h1 svg {
-  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.6));
-  -webkit-text-fill-color: #10b981;
-  color: #10b981;
+  filter: drop-shadow(0 2px 8px rgba(45, 175, 159, 0.6));
+  -webkit-text-fill-color: var(--royal-emerald);
+  color: var(--royal-emerald);
 }
 
 .settingsTab h2 {
@@ -230,7 +250,7 @@
   left: 0;
   width: 100px;
   height: 2px;
-  background: linear-gradient(90deg, #10b981, transparent);
+  background: linear-gradient(90deg, var(--royal-emerald), transparent);
 }
 
 /* Form Styles */
@@ -267,14 +287,14 @@ label {
   background: rgba(51, 65, 85, 0.6);
   outline: none;
   box-shadow: 
-    0 0 0 4px rgba(16, 185, 129, 0.1),
+    0 0 0 4px rgba(45, 175, 159, 0.1),
     inset 0 2px 4px rgba(0, 0, 0, 0.1),
-    0 4px 12px rgba(16, 185, 129, 0.2);
+    0 4px 12px rgba(45, 175, 159, 0.2);
   transform: translateY(-1px);
 }
 
 .editField:hover {
-  border-color: rgba(16, 185, 129, 0.5);
+  border-color: rgba(45, 175, 159, 0.5);
 }
 
 textarea.editField {
@@ -285,7 +305,7 @@ textarea.editField {
 
 select.editField {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232daf9f' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 18px;
@@ -332,10 +352,10 @@ select.editField {
 
 .saveButton {
   composes: button;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, #259489 100%);
   color: white;
   box-shadow: 
-    0 4px 15px rgba(16, 185, 129, 0.3),
+    0 4px 15px rgba(45, 175, 159, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -343,7 +363,7 @@ select.editField {
 .saveButton:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 6px 25px rgba(16, 185, 129, 0.5),
+    0 6px 25px rgba(45, 175, 159, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
@@ -386,10 +406,10 @@ select.editField {
 
 .addButton {
   composes: button;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, #259489 100%);
   color: white;
   box-shadow: 
-    0 4px 15px rgba(16, 185, 129, 0.3),
+    0 4px 15px rgba(45, 175, 159, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -397,7 +417,7 @@ select.editField {
 .addButton:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 6px 25px rgba(16, 185, 129, 0.5),
+    0 6px 25px rgba(45, 175, 159, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
@@ -455,7 +475,7 @@ select.editField {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(45, 175, 159, 0.1), transparent);
   transition: left 0.6s;
 }
 
@@ -464,10 +484,10 @@ select.editField {
 }
 
 .listItem:hover {
-  border-color: rgba(16, 185, 129, 0.6);
+  border-color: rgba(45, 175, 159, 0.6);
   box-shadow: 
     0 8px 30px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(16, 185, 129, 0.2),
+    0 0 0 1px rgba(45, 175, 159, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
@@ -511,12 +531,12 @@ select.editField {
   border-radius: 20px;
   font-size: 11px;
   font-weight: 700;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, #259489 100%);
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   box-shadow: 
-    0 2px 8px rgba(16, 185, 129, 0.4),
+    0 2px 8px rgba(45, 175, 159, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   animation: pulse 2s ease-in-out infinite;
 }
@@ -524,12 +544,12 @@ select.editField {
 @keyframes pulse {
   0%, 100% {
     box-shadow: 
-      0 2px 8px rgba(16, 185, 129, 0.4),
+      0 2px 8px rgba(45, 175, 159, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   50% {
     box-shadow: 
-      0 2px 12px rgba(16, 185, 129, 0.6),
+      0 2px 12px rgba(45, 175, 159, 0.6),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 }
@@ -590,16 +610,16 @@ select.editField {
 }
 
 .settingsItem:hover {
-  border-color: rgba(16, 185, 129, 0.6);
+  border-color: rgba(45, 175, 159, 0.6);
   box-shadow: 
     0 8px 30px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(16, 185, 129, 0.2),
+    0 0 0 1px rgba(45, 175, 159, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: translateY(-4px) scale(1.02);
 }
 
 .settingsIcon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, #259489 100%);
   color: white;
   width: 50px;
   height: 50px;
@@ -609,7 +629,7 @@ select.editField {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 
-    0 4px 15px rgba(16, 185, 129, 0.4),
+    0 4px 15px rgba(45, 175, 159, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition: all 0.3s;
 }
@@ -617,7 +637,7 @@ select.editField {
 .settingsItem:hover .settingsIcon {
   transform: rotate(5deg) scale(1.1);
   box-shadow: 
-    0 6px 20px rgba(16, 185, 129, 0.6),
+    0 6px 20px rgba(45, 175, 159, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -696,7 +716,7 @@ select.editField {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
+  background: radial-gradient(circle at top right, rgba(45, 175, 159, 0.1) 0%, transparent 60%);
   pointer-events: none;
   border-radius: 20px;
 }
@@ -717,7 +737,7 @@ select.editField {
   left: 0;
   width: 100px;
   height: 2px;
-  background: linear-gradient(90deg, #10b981, transparent);
+  background: linear-gradient(90deg, var(--royal-emerald), transparent);
 }
 
 .dialogHeader h3 {
@@ -775,7 +795,7 @@ select.editField {
 }
 
 .checkboxLabel:hover {
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(45, 175, 159, 0.05);
 }
 
 .checkboxLabel input {
@@ -827,7 +847,7 @@ select.editField {
 
 .fileLabel:hover {
   background: linear-gradient(135deg, rgba(71, 85, 105, 0.6) 0%, rgba(51, 65, 85, 0.6) 100%);
-  border-color: rgba(16, 185, 129, 0.5);
+  border-color: rgba(45, 175, 159, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
@@ -847,23 +867,24 @@ select.editField {
 
 .infoAlert {
   padding: 16px 20px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
-  color: #6ee7b7;
-  border: 2px solid rgba(16, 185, 129, 0.4);
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(45, 175, 159, 0.15) 0%, rgba(58, 93, 168, 0.15) 100%);
+  color: var(--royal-emerald);
+  border: 2px solid rgba(45, 175, 159, 0.4);
+  border-radius: var(--radius-md);
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   gap: 12px;
   font-weight: 500;
   box-shadow: 
-    0 4px 15px rgba(16, 185, 129, 0.2),
+    0 4px 15px rgba(45, 175, 159, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .infoAlert svg {
   font-size: 20px;
-  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.5));
+  filter: drop-shadow(0 2px 4px rgba(45, 175, 159, 0.5));
+  color: var(--royal-emerald);
 }
 
 /* Loading and Error States */
@@ -960,46 +981,163 @@ select.editField {
     grid-template-columns: 1fr;
     gap: 16px;
   }
+}
 
-  .listItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px;
-  }
+/* Photo Section Styles */
+.photoSection {
+  background: var(--obsidian-elite);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  border: 1px solid var(--gilded-shadow);
+  box-shadow: var(--shadow-soft);
+}
 
-  .itemActions {
-    width: 100%;
-    justify-content: flex-end;
-  }
+.logoUploadContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
 
-  .dialog {
-    width: 95%;
-    max-width: none;
-    margin: 12px;
-  }
+.logoPreview {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 2px solid var(--gilded-shadow);
+  background: var(--phantom-noir);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-medium);
+  transition: all var(--transition-normal);
+}
 
-  .dialogHeader {
-    padding: 20px;
-  }
+.logoPreview:hover {
+  border-color: var(--royal-emerald);
+  box-shadow: var(--shadow-glow-emerald);
+  transform: scale(1.02);
+}
 
-  .dialogContent {
-    padding: 20px;
-  }
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-  .dialogFooter {
-    padding: 16px 20px;
-  }
+.logoPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--silver-whisper);
+  text-align: center;
+  padding: 2rem;
+}
 
-  .variablesGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+.logoPlaceholder svg {
+  font-size: 3rem;
+  opacity: 0.5;
+}
 
-  .button {
-    padding: 10px 20px;
-    font-size: 13px;
+.logoPlaceholder p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.uploadControls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-soft);
+}
+
+.uploadButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-emerald);
+}
+
+.uploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  background: var(--velvet-ruby);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-soft);
+}
+
+.removeButton:hover {
+  background: #8b2a2a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 58, 58, 0.4);
+}
+
+.uploadInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(45, 175, 159, 0.1);
+  border: 1px solid rgba(45, 175, 159, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--silver-whisper);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.uploadInfo svg {
+  color: var(--royal-emerald);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.uploadInfo p {
+  margin: 0;
 }
 
 
@@ -1033,9 +1171,9 @@ select.editField {
   border-color: var(--royal-emerald);
   outline: none;
   box-shadow: 
-    0 0 0 4px rgba(16, 185, 129, 0.1),
+    0 0 0 4px rgba(45, 175, 159, 0.1),
     inset 0 2px 8px rgba(0, 0, 0, 0.3),
-    0 4px 12px rgba(16, 185, 129, 0.2);
+    0 4px 12px rgba(45, 175, 159, 0.2);
 }
 
 /* Preview Styles */
@@ -1108,7 +1246,7 @@ select.editField {
 }
 
 .variablesGrid h4 {
-  color: #10b981;
+  color: var(--royal-emerald);
   margin-bottom: 12px;
   font-size: 14px;
   font-weight: 700;
@@ -1129,14 +1267,14 @@ select.editField {
 }
 
 .variablesGrid code {
-  background: rgba(16, 185, 129, 0.2);
-  color: #6ee7b7;
+  background: rgba(45, 175, 159, 0.2);
+  color: var(--royal-emerald);
   padding: 3px 6px;
   border-radius: 6px;
   font-family: 'Fira Code', 'Courier New', Courier, monospace;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(45, 175, 159, 0.3);
 }
 
 /* Preview Button */
@@ -1206,12 +1344,12 @@ select.editField {
 
 /* Selection styling */
 ::selection {
-  background: rgba(16, 185, 129, 0.3);
+  background: rgba(45, 175, 159, 0.3);
   color: var(--platinum-gleam);
 }
 
 ::-moz-selection {
-  background: rgba(16, 185, 129, 0.3);
+  background: rgba(45, 175, 159, 0.3);
   color: var(--platinum-gleam);
 }
 
@@ -1235,7 +1373,7 @@ select.editField {
 .menuButton:focus-visible,
 .button:focus-visible,
 .editField:focus-visible {
-  outline: 3px solid rgba(16, 185, 129, 0.5);
+  outline: 3px solid rgba(45, 175, 159, 0.5);
   outline-offset: 2px;
 }
 

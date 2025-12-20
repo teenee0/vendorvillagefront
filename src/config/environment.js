@@ -3,14 +3,14 @@ const config = {
   development: {
     API_BASE_URL: 'http://127.0.0.1:8000',
     MEDIA_BASE_URL: 'http://127.0.0.1:8000',
-    APP_NAME: 'VendorVillage Dev',
+    APP_NAME: 'Axione Dev',
     DEBUG: true,
     LOG_LEVEL: 'debug'
   },
   production: {
     API_BASE_URL: 'https://api.vendorvillage.store',
     MEDIA_BASE_URL: 'https://api.vendorvillage.store', 
-    APP_NAME: 'VendorVillage',
+    APP_NAME: 'Axione',
     DEBUG: false,
     LOG_LEVEL: 'error'
   }

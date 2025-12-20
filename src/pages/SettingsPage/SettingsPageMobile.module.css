@@ -1,0 +1,766 @@
+/* SettingsPageMobile.module.css - Профессиональный мобильный интерфейс для страницы настроек */
+
+.container {
+    padding: 0;
+    min-height: 100vh;
+    background: var(--onyx-midnight);
+    padding-bottom: env(safe-area-inset-bottom);
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+/* Sticky Header */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-bottom: 1px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-top: max(1rem, env(safe-area-inset-top));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 20px rgba(45, 175, 159, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.backButton {
+    background: transparent;
+    border: none;
+    color: var(--royal-emerald);
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.backButton:active {
+    opacity: 0.7;
+    background: rgba(45, 175, 159, 0.1);
+    transform: scale(0.95);
+}
+
+.title {
+    font-size: 1.25rem;
+    color: var(--royal-emerald);
+    margin: 0;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Tab Selector */
+.tabSelector {
+    position: relative;
+    padding: 1rem;
+    background: var(--onyx-midnight);
+    border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.tabSelectorButton {
+    width: 100%;
+    background: var(--obsidian-elite);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    transition: all 0.3s;
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.tabSelectorButton:active {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.1);
+    transform: scale(0.98);
+}
+
+.tabSelectorButton svg:first-child {
+    font-size: 1.1rem;
+    color: var(--royal-emerald);
+}
+
+.tabSelectorButton span {
+    flex: 1;
+    text-align: left;
+}
+
+.tabMenu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 1rem;
+    right: 1rem;
+    background: var(--obsidian-elite);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    max-height: 400px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tabMenuItem {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+    padding: 1rem;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.tabMenuItem:last-child {
+    border-bottom: none;
+}
+
+.tabMenuItem:active {
+    background: rgba(45, 175, 159, 0.1);
+}
+
+.tabMenuItem.active {
+    background: rgba(45, 175, 159, 0.15);
+    color: var(--royal-emerald);
+    font-weight: 600;
+}
+
+.tabMenuItem svg {
+    font-size: 1.1rem;
+    color: var(--royal-emerald);
+    flex-shrink: 0;
+}
+
+.tabMenuItem.active svg {
+    color: var(--royal-emerald);
+}
+
+/* Content */
+.content {
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.tabContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.sectionHeader h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--royal-emerald);
+    font-weight: 700;
+    flex: 1;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.editButton,
+.saveButton,
+.cancelButton,
+.addButton,
+.previewButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    min-height: 44px;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.editButton:active,
+.saveButton:active,
+.addButton:active,
+.previewButton:active {
+    transform: scale(0.95);
+}
+
+.cancelButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+    box-shadow: none;
+}
+
+.cancelButton:active {
+    border-color: var(--velvet-ruby);
+    color: var(--velvet-ruby);
+}
+
+/* Form Container */
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroup label {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.formInput,
+.formTextarea,
+.formSelect {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    min-height: 48px;
+    font-family: inherit;
+}
+
+.formTextarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.formInput:focus,
+.formTextarea:focus,
+.formSelect:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.checkboxLabel input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--royal-emerald);
+}
+
+/* Info Container */
+.infoContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.infoItem {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.infoItem svg {
+    font-size: 1.25rem;
+    color: var(--royal-emerald);
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.infoItem h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.9rem;
+    color: var(--silver-whisper);
+    font-weight: 500;
+}
+
+.infoItem p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--platinum-gleam);
+    line-height: 1.5;
+}
+
+/* List Container */
+.listContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.listItem {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.itemInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.itemInfo h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--platinum-gleam);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.activeBadge,
+.defaultBadge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.activeBadge {
+    background: rgba(100, 200, 100, 0.15);
+    color: #64c864;
+    border: 1px solid rgba(100, 200, 100, 0.3);
+}
+
+.defaultBadge {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--imperial-gold);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.itemInfo p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--silver-whisper);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.itemActions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.itemActions button {
+    background: transparent;
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 8px;
+    padding: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 36px;
+    min-height: 36px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.itemActions .editButton {
+    color: var(--royal-emerald);
+}
+
+.itemActions .editButton:active {
+    background: rgba(45, 175, 159, 0.15);
+    border-color: var(--royal-emerald);
+    transform: scale(0.95);
+}
+
+.itemActions .deleteButton {
+    color: var(--velvet-ruby);
+}
+
+.itemActions .deleteButton:active {
+    background: rgba(192, 57, 43, 0.15);
+    border-color: var(--velvet-ruby);
+    transform: scale(0.95);
+}
+
+.itemActions .deleteButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.emptyMessage {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--silver-whisper);
+    font-size: 0.95rem;
+}
+
+.error {
+    background: rgba(192, 57, 43, 0.15);
+    border: 1px solid var(--velvet-ruby);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--velvet-ruby);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/* Template Editor */
+.templateEditor {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.codeEditor {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    transition: all 0.3s;
+    resize: vertical;
+    min-height: 200px;
+}
+
+.codeEditor:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.receiptPreviewContainer {
+    width: 100%;
+    height: 500px;
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+}
+
+.receiptPreview {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Logo Upload */
+.logoUploadContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.logoPreview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.logoImage {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.logoPlaceholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--silver-whisper);
+    opacity: 0.6;
+}
+
+.logoPlaceholder svg {
+    font-size: 3rem;
+}
+
+.uploadControls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.uploadButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    min-height: 48px;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.uploadButton:active {
+    transform: scale(0.95);
+}
+
+.removeButton {
+    background: transparent;
+    border: 2px solid var(--velvet-ruby);
+    color: var(--velvet-ruby);
+    border-radius: 10px;
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.removeButton:active {
+    background: rgba(192, 57, 43, 0.15);
+    transform: scale(0.95);
+}
+
+.uploadInfo {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    background: var(--onyx-midnight);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 10px;
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.uploadInfo svg {
+    color: var(--royal-emerald);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.infoAlert {
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid var(--imperial-gold);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--imperial-gold);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* Modal */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.modal {
+    width: 100%;
+    max-height: 95vh;
+    background: var(--obsidian-elite);
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+    background: var(--onyx-midnight);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modalHeader h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--royal-emerald);
+    font-weight: 700;
+}
+
+.modalBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modalFooter {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    border-top: 1px solid var(--gilded-shadow);
+    background: var(--onyx-midnight);
+    position: sticky;
+    bottom: 0;
+}
+
+.modalFooter .saveButton,
+.modalFooter .cancelButton {
+    flex: 1;
+    min-height: 52px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .header {
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .content {
+        padding: 0.75rem;
+    }
+
+    .sectionHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .actions {
+        width: 100%;
+    }
+
+    .actions button {
+        flex: 1;
+    }
+}
+

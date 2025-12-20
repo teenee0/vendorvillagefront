@@ -24,6 +24,8 @@ body.marketplace-theme {
   min-height: calc(100vh - 80px); /* Вычитаем высоту header */
   margin-top: 80px; /* Высота header */
   width: 100%;
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 .content-wrapper-business {
   margin-top: 50px;
@@ -51,6 +53,7 @@ body.marketplace-theme {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  background-color: transparent;
 }
 
 .page-content-business {

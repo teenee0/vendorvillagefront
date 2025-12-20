@@ -28,6 +28,13 @@
     color: #fff;
   }
   
+  .footer-logo-icon {
+    width: 32px;
+    height: 32px;
+    color: white;
+    filter: brightness(0) invert(1);
+  }
+  
   .logo-icon {
     font-size: 1.2em;
     color: #4dabf7;

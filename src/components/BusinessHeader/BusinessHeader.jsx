@@ -1,8 +1,8 @@
 // src/components/BusinessHeader.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import ShinyText from '../ShinyText/ShinyText';
 import styles from './BusinessHeader.module.css';
+import logoIcon from '../../assets/logo.svg';
 
 export const BusinessHeader = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -22,9 +22,9 @@ export const BusinessHeader = () => {
       <div className={styles.container}>
         <div className={styles.headerContent}>
           <div className={styles.logo}>
-            <Link to="/">
-              <span className={styles.vendor}><ShinyText text="Vendor" disabled={false} speed={3} className='custom-class' /></span>
-              <span className={styles.villageBusiness}><ShinyText text="Village & Business" disabled={false} speed={3} className='custom-class' /></span>
+            <Link to="/" className={styles.logoLink}>
+              <img src={logoIcon} alt="A" className={styles.logoIcon} />
+              <span className={styles.logoText}>xione & Business</span>
             </Link>
           </div>
         </div>

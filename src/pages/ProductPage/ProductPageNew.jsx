@@ -430,6 +430,63 @@ const ProductPageNew = () => {
         });
     };
 
+    const printBarcode = (variant) => {
+        const barcodeUrl = getFileUrl(variant.barcode_image);
+
+        const variantName = variant.name || product.name;
+        const variantPrice = variant.price 
+            ? `${parseFloat(variant.price).toLocaleString('ru-RU')} ₸ за ${product?.unit_display || 'шт.'}`
+            : 'Цена не установлена';
+
+        const attributesHtml = variant.attributes && variant.attributes.length > 0
+            ? `<div class="attributes">
+                ${variant.attributes.map(attr => `
+                    <div class="attribute">
+                        <span class="attribute-name">${attr.name}:</span>
+                        <span>${attr.value}</span>
+                    </div>
+                `).join('')}
+            </div>`
+            : '';
+
+        const content = `
+          <html>
+            <head>
+              <title>Печать штрих-кода</title>
+              <style>
+                @page { size: 58mm 40mm; margin: 0; }
+                body { margin: 0; width: 58mm; height: 40mm; display: flex; justify-content: center; align-items: center; font-family: 'Inter', sans-serif; font-size: 8px; }
+                .product { text-align: center; width: 100%; padding: 1mm 2mm; }
+                .name { font-weight: bold; font-size: 13px; margin-bottom: 1mm; }
+                .barcode-img { height: 24mm; width: auto; max-width: 95%; }
+                .price { font-size: 15px; font-weight: bold; margin-top: 0.5mm; }
+                .attributes { margin-top: 0.5mm; font-size: 7px; }
+                .attribute { display: flex; justify-content: space-between; gap: 2mm; }
+                .attribute-name { font-weight: 600; }
+              </style>
+            </head>
+            <body>
+              <div class="product">
+                <div class="name">${variantName}</div>
+                <img class="barcode-img" src="${barcodeUrl}" alt="barcode" />
+                <div class="price">${variantPrice}</div>
+                ${attributesHtml}
+              </div>
+            </body>
+          </html>
+        `;
+
+        const printWindow = window.open('', '_blank', 'width=580,height=400');
+        printWindow.document.open();
+        printWindow.document.write(content);
+        printWindow.document.close();
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }, 500);
+    };
+
 
     // Фильтрация локаций
     const filteredLocations = product && selectedLocationFilter
@@ -1116,6 +1173,28 @@ const ProductPageNew = () => {
                                                     </strong>
                                                 </div>
                                             </div>
+                                            {variant.barcode_image && (
+                                                <div className={styles.barcodeSection}>
+                                                    <h4 className={styles.barcodeTitle}>Штрих-код</h4>
+                                                    <div className={styles.barcodeImageContainer}>
+                                                        <img
+                                                            src={getFileUrl(variant.barcode_image)}
+                                                            alt="Штрих-код"
+                                                            className={styles.barcodeImg}
+                                                        />
+                                                    </div>
+                                                    {variant.barcode && (
+                                                        <p className={styles.barcodeNumber}>{variant.barcode}</p>
+                                                    )}
+                                                    <button
+                                                        onClick={() => printBarcode(variant)}
+                                                        className={styles.printBarcodeButton}
+                                                        title="Печать штрих-кода"
+                                                    >
+                                                        <i className="fa fa-print"></i> Печать штрих-кода
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );

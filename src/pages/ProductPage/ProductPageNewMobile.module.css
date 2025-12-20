@@ -1,0 +1,1860 @@
+/* ProductPageNewMobile.module.css - Максимально удобная мобильная версия */
+
+.container {
+    padding: 0;
+    min-height: 100vh;
+    background: var(--onyx-midnight);
+    padding-bottom: env(safe-area-inset-bottom);
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+/* Header */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-bottom: 1px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-top: max(1rem, env(safe-area-inset-top));
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 20px rgba(45, 175, 159, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.backButton {
+    background: transparent;
+    border: none;
+    color: var(--royal-emerald);
+    font-size: 1rem;
+    padding: 0.75rem 0;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    font-weight: 500;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.backButton:active {
+    opacity: 0.7;
+    transform: translateX(-2px);
+}
+
+.headerTitleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    color: var(--royal-emerald);
+    margin: 0;
+    font-weight: 700;
+    flex: 1;
+    line-height: 1.3;
+}
+
+.editButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    white-space: nowrap;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.editButton:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 4px rgba(45, 175, 159, 0.2);
+}
+
+.editButton i {
+    font-size: 0.9rem;
+}
+
+/* Product Info */
+.productInfo {
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.imageContainer {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--obsidian-elite);
+    border: 2px solid var(--gilded-shadow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mainImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.category {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.description {
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.priceRangeInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-radius: 12px;
+    border: 1px solid var(--gilded-shadow);
+}
+
+.priceRangeLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.priceRangeValue {
+    color: var(--royal-emerald);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.statsInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-radius: 12px;
+    border: 1px solid var(--gilded-shadow);
+}
+
+.statItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.statLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.statValue {
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.statValueDefect {
+    color: var(--velvet-ruby);
+}
+
+/* Tabs - Улучшенные для touch */
+.tabs {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0 1rem 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 0;
+    scroll-padding: 0 1rem;
+    scroll-snap-type: x proximity;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+    border-radius: 14px;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    scroll-snap-align: start;
+}
+
+.tab:active {
+    transform: scale(0.96);
+}
+
+.activeTab {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    border-color: var(--royal-emerald);
+    color: white;
+    box-shadow: 0 4px 12px rgba(45, 175, 159, 0.4);
+}
+
+/* Location Filter */
+.locationFilter {
+    padding: 0 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.filterLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.dropdownContainer {
+    position: relative;
+}
+
+.dropdownButton {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    transition: all 0.3s;
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.dropdownButton:active {
+    border-color: var(--royal-emerald);
+    transform: scale(0.98);
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    z-index: 10;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.searchInputContainer {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--gilded-shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.searchInputContainer i {
+    color: var(--silver-whisper);
+}
+
+.searchInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.dropdownList {
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdownItem {
+    padding: 1rem 1.25rem;
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    min-height: 52px;
+    font-size: 1rem;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.dropdownItem:active {
+    background: rgba(45, 175, 159, 0.15);
+    transform: scale(0.98);
+}
+
+.dropdownItem.selected {
+    color: var(--royal-emerald);
+    font-weight: 600;
+}
+
+.clearFilterButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    align-self: flex-start;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.clearFilterButton:active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    transform: scale(0.95);
+}
+
+/* Locations List */
+.locationsList {
+    padding: 0 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.locationCard {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0.5rem;
+}
+
+.locationName {
+    color: var(--royal-emerald);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+}
+
+.variantsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.variantCard {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.variantHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.variantName {
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.variantSku {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+}
+
+.variantAttributes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.attributesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.attributeTag {
+    background: rgba(45, 175, 159, 0.15);
+    color: var(--royal-emerald);
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(45, 175, 159, 0.2);
+}
+
+.toggleAttributesButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--royal-emerald);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    align-self: flex-start;
+    min-height: 40px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.toggleAttributesButton:active {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.1);
+    transform: scale(0.96);
+}
+
+.toggleAttributesButton i {
+    font-size: 0.75rem;
+    transition: transform 0.3s;
+}
+
+.variantDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.priceSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.priceRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.priceInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.priceValue {
+    color: var(--royal-emerald);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.priceUnit {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+}
+
+.priceActions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.priceEdit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.priceInput {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    width: 100%;
+    outline: none;
+    transition: all 0.3s;
+    min-height: 52px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.priceInput:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.priceUnitLabel {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+}
+
+.editButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.addPriceButton,
+.saveButton,
+.cancelButton {
+    padding: 0.875rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.addPriceButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+}
+
+.addPriceButton:active {
+    transform: scale(0.95);
+}
+
+.saveButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+}
+
+.saveButton:active {
+    transform: scale(0.95);
+}
+
+.cancelButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+}
+
+.cancelButton:active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+}
+
+.activeFlagsSection {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.activeFlagsTitle {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.activeFlagsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.activeFlagItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.activeFlagLabel {
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+}
+
+.activeFlagToggle {
+    width: 52px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    flex-shrink: 0;
+}
+
+.activeFlagToggle.active {
+    background: var(--royal-emerald);
+}
+
+.activeFlagToggle::after {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.activeFlagToggle.active::after {
+    left: 22px;
+}
+
+.stockInfo {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stockItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stockLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.stockValue {
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.barcodeSection {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.barcodeTitle {
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+}
+
+.barcodeImageContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 14px;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.barcodeImage,
+.barcodeImg {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    max-height: 200px;
+    display: block;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+.barcodeNumber {
+    color: var(--silver-whisper);
+    font-size: 0.95rem;
+    text-align: center;
+    margin: 0 0 1rem 0;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+}
+
+.printBarcodeButton {
+    width: 100%;
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.printBarcodeButton:active {
+    transform: scale(0.96);
+    box-shadow: 0 1px 4px rgba(45, 175, 159, 0.2);
+}
+
+/* Batches Section */
+.batchesSection {
+    padding: 1.5rem 1rem;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-top: 1px solid var(--gilded-shadow);
+}
+
+.batchesHeader {
+    margin-bottom: 1.5rem;
+}
+
+.batchesHeader h2 {
+    color: var(--royal-emerald);
+    font-size: 1.3rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.batchesHeader p {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.batchControls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filterGroup {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+}
+
+.filterGroup::-webkit-scrollbar {
+    display: none;
+}
+
+.filterButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+    border-radius: 22px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.filterButton:active {
+    transform: scale(0.96);
+}
+
+.filterButtonActive {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.15);
+}
+
+.sortGroup,
+.pageSizeGroup,
+.defectControls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.sortGroup select,
+.pageSizeGroup select,
+.defectControls select {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    flex: 1;
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sortGroup select:focus,
+.pageSizeGroup select:focus,
+.defectControls select:focus {
+    border-color: var(--royal-emerald);
+}
+
+.primaryButton {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.primaryButton:active {
+    transform: scale(0.96);
+    box-shadow: 0 1px 4px rgba(45, 175, 159, 0.2);
+}
+
+.secondaryButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--platinum-gleam);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.secondaryButton:active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    transform: scale(0.96);
+}
+
+.linkButton {
+    background: none;
+    border: none;
+    color: var(--royal-emerald);
+    cursor: pointer;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    padding: 0.75rem;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: all 0.2s;
+}
+
+.linkButton:active {
+    opacity: 0.7;
+    transform: scale(0.96);
+}
+
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+    border: 1px dashed var(--gilded-shadow);
+    border-radius: 12px;
+    color: var(--silver-whisper);
+    font-style: italic;
+}
+
+.batchesList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.batchCard {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 16px;
+    padding: 1.25rem;
+}
+
+.batchCardHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.batchNumber {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--royal-emerald);
+}
+
+.batchMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.batchTotals {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.batchTotals span {
+    display: block;
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+}
+
+.batchTotals strong {
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+}
+
+.batchLines {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.batchLine {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.batchLineInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.batchLineTitle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    color: var(--platinum-gleam);
+    font-weight: 600;
+}
+
+.batchLineSku {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+}
+
+.batchLineLocation {
+    color: var(--royal-emerald);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.batchLineStats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.batchLineStats span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.batchLineActions {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.defectsList {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.defectItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--silver-whisper);
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+}
+
+.defectActions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.defectActions button {
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.defectsJournal {
+    margin-top: 2rem;
+    background: var(--onyx-midnight);
+    border-radius: 12px;
+    border: 2px solid var(--gilded-shadow);
+    padding: 1.25rem;
+}
+
+.defectsHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.defectsHeader h3 {
+    margin: 0;
+    color: var(--royal-emerald);
+    font-size: 1.2rem;
+}
+
+.defectsTable {
+    margin-top: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.defectsTableHead,
+.defectsTableRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    align-items: center;
+}
+
+.defectsTableHead {
+    background: rgba(255, 255, 255, 0.05);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--silver-whisper);
+}
+
+.defectsTableRow {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--platinum-gleam);
+    font-size: 0.85rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--platinum-gleam);
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1rem;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.pagination button:active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    transform: scale(0.9);
+}
+
+.pagination span {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+/* Modals - Полноэкранные на мобильных */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    padding: 0;
+    -webkit-overflow-scrolling: touch;
+    touch-action: none;
+}
+
+.modalContent {
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-height: 95vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    border-bottom: 1px solid var(--gilded-shadow);
+    background: var(--onyx-midnight);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 64px;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    color: var(--royal-emerald);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.closeButton {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--platinum-gleam);
+    cursor: pointer;
+    font-size: 1.3rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.closeButton:active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    transform: scale(0.9);
+}
+
+.modalBody {
+    padding: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.modalGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modalGrid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+}
+
+.modalGrid input,
+.modalGrid textarea,
+.modalGrid select {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    outline: none;
+    transition: all 0.3s;
+    min-height: 52px;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.modalGrid textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.modalGrid input:focus,
+.modalGrid textarea:focus,
+.modalGrid select:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.modalFooter {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--gilded-shadow);
+    background: var(--onyx-midnight);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.modalFooter button {
+    flex: 1;
+}
+
+.errorMessage {
+    color: var(--velvet-ruby);
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    background: rgba(220, 38, 38, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Analytics Section */
+.analyticsSection {
+    padding: 1.5rem 1rem;
+    background: linear-gradient(145deg, var(--obsidian-elite), #1a1a1a);
+    border-top: 1px solid var(--gilded-shadow);
+}
+
+.analyticsHeader {
+    margin-bottom: 1.5rem;
+}
+
+.analyticsHeader h2 {
+    color: var(--royal-emerald);
+    font-size: 1.3rem;
+    margin: 0 0 1rem 0;
+}
+
+.analyticsPeriodSelector {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+}
+
+.analyticsPeriodSelector::-webkit-scrollbar {
+    display: none;
+}
+
+.analyticsPeriodSelector button {
+    background: transparent;
+    border: 2px solid var(--gilded-shadow);
+    color: var(--silver-whisper);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.analyticsPeriodSelector button:active {
+    transform: scale(0.95);
+}
+
+.analyticsPeriodSelector button.active {
+    border-color: var(--royal-emerald);
+    color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.15);
+}
+
+.analyticsStats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.analyticsStatCard {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.statLabel {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.statValue {
+    color: var(--royal-emerald);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.analyticsChartSection {
+    margin-bottom: 1.5rem;
+}
+
+.analyticsChartSection h3 {
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+}
+
+.chartContainer {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    height: 300px;
+}
+
+.analyticsSubSection {
+    margin-bottom: 1.5rem;
+}
+
+.analyticsSubSection h3 {
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+}
+
+.variantPopularityTable {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.variantPopularityHead {
+    display: none; /* Скрываем заголовки на мобильных */
+}
+
+.variantPopularityRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.variantPopularityRow:last-child {
+    border-bottom: none;
+}
+
+.variantPopularityRow span {
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+}
+
+.forecastCards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.forecastCard {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.forecastTitle {
+    color: var(--royal-emerald);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.forecastValue {
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.stockDynamics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.stockDynamicsItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stockDynamicsLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.stockDynamicsValue {
+    color: var(--platinum-gleam);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.availableQuantity {
+    color: #4ade80 !important;
+}
+
+.reservedQuantity {
+    color: #fbbf24 !important;
+}
+
+.defectQuantity {
+    color: var(--velvet-ruby) !important;
+}
+
+/* Error Container */
+.errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    gap: 1rem;
+}
+
+.error {
+    color: var(--velvet-ruby);
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.errorContainer button {
+    background: linear-gradient(135deg, var(--royal-emerald), #2daf9f);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.errorContainer button:active {
+    transform: scale(0.95);
+}
+
+/* Sales History */
+.salesHistorySection {
+    padding: 1.5rem 1rem;
+}
+
+/* Batch Lines Builder */
+.batchLinesBuilder {
+    margin-top: 1.5rem;
+}
+
+.batchLinesHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.batchLinesHeader h4 {
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.batchLineRow {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.batchLineColumn {
+    margin-bottom: 1rem;
+}
+
+.batchLineColumn:last-child {
+    margin-bottom: 0;
+}
+
+.batchLineToggles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.batchLineToggles label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.batchLineToggles input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    accent-color: var(--royal-emerald);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    flex-shrink: 0;
+}
+
+.removeLineButton {
+    background: transparent;
+    border: 2px solid var(--velvet-ruby);
+    color: var(--velvet-ruby);
+    border-radius: 12px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.removeLineButton:active {
+    background: rgba(220, 38, 38, 0.1);
+    transform: scale(0.96);
+}
+
+/* Defect Modal */
+.defectMeta {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.defectMetaRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.defectMetaRow:last-child {
+    border-bottom: none;
+}
+
+.defectMetaLabel {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.defectMetaValue {
+    color: var(--platinum-gleam);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.inputHint {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Стили для полей ввода в модальном окне брака */
+.modalBody label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--platinum-gleam);
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+}
+
+.modalBody label:last-of-type {
+    margin-bottom: 0;
+}
+
+.modalBody input[type="number"],
+.modalBody input[type="text"],
+.modalBody textarea {
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    color: var(--platinum-gleam);
+    font-size: 1.1rem;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 52px;
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+.modalBody input[type="number"]:focus,
+.modalBody input[type="text"]:focus,
+.modalBody textarea:focus {
+    border-color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.15);
+    background: rgba(45, 175, 159, 0.05);
+}
+
+.modalBody textarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.modalBody input::placeholder,
+.modalBody textarea::placeholder {
+    color: var(--silver-whisper);
+    opacity: 0.6;
+}
+
+/* Scrollbar */
+.modalBody::-webkit-scrollbar,
+.dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modalBody::-webkit-scrollbar-thumb,
+.dropdown::-webkit-scrollbar-thumb {
+    background: var(--royal-emerald);
+    border-radius: 3px;
+}
+
+.modalBody::-webkit-scrollbar-thumb:hover,
+.dropdown::-webkit-scrollbar-thumb:hover {
+    background: #2daf9f;
+}
+
+/* Touch optimizations */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Улучшенная читаемость на мобильных */
+@media (max-width: 480px) {
+    .title {
+        font-size: 1.35rem;
+    }
+    
+    .locationName {
+        font-size: 1.15rem;
+    }
+    
+    .variantName {
+        font-size: 1.05rem;
+    }
+    
+    .priceValue {
+        font-size: 1.2rem;
+    }
+    
+    .productInfo {
+        padding: 1.25rem 0.875rem;
+    }
+    
+    .locationsList {
+        padding: 0 0.875rem 1.25rem;
+    }
+    
+    .batchesSection {
+        padding: 1.25rem 0.875rem;
+    }
+    
+    .analyticsSection {
+        padding: 1.25rem 0.875rem;
+    }
+}
+
+/* Улучшенная анимация для модальных окон */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Улучшенный скроллинг */
+.container {
+    scroll-behavior: smooth;
+}
+
+.tabs {
+    scroll-behavior: smooth;
+}
+
+/* Улучшенные отступы для безопасных зон */
+@media (max-width: 768px) {
+    .header {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    
+    .productInfo {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    
+    .locationsList {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    
+    .batchesSection {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+    
+    .analyticsSection {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+}
+

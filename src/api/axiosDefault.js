@@ -87,8 +87,24 @@ axios.interceptors.response.use(
         // Не удалось обновить токен
         processQueue(refreshError, null);
         
-        // Перенаправляем на страницу логина
-        if (window.location.pathname !== '/registration-login') {
+        // Список публичных страниц, на которые не нужно редиректить
+        const publicPages = [
+          '/registration-login',
+          '/password-reset',
+          '/privacy',
+          '/',
+          '/marketplace',
+          '/business-categories',
+          '/invite'
+        ];
+        
+        const currentPath = window.location.pathname;
+        const isPublicPage = publicPages.some(page => 
+          currentPath === page || currentPath.startsWith(page + '/')
+        );
+        
+        // Перенаправляем на страницу логина только если это не публичная страница
+        if (!isPublicPage) {
           window.location.href = '/registration-login';
         }
         

@@ -1,0 +1,53 @@
+.closeButton {
+  background: var(--phantom-noir);
+  border: 2px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  height: 44px;
+  width: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+  opacity: 1;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.closeButton svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  opacity: 1;
+}
+
+.closeButton:hover {
+  color: var(--platinum-gleam);
+  border-color: var(--velvet-ruby);
+  background: var(--velvet-ruby);
+  box-shadow: 0 0 15px rgba(168, 58, 58, 0.5);
+}
+
+.closeButton:hover svg {
+  opacity: 1;
+}
+
+.closeButton:focus {
+  outline: 2px solid var(--luminous-sapphire);
+  outline-offset: 2px;
+}
+
+.closeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.closeButton:disabled:hover {
+  background: var(--phantom-noir);
+  border-color: var(--gilded-shadow);
+  box-shadow: var(--shadow-soft);
+}
+

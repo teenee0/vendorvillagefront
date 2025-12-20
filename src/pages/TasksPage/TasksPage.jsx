@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
+import {
+  FaPlus,
+  FaSearch,
+  FaTimes,
+  FaEye,
+  FaEdit,
+  FaTrash,
+  FaUpload,
+  FaFile,
+  FaMapMarkerAlt,
+  FaCalendar,
+  FaUsers,
+  FaCheck,
+  FaUser,
+  FaEnvelope,
+  FaCaretDown
+} from 'react-icons/fa';
 import styles from './TasksPage.module.css';
 import Loader from '../../components/Loader';
 
@@ -343,27 +360,49 @@ const TasksPage = () => {
         return <Loader />;
     }
 
+    const handleSearch = (e) => {
+        e.preventDefault();
+        fetchTasks();
+    };
+
+    if (loading && tasks.length === 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Loader size="large" />
+            </div>
+        );
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
                 <h1>Задачи</h1>
+                <div className={styles.businessInfo}>
+                    <span>Бизнес: {business_slug}</span>
+                </div>
                 <button
                     className={styles.createButton}
                     onClick={handleCreateTask}
                 >
-                    <i className="fa fa-plus"></i> Создать задачу
+                    <FaPlus /> Создать задачу
                 </button>
             </div>
 
             {/* Фильтры */}
             <div className={styles.filters}>
+                <div className={styles.searchBar}>
+                    <form onSubmit={handleSearch}>
                 <input
                     type="text"
                     placeholder="Поиск по названию или описанию..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={styles.searchInput}
                 />
+                        <button type="submit">
+                            <FaSearch />
+                        </button>
+                    </form>
+                </div>
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -405,6 +444,7 @@ const TasksPage = () => {
             </div>
 
             {/* Список задач */}
+            <div className={styles.content}>
             {error && <div className={styles.error}>{error}</div>}
             
             <div className={styles.tasksList}>
@@ -437,6 +477,7 @@ const TasksPage = () => {
                         />
                     ))
                 )}
+                </div>
             </div>
 
             {/* Модальное окно создания/редактирования */}
@@ -509,7 +550,7 @@ const TaskCard = ({
                                 }}
                             >
                                 {task.priority_display}
-                                <i className="fa fa-caret-down" style={{ marginLeft: '0.25rem', fontSize: '0.7rem' }}></i>
+                                <FaCaretDown style={{ marginLeft: '6px', fontSize: '12px' }} />
                             </span>
                             {quickEditTaskId === task.id && quickEditType === 'priority' && (
                                 <div className={styles.quickEditDropdown} onClick={(e) => e.stopPropagation()}>
@@ -536,7 +577,7 @@ const TaskCard = ({
                                 }}
                             >
                                 {task.status_display}
-                                <i className="fa fa-caret-down" style={{ marginLeft: '0.25rem', fontSize: '0.7rem' }}></i>
+                                <FaCaretDown style={{ marginLeft: '6px', fontSize: '12px' }} />
                             </span>
                             {quickEditTaskId === task.id && quickEditType === 'status' && (
                                 <div className={styles.quickEditDropdown} onClick={(e) => e.stopPropagation()}>
@@ -558,17 +599,17 @@ const TaskCard = ({
                 <div className={styles.taskMeta}>
                     {task.location_name && (
                         <span className={styles.metaItem}>
-                            <i className="fa fa-map-marker"></i> {task.location_name}
+                            <FaMapMarkerAlt /> {task.location_name}
                         </span>
                     )}
                     {task.due_date && (
                         <span className={styles.metaItem}>
-                            <i className="fa fa-calendar"></i> {formatDate(task.due_date)}
+                            <FaCalendar /> {formatDate(task.due_date)}
                         </span>
                     )}
                     {task.assignees.length > 0 && (
                         <span className={styles.metaItem}>
-                            <i className="fa fa-users"></i> {task.assignees.map(a => a.name || a.full_name).join(', ')}
+                            <FaUsers /> {task.assignees.map(a => a.name || a.full_name).join(', ')}
                         </span>
                     )}
                 </div>
@@ -592,13 +633,13 @@ const TaskCard = ({
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        <i className="fa fa-file"></i> {file.name}
+                                        <FaFile /> {file.name}
                                     </a>
                                     <button
                                         className={styles.deleteFileButton}
                                         onClick={() => onFileDelete(task.id, file.id)}
                                     >
-                                        <i className="fa fa-times"></i>
+                                        <FaTimes />
                                     </button>
                                 </div>
                             ))}
@@ -620,26 +661,26 @@ const TaskCard = ({
                             to={`/business/${business_slug}/tasks/${task.id}`}
                             className={styles.actionButton}
                         >
-                            <i className="fa fa-eye"></i> Подробнее
+                            <FaEye /> Подробнее
                         </Link>
                         <button
                             className={styles.actionButton}
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploadingFile === task.id}
                         >
-                            <i className="fa fa-upload"></i> Загрузить файл
+                            <FaUpload /> Загрузить файл
                         </button>
                         <button
                             className={styles.actionButton}
                             onClick={() => onEdit(task)}
                         >
-                            <i className="fa fa-edit"></i> Редактировать
+                            <FaEdit /> Редактировать
                         </button>
                         <button
                             className={styles.actionButtonDanger}
                             onClick={() => onDelete(task.id)}
                         >
-                            <i className="fa fa-trash"></i> Удалить
+                            <FaTrash /> Удалить
                         </button>
                     </div>
 
@@ -695,7 +736,7 @@ const TaskModal = ({
                 <div className={styles.modalHeader}>
                     <h2>{editingTask ? 'Редактировать задачу' : 'Создать задачу'}</h2>
                     <button className={styles.closeButton} onClick={onClose}>
-                        <i className="fa fa-times"></i>
+                        <FaTimes />
                     </button>
                 </div>
                 <div className={styles.modalBody}>
@@ -843,15 +884,15 @@ const TaskModal = ({
                                         >
                                             <div className={styles.employeeInfo}>
                                                 <div className={styles.employeeNameRow}>
-                                                    <i className={`fa fa-user ${styles.employeeIcon}`}></i>
+                                                    <FaUser className={styles.employeeIcon} />
                                                     <span className={styles.employeeName}>{emp.name}</span>
                                                     {isSelected && (
-                                                        <i className={`fa fa-check ${styles.checkIcon}`}></i>
+                                                        <FaCheck className={styles.checkIcon} />
                                                     )}
                                                 </div>
                                                 {emp.email && (
                                                     <span className={styles.employeeEmail}>
-                                                        <i className="fa fa-envelope"></i> {emp.email}
+                                                        <FaEnvelope /> {emp.email}
                                                     </span>
                                                 )}
                                             </div>
@@ -935,12 +976,12 @@ const SearchableSelect = ({
                 <span className={styles.searchableSelectValue}>
                     {selectedOption ? selectedOption.name : emptyOption}
                 </span>
-                <i className={`fa fa-chevron-${isOpen ? 'up' : 'down'} ${styles.searchableSelectArrow}`}></i>
+                <FaCaretDown className={styles.searchableSelectArrow} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease' }} />
             </div>
             {isOpen && (
                 <div className={styles.searchableSelectDropdown}>
                     <div className={styles.searchableSelectSearch}>
-                        <i className="fa fa-search"></i>
+                        <FaSearch />
                         <input
                             type="text"
                             placeholder={placeholder}

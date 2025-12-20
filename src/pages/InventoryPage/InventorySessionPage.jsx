@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
+import {
+  FaArrowLeft,
+  FaPlay,
+  FaCheck,
+  FaSearch,
+  FaSpinner
+} from 'react-icons/fa';
 import styles from './InventorySessionPage.module.css';
 import Loader from '../../components/Loader';
 import dayjs from 'dayjs';
@@ -320,7 +327,7 @@ const InventorySessionPage = () => {
                     className={styles.backButton}
                     onClick={() => navigate(`/business/${business_slug}/inventory`)}
                 >
-                    <i className="fa fa-arrow-left"></i> Назад
+                    <FaArrowLeft /> Назад
                 </button>
                 <div className={styles.headerContent}>
                     <h1>{session.location_name}</h1>
@@ -371,7 +378,7 @@ const InventorySessionPage = () => {
                         className={styles.actionButton}
                         onClick={handleStartInventory}
                     >
-                        <i className="fa fa-play"></i> Начать инвентаризацию
+                        <FaPlay /> Начать инвентаризацию
                     </button>
                 </div>
             )}
@@ -382,7 +389,7 @@ const InventorySessionPage = () => {
                         className={styles.actionButtonSuccess}
                         onClick={handleCompleteInventory}
                     >
-                        <i className="fa fa-check"></i> Завершить инвентаризацию
+                        <FaCheck /> Завершить инвентаризацию
                     </button>
                 </div>
             )}
@@ -404,7 +411,7 @@ const InventorySessionPage = () => {
                             type="submit"
                             className={styles.scanButton}
                         >
-                            <i className="fa fa-search"></i> Найти
+                            <FaSearch /> Найти
                         </button>
                     </form>
                 </div>
@@ -412,6 +419,8 @@ const InventorySessionPage = () => {
 
             {/* Фильтры */}
             <div className={styles.filters}>
+                <div className={styles.searchBar}>
+                    <form onSubmit={(e) => { e.preventDefault(); }}>
                 <input
                     type="text"
                     placeholder="Поиск по названию или SKU..."
@@ -419,6 +428,11 @@ const InventorySessionPage = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={styles.searchInput}
                 />
+                        <button type="submit">
+                            <FaSearch />
+                        </button>
+                    </form>
+                </div>
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}

@@ -870,18 +870,245 @@
 }
 
 @media (max-width: 768px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+    background: rgba(0, 0, 0, 0.9);
+  }
+
   .modal {
     max-width: 100%;
     max-height: 95vh;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    animation: slideUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    background: var(--obsidian-elite);
+    z-index: 10;
+    padding: 1.25rem 1rem;
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+    border-bottom: 2px solid var(--gilded-shadow);
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .closeButton {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .form {
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+
+  .formGroup {
+    gap: 0.75rem;
+  }
+
+  .formGroup label {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .formGroup input,
+  .formGroup textarea,
+  .formGroup select {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .stockControls {
     grid-template-columns: 1fr;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
-  .stockControls > button {
+  .stockControls > * {
     width: 100%;
+  }
+
+  .inputWithLabel {
+    width: 100%;
+  }
+
+  .quantityInput {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .stockRow {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .selectedProductCard {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .selectedProductImage,
+  .selectedNoImage {
+    width: 100px;
+    height: 140px;
+  }
+
+  .addButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .addButton:active {
+    transform: scale(0.98);
+  }
+
+  .actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--obsidian-elite);
+    border-top: 2px solid var(--gilded-shadow);
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    margin: 0 -1rem -1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .cancelButton:active,
+  .submitButton:active {
+    transform: scale(0.98);
+  }
+
+  .defectFormRow {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .defectFormActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .addDefectBtn,
+  .cancelDefectBtn {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .documentUploadForm {
+    padding: 1.25rem;
+  }
+
+  .documentUploadForm input,
+  .documentUploadForm textarea {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .documentUploadActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .documentUploadActions button {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .addDocumentButton {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .checkboxLabel {
+    padding: 0.75rem;
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .activeFlagsSection {
+    padding: 1rem;
+  }
+
+  .activeFlagItem {
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+
+  .activeFlagItem input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  .removeButton {
+    width: 100%;
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+    border-radius: 12px;
   }
 }
 

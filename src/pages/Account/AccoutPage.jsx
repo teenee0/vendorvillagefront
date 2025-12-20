@@ -1,18 +1,52 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import axios from "../../api/axiosDefault.js";
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import './AccountPage.css';
+import styles from './AccountPage.module.css';
 import Loader from '../../components/Loader';
+import { QRCodeSVG } from 'qrcode.react';
+import { 
+  FiUser, FiBriefcase, FiShield, 
+  FiGift, FiSettings, FiLogOut, FiChevronRight,
+  FiMail, FiPhone, FiCalendar, FiLock,
+  FiBell, FiMoon, FiGlobe, FiCreditCard,
+  FiMapPin, FiUsers, FiStar, FiTrendingUp
+} from 'react-icons/fi';
+import { 
+  RiShieldUserLine, 
+  RiDashboardLine,
+  RiWallet3Line,
+  RiNotificationLine
+} from 'react-icons/ri';
+import { FaBuilding, FaStore, FaMapMarkerAlt, FaCoins, FaGift, FaChevronLeft, FaChevronRight, FaCopy, FaCheck, FaExpandAlt, FaSync, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
 
 const AccountPage = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState(null);
   const [employments, setEmployments] = useState([]);
   const [employmentsLoading, setEmploymentsLoading] = useState(false);
+  const [bonusBalances, setBonusBalances] = useState([]);
+  const [bonusLoading, setBonusLoading] = useState(false);
+  const [qrData, setQrData] = useState(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrRefreshing, setQrRefreshing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionsHasMore, setTransactionsHasMore] = useState(false);
+  const [transactionsOffset, setTransactionsOffset] = useState(0);
+  const transactionsScrollRef = useRef(null);
+  const storesScrollRef = useRef(null);
+  const businessesScrollRef = useRef(null);
+  const employmentsScrollRef = useRef(null);
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -36,31 +70,248 @@ const AccountPage = () => {
     fetchAccountInfo();
   }, [navigate]);
 
-  // Загрузка мест работы при открытии вкладки
   useEffect(() => {
-    if (activeTab === 'work') {
-      const fetchEmployments = async () => {
-        try {
-          setEmploymentsLoading(true);
-          const response = await axios.get('api/my-employments/');
-          setEmployments(response.data);
-        } catch (err) {
-          console.error('Ошибка загрузки мест работы:', err);
-        } finally {
-          setEmploymentsLoading(false);
-        }
-      };
-      fetchEmployments();
+    const fetchEmployments = async () => {
+      try {
+        setEmploymentsLoading(true);
+        const response = await axios.get('api/my-employments/');
+        setEmployments(response.data);
+      } catch (err) {
+        console.error('Ошибка загрузки мест работы:', err);
+      } finally {
+        setEmploymentsLoading(false);
+      }
+    };
+
+    fetchEmployments();
+  }, []);
+
+  useEffect(() => {
+    const fetchBonusBalances = async () => {
+      try {
+        setBonusLoading(true);
+        const response = await axios.get('api/user/bonus-balances/');
+        setBonusBalances(response.data || []);
+      } catch (err) {
+        console.error('Ошибка загрузки балансов бонусов:', err);
+      } finally {
+        setBonusLoading(false);
+      }
+    };
+
+    const fetchQRCode = async () => {
+      try {
+        setQrLoading(true);
+        const response = await axios.get('api/user/qr-code/');
+        setQrData(response.data);
+      } catch (err) {
+        console.error('Ошибка загрузки QR-кода:', err);
+      } finally {
+        setQrLoading(false);
+      }
+    };
+
+    fetchBonusBalances();
+    fetchQRCode();
+  }, []);
+
+  // Обновление QR-кода
+  const refreshQRCode = React.useCallback(async () => {
+    try {
+      setQrRefreshing(true);
+      const response = await axios.get('api/user/qr-code/');
+      setQrData(response.data);
+    } catch (err) {
+      console.error('Ошибка обновления QR-кода:', err);
+    } finally {
+      setQrRefreshing(false);
     }
-  }, [activeTab]);
+  }, []);
+
+  // Таймер для отображения оставшегося времени
+  useEffect(() => {
+    if (!qrData?.expires_at) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const updateTimeRemaining = () => {
+      const expiresAt = new Date(qrData.expires_at);
+      const now = new Date();
+      const diff = expiresAt - now;
+
+      if (diff <= 0) {
+        setTimeRemaining('Истек');
+        // Автоматически обновляем QR-код при истечении
+        refreshQRCode();
+        return;
+      }
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      
+      if (minutes > 0) {
+        setTimeRemaining(`${minutes} мин ${seconds} сек`);
+      } else {
+        setTimeRemaining(`${seconds} сек`);
+      }
+    };
+
+    updateTimeRemaining();
+    const interval = setInterval(updateTimeRemaining, 1000);
+
+    return () => clearInterval(interval);
+  }, [qrData?.expires_at, refreshQRCode]);
 
   const handleLogout = async () => {
     await logout();
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const calculateTotalBalance = () => {
+    return bonusBalances.reduce((total, business) => {
+      return total + parseFloat(business.balance || 0);
+    }, 0);
+  };
+
+  const handleCopyToken = () => {
+    if (qrData?.qr_token) {
+      navigator.clipboard.writeText(qrData.qr_token);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const scrollStores = (direction) => {
+    if (storesScrollRef.current) {
+      storesScrollRef.current.scrollBy({
+        left: direction === 'next' ? 300 : -300,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollBusinesses = (direction) => {
+    if (businessesScrollRef.current) {
+      businessesScrollRef.current.scrollBy({
+        left: direction === 'next' ? 350 : -350,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollEmployments = (direction) => {
+    if (employmentsScrollRef.current) {
+      employmentsScrollRef.current.scrollBy({
+        left: direction === 'next' ? 350 : -350,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleStoreClick = async (business, primaryLocation) => {
+    // Бонусы работают на весь бизнес, поэтому не фильтруем по локации
+    setSelectedStore({ business, location: primaryLocation });
+    setShowHistoryModal(true);
+    setTransactionsLoading(true);
+    setTransactionsOffset(0);
+    setTransactionsHasMore(false);
+    
+    try {
+      const response = await axios.get(
+        `api/user/bonus-history/${business.slug}/`,
+        { params: { offset: 0, page_size: 20 } }
+      );
+      // API для пользователей всегда возвращает формат с transactions
+      setTransactions(Array.isArray(response.data.transactions) ? response.data.transactions : []);
+      setTransactionsHasMore(response.data.has_more || false);
+      setTransactionsOffset(response.data.transactions?.length || 0);
+    } catch (err) {
+      console.error('Ошибка загрузки истории транзакций:', err);
+      setTransactions([]);
+      setTransactionsHasMore(false);
+    } finally {
+      setTransactionsLoading(false);
+    }
+  };
+
+  const loadMoreTransactions = useCallback(async () => {
+    if (!selectedStore || transactionsLoading || !transactionsHasMore) return;
+    
+    setTransactionsLoading(true);
+    try {
+      // Бонусы работают на весь бизнес, поэтому не фильтруем по локации
+      const response = await axios.get(
+        `api/user/bonus-history/${selectedStore.business.slug}/`,
+        { params: { offset: transactionsOffset, page_size: 20 } }
+      );
+      // API для пользователей всегда возвращает формат с transactions
+      setTransactions(prev => [...prev, ...(response.data.transactions || [])]);
+      setTransactionsHasMore(response.data.has_more || false);
+      setTransactionsOffset(prev => prev + (response.data.transactions?.length || 0));
+    } catch (err) {
+      console.error('Ошибка загрузки дополнительных транзакций:', err);
+    } finally {
+      setTransactionsLoading(false);
+    }
+  }, [selectedStore, transactionsLoading, transactionsHasMore, transactionsOffset]);
+
+  // Infinite scroll для модального окна
+  useEffect(() => {
+    if (!showHistoryModal || !transactionsScrollRef.current) return;
+
+    const handleScroll = () => {
+      const element = transactionsScrollRef.current;
+      if (!element) return;
+
+      const scrollTop = element.scrollTop;
+      const scrollHeight = element.scrollHeight;
+      const clientHeight = element.clientHeight;
+
+      // Загружаем больше, когда пользователь прокрутил до 80% от конца
+      if (scrollTop + clientHeight >= scrollHeight * 0.8 && transactionsHasMore && !transactionsLoading) {
+        loadMoreTransactions();
+      }
+    };
+
+    const element = transactionsScrollRef.current;
+    if (element) {
+      element.addEventListener('scroll', handleScroll);
+      return () => {
+        if (element) {
+          element.removeEventListener('scroll', handleScroll);
+        }
+      };
+    }
+  }, [showHistoryModal, transactionsHasMore, transactionsLoading, selectedStore, transactionsOffset, loadMoreTransactions]);
+
+  const formatTransactionType = (type) => {
+    const types = {
+      'accrual': 'Начисление',
+      'redemption': 'Списание',
+      'expiry': 'Истечение',
+      'adjustment': 'Корректировка'
+    };
+    return types[type] || type;
+  };
+
+  const tabs = [
+    { id: 'profile', label: 'Профиль', icon: <FiUser /> },
+    { id: 'security', label: 'Безопасность', icon: <FiShield /> },
+    { id: 'wallet', label: 'Кошелек', icon: <RiWallet3Line /> },
+    { id: 'settings', label: 'Настройки', icon: <FiSettings /> },
+  ];
+
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <div className={styles.loadingWrapper}>
         <Loader size="large" />
       </div>
     );
@@ -68,394 +319,709 @@ const AccountPage = () => {
 
   if (error) {
     return (
-      <div className="account-error">
-        <div className="error-icon">!</div>
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Попробовать снова</button>
+      <div className={styles.errorWrapper}>
+        <div className={styles.errorCard}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <h3>Ошибка загрузки</h3>
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className={styles.retryBtn}
+          >
+            Попробовать снова
+          </button>
+        </div>
       </div>
     );
   }
 
+  const totalBalance = calculateTotalBalance();
+
   return (
-    <div className="content-wrapper">
-      <div className="account-container">
-        {/* Боковая панель */}
-        <motion.div 
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="account-sidebar"
-        >
-          <div className="profile-card">
-            <div className="avatar">
-              {userData.avatar ? (
-                <img src={userData.avatar} alt="Аватар" />
-              ) : (
-                <div className="avatar-placeholder">
-                  {userData.first_name.charAt(0).toUpperCase()}
-                </div>
-              )}
+    <div className={styles.accountPage}>
+      {/* User Avatar Section - Centered */}
+      <section className={styles.userAvatarSection}>
+        <div className={styles.pageContainer}>
+          <div className={styles.avatarWrapper}>
+            {userData.avatar ? (
+              <img src={userData.avatar} alt="Аватар" className={styles.userAvatar} />
+            ) : (
+              <div className={styles.userAvatarFallback}>
+                {userData.first_name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <h2 className={styles.userName}>{userData.first_name}</h2>
+          </div>
+        </div>
+      </section>
+
+      {/* Bonuses Section - Stats + QR left, Shops right */}
+      <section className={styles.bonusesSection}>
+        <div className={styles.pageContainer}>
+          {/* Statistics Top */}
+          <div className={styles.statsTop}>
+            <div className={styles.statBox}>
+              <div className={`${styles.statIcon} ${styles.blue}`}>
+                <FaCoins />
+              </div>
+              <div className={styles.statContent}>
+                <div className={styles.statValue}>{totalBalance.toLocaleString('ru-RU', { maximumFractionDigits: 0 })}</div>
+                <div className={styles.statLabel}>Всего бонусов</div>
+              </div>
             </div>
-            <h2>{userData.first_name}</h2>
-            <p className="user-email">{userData.email}</p>
-            <div className={`account-badge ${userData.is_business ? 'business' : 'personal'}`}>
-              {userData.is_business ? 'Бизнес-аккаунт' : 'Личный аккаунт'}
+            <div className={styles.statBox}>
+              <div className={`${styles.statIcon} ${styles.green}`}>
+                <FaStore />
+              </div>
+              <div className={styles.statContent}>
+                <div className={styles.statValue}>{bonusBalances.length}</div>
+                <div className={styles.statLabel}>Активных магазинов</div>
+              </div>
+            </div>
+            <div className={styles.statBox}>
+              <div className={`${styles.statIcon} ${styles.purple}`}>
+                <FaGift />
+              </div>
+              <div className={styles.statContent}>
+                <div className={styles.statValue}>{totalBalance.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₸</div>
+                <div className={styles.statLabel}>Эквивалент в валюте</div>
+              </div>
             </div>
           </div>
 
-          <nav className="account-menu">
-            <button 
-              className={activeTab === 'profile' ? 'active' : ''}
-              onClick={() => setActiveTab('profile')}
-            >
-              <i className="fas fa-user"></i> Профиль
-            </button>
-            <button 
-              className={activeTab === 'work' ? 'active' : ''}
-              onClick={() => setActiveTab('work')}
-            >
-              <i className="fas fa-briefcase"></i> Работа
-            </button>
-            <button 
-              className={activeTab === 'security' ? 'active' : ''}
-              onClick={() => setActiveTab('security')}
-            >
-              <i className="fas fa-shield-alt"></i> Безопасность
-            </button>
-            {userData.is_business && (
-              <button 
-                className={activeTab === 'business' ? 'active' : ''}
-                onClick={() => setActiveTab('business')}
-              >
-                <i className="fas fa-building"></i> Мои бизнесы
-              </button>
-            )}
-            <button 
-              className={activeTab === 'settings' ? 'active' : ''}
-              onClick={() => setActiveTab('settings')}
-            >
-              <i className="fas fa-cog"></i> Настройки
-            </button>
-          </nav>
-
-          <button className="logout-btn" onClick={handleLogout}>
-            <i className="fas fa-sign-out-alt"></i> Выйти
-          </button>
-        </motion.div>
-
-        {/* Основное содержимое */}
-        <div className="account-content">
-          {activeTab === 'profile' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="profile-tab"
-            >
-              <h1>Мой профиль</h1>
-              <div className="profile-section">
-                <h2>Основная информация</h2>
-                <div className="info-grid">
-                  <div className="info-item">
-                    <label>Имя</label>
-                    <p>{userData.first_name}</p>
-                  </div>
-                  <div className="info-item">
-                    <label>Email</label>
-                    <p>{userData.email}</p>
-                  </div>
-                  <div className="info-item">
-                    <label>Телефон</label>
-                    <p>{userData.phone || 'Не указан'}</p>
-                  </div>
-                  <div className="info-item">
-                    <label>Дата регистрации</label>
-                    <p>{new Date(userData.date_joined).toLocaleDateString()}</p>
-                  </div>
-                </div>
+          {/* Main Bonus Section */}
+          <div className={styles.bonusSection}>
+            {/* Left - QR Code */}
+            <div className={styles.qrSection}>
+              <div className={styles.qrHeader}>
+                <h3>Ваш QR-код</h3>
+                <p>Покажите на кассе для начисления бонусов</p>
               </div>
-
-              <div className="profile-section">
-                <h2>Дополнительная информация</h2>
-                <div className="info-grid">
-                  <div className="info-item">
-                    <label>Роли</label>
-                    <div className="roles-list">
-                      {userData.roles.map(role => (
-                        <span key={role} className="role-badge">{role}</span>
-                      ))}
+              {qrLoading ? (
+                <div className={styles.loadingState}>
+                  <Loader size="small" />
+                </div>
+              ) : qrData ? (
+                <>
+                  <div className={styles.qrContainer} onClick={() => setShowQrModal(true)}>
+                    <div className={styles.qrCode}>
+                      <QRCodeSVG
+                        value={qrData.qr_token}
+                        size={160}
+                        level="H"
+                        includeMargin={true}
+                      />
+                      <div className={styles.qrOverlay}>
+                        <FaExpandAlt />
+                        <p>Нажмите для<br />увеличения</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="info-item">
-                    <label>Статус аккаунта</label>
-                    <p>{userData.is_active ? 'Активен' : 'Неактивен'}</p>
+                  <div className={styles.qrFooter}>
+                    {timeRemaining && (
+                      <div className={styles.qrExpiry}>
+                        <span className={styles.expiryLabel}>Действителен:</span>
+                        <span className={styles.expiryTime}>{timeRemaining}</span>
+                      </div>
+                    )}
+                    <button
+                      className={styles.refreshQrButton}
+                      onClick={refreshQRCode}
+                      disabled={qrRefreshing}
+                      title="Обновить QR-код"
+                    >
+                      <FaSync className={qrRefreshing ? styles.spinning : ''} />
+                      {qrRefreshing ? 'Обновление...' : 'Обновить'}
+                    </button>
                   </div>
+                </>
+              ) : (
+                <div className={styles.emptyState}>Не удалось загрузить QR-код</div>
+              )}
+            </div>
+
+            {/* Right - Stores Scroll */}
+            <div className={styles.storesSection}>
+              <div className={styles.storesHeader}>
+                <h3>Мои магазины</h3>
+                <div className={styles.storesNav}>
+                  <button 
+                    className={styles.navBtn}
+                    onClick={() => scrollStores('prev')}
+                  >
+                    <FaChevronLeft />
+                  </button>
+                  <button 
+                    className={styles.navBtn}
+                    onClick={() => scrollStores('next')}
+                  >
+                    <FaChevronRight />
+                  </button>
                 </div>
               </div>
-
-              <button className="edit-profile-btn" disabled >
-                <i className="fas fa-edit"></i> Редактировать профиль
-              </button>
-            </motion.div>
-          )}
-
-          {activeTab === 'work' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="work-tab"
-            >
-              <h1>Мои места работы</h1>
-              
-              {employmentsLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+              {bonusLoading ? (
+                <div className={styles.loadingState}>
                   <Loader size="medium" />
                 </div>
-              ) : employments.length > 0 ? (
-                <div className="businesses-grid">
-                  {employments.map(employment => (
-                    <motion.div
-                      key={employment.id}
-                      whileHover={{ y: -5 }}
-                      className="employment-card"
-                    >
-                      <div className="business-card-header">
-                        {employment.business.business_logo && (
-                          <img 
-                            src={employment.business.business_logo} 
-                            alt={`${employment.business.name} logo`} 
-                            className="business-logo" 
-                          />
-                        )}
-                        <h3>{employment.business.name}</h3>
-                        {employment.employee_name && (
-                          <span className="employee-name-badge">
-                            <i className="fas fa-id-badge"></i> {employment.employee_name}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="business-card-body">
-                        {employment.business.description && (
-                          <p className="business-description">
-                            {employment.business.description}
-                          </p>
-                        )}
-                        
-                        {employment.hired_date && (
-                          <div className="employment-info">
-                            <i className="fas fa-calendar-check"></i>
-                            <span>Работаю с: {new Date(employment.hired_date).toLocaleDateString('ru-RU')}</span>
+              ) : bonusBalances.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <FaGift />
+                  <h4>У вас пока нет бонусов</h4>
+                  <p>Бонусы появятся после покупок в магазинах с программой лояльности</p>
+                </div>
+              ) : (
+                <div 
+                  className={styles.storesScroll}
+                  ref={storesScrollRef}
+                >
+                  <div className={styles.storesGrid}>
+                    {bonusBalances.map((business) => (
+                      <div 
+                        key={business.slug} 
+                        className={styles.storeCardHorizontal}
+                        onClick={() => handleStoreClick(business, business.primary_location)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className={styles.storeHeaderHorizontal}>
+                          <div className={styles.storeLogoHorizontal}>
+                            {business.business_logo ? (
+                              <>
+                                <img 
+                                  src={business.business_logo} 
+                                  alt={business.name}
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    const fallback = e.target.nextSibling;
+                                    if (fallback) {
+                                      fallback.style.display = 'flex';
+                                    }
+                                  }}
+                                />
+                                <div style={{ display: 'none' }}>
+                                  <FaStore />
+                                </div>
+                              </>
+                            ) : (
+                              <div>
+                                <FaStore />
+                              </div>
+                            )}
+                          </div>
+                          <div className={styles.storeInfoHorizontal}>
+                            <div className={styles.storeNameHorizontal}>{business.name}</div>
+                          </div>
+                        </div>
+                        <div className={styles.bonusDisplayHorizontal}>
+                          <div className={styles.bonusAmountHorizontal}>
+                            {parseFloat(business.balance || 0).toLocaleString('ru-RU', { maximumFractionDigits: 0 })}
+                          </div>
+                          <div className={styles.bonusLabelHorizontal}>бонусов</div>
+                        </div>
+                        {business.tier && (
+                          <div className={styles.progressSectionHorizontal}>
+                            <div className={styles.progressLabel}>
+                              <span>Уровень</span>
+                              <span>{business.tier.name}</span>
+                            </div>
+                            <div className={styles.progressBar}>
+                              <div 
+                                className={styles.progressFill}
+                                style={{ width: `${Math.min(parseFloat(business.tier.bonus_percent) * 10, 100)}%` }}
+                              ></div>
+                            </div>
                           </div>
                         )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
+      {/* Bonus History Modal */}
+      {showHistoryModal && selectedStore && (
+        <div className={styles.modalOverlay} onClick={() => setShowHistoryModal(false)}>
+          <div className={styles.historyModalContent} onClick={(e) => e.stopPropagation()}>
+            <ModalCloseButton onClick={() => setShowHistoryModal(false)} />
+            <h2>История бонусов</h2>
+            <div className={styles.historyStoreInfo}>
+              <div className={styles.historyStoreName}>{selectedStore.business.name}</div>
+              <div className={styles.historyStoreBalance}>
+                Баланс: <span>{parseFloat(selectedStore.business.balance || 0).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} бонусов</span>
+              </div>
+            </div>
+            
+            {transactionsLoading ? (
+              <div className={styles.loadingState}>
+                <Loader size="medium" />
+              </div>
+            ) : !Array.isArray(transactions) || transactions.length === 0 ? (
+              <div className={styles.emptyState}>
+                <FaGift />
+                <p>История транзакций пуста</p>
+              </div>
+            ) : (
+              <div 
+                className={styles.transactionsList}
+                ref={transactionsScrollRef}
+              >
+                {Array.isArray(transactions) && transactions.map((transaction) => (
+                  <div key={transaction.id} className={styles.transactionItem}>
+                    <div className={styles.transactionHeader}>
+                      <div className={styles.transactionType}>
+                        {transaction.transaction_type === 'accrual' ? (
+                          <FaArrowUp className={styles.transactionIconAccrual} />
+                        ) : (
+                          <FaArrowDown className={styles.transactionIconRedemption} />
+                        )}
+                        <span>{formatTransactionType(transaction.transaction_type)}</span>
+                      </div>
+                      <div className={`${styles.transactionAmount} ${
+                        transaction.transaction_type === 'accrual' 
+                          ? styles.positive 
+                          : styles.negative
+                      }`}>
+                        {transaction.transaction_type === 'accrual' ? '+' : '-'}
+                        {parseFloat(transaction.amount).toLocaleString('ru-RU', { maximumFractionDigits: 0 })}
+                      </div>
+                    </div>
+                    {transaction.description && (
+                      <div className={styles.transactionDescription}>
+                        {transaction.description}
+                      </div>
+                    )}
+                    <div className={styles.transactionFooter}>
+                      <div className={styles.transactionDate}>
+                        {new Date(transaction.created_at).toLocaleString('ru-RU', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      <div className={styles.transactionBalance}>
+                        Баланс после: {parseFloat(transaction.balance_after).toLocaleString('ru-RU', { maximumFractionDigits: 0 })}
+                      </div>
+                    </div>
+                    {transaction.receipt && (
+                      <div className={styles.transactionReceipt}>
+                        Чек №{transaction.receipt.number}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {transactionsLoading && Array.isArray(transactions) && transactions.length > 0 && (
+                  <div className={styles.loadingMore}>
+                    <Loader size="small" />
+                    <span>Загрузка...</span>
+                  </div>
+                )}
+                {!transactionsHasMore && Array.isArray(transactions) && transactions.length > 0 && (
+                  <div className={styles.noMoreTransactions}>
+                    Все транзакции загружены
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* QR Modal */}
+      {showQrModal && qrData && (
+        <div className={styles.modalOverlay} onClick={() => setShowQrModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <ModalCloseButton onClick={() => setShowQrModal(false)} />
+            <h2>Ваш QR-код</h2>
+            <div className={styles.modalQr}>
+              <QRCodeSVG
+                value={qrData.qr_token}
+                size={250}
+                level="H"
+                includeMargin={true}
+              />
+            </div>
+            <p>Покажите этот код на кассе для начисления бонусов</p>
+            {timeRemaining && (
+              <div className={styles.modalExpiry}>
+                <span>Действителен:</span>
+                <span className={styles.modalExpiryTime}>{timeRemaining}</span>
+              </div>
+            )}
+            <div className={styles.tokenValue}>{qrData.qr_token}</div>
+            <div className={styles.modalActions}>
+              <button 
+                className={`${styles.copyBtn} ${copied ? styles.copied : ''}`}
+                onClick={handleCopyToken}
+              >
+                {copied ? <><FaCheck /> Скопировано!</> : <><FaCopy /> Копировать токен</>}
+              </button>
+              <button 
+                className={styles.refreshQrButton}
+                onClick={refreshQRCode}
+                disabled={qrRefreshing}
+              >
+                <FaSync className={qrRefreshing ? styles.spinning : ''} />
+                {qrRefreshing ? 'Обновление...' : 'Обновить QR-код'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Businesses Section - Only if user has businesses */}
+      {userData.is_business && userData.businesses?.length > 0 && (
+        <section className={styles.businessesSection}>
+          <div className={styles.pageContainer}>
+            <div className={styles.sectionHeaderWithNav}>
+              <h3 className={styles.sectionTitle}>
+                <FaBuilding /> Мои бизнесы
+              </h3>
+              <div className={styles.sectionNav}>
+                <button 
+                  className={styles.navBtn}
+                  onClick={() => scrollBusinesses('prev')}
+                >
+                  <FaChevronLeft />
+                </button>
+                <button 
+                  className={styles.navBtn}
+                  onClick={() => scrollBusinesses('next')}
+                >
+                  <FaChevronRight />
+                </button>
+              </div>
+            </div>
+            <div 
+              className={styles.businessesScroll}
+              ref={businessesScrollRef}
+            >
+              <div className={styles.businessesGrid}>
+                {userData.businesses.map(business => (
+                <div
+                  key={business.id}
+                  className={styles.businessCard}
+                >
+                  <div className={styles.businessHeader}>
+                    <div className={styles.businessLogo}>
+                      {business.business_logo ? (
+                        <>
+                          <img 
+                            src={business.business_logo} 
+                            alt={business.name}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const fallback = e.target.nextSibling;
+                              if (fallback) {
+                                fallback.style.display = 'flex';
+                              }
+                            }}
+                          />
+                          <div style={{ display: 'none' }}>
+                            <FaBuilding />
+                          </div>
+                        </>
+                      ) : (
+                        <div>
+                          <FaBuilding />
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.businessInfo}>
+                      <h4>{business.name}</h4>
+                      <span className={styles.businessType}>{business.business_type}</span>
+                    </div>
+                  </div>
+                  <div className={styles.businessBody}>
+                    <p>{business.description || 'Описание отсутствует'}</p>
+                  </div>
+                  <div className={styles.businessActions}>
+                    <Link 
+                      to={`/business/${business.slug}/main`}
+                      className={styles.businessLink}
+                    >
+                      <RiDashboardLine />
+                      Панель управления
+                      <FiChevronRight />
+                    </Link>
+                  </div>
+                </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Work Section - Only if user has employments */}
+      {employments.length > 0 && (
+        <section className={styles.workSection}>
+          <div className={styles.pageContainer}>
+            <div className={styles.sectionHeaderWithNav}>
+              <h3 className={styles.sectionTitle}>
+                <FiBriefcase /> Мои места работы
+              </h3>
+              {!employmentsLoading && (
+                <div className={styles.sectionNav}>
+                  <button 
+                    className={styles.navBtn}
+                    onClick={() => scrollEmployments('prev')}
+                  >
+                    <FaChevronLeft />
+                  </button>
+                  <button 
+                    className={styles.navBtn}
+                    onClick={() => scrollEmployments('next')}
+                  >
+                    <FaChevronRight />
+                  </button>
+                </div>
+              )}
+            </div>
+            {employmentsLoading ? (
+              <div className={styles.loadingState}>
+                <Loader size="medium" />
+              </div>
+            ) : (
+              <div 
+                className={styles.employmentsScroll}
+                ref={employmentsScrollRef}
+              >
+                <div className={styles.employmentsGrid}>
+                  {employments.map(employment => (
+                    <div
+                      key={employment.id}
+                      className={styles.employmentCard}
+                    >
+                      <div className={styles.employmentHeader}>
+                        <div className={styles.companyLogo}>
+                          {employment.business.business_logo ? (
+                            <img src={employment.business.business_logo} alt={employment.business.name} />
+                          ) : (
+                            <FaBuilding />
+                          )}
+                        </div>
+                        <div className={styles.employmentInfo}>
+                          <h4>{employment.business.name}</h4>
+                          {employment.employee_name && (
+                            <span className={styles.employeeBadge}>
+                              {employment.employee_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.employmentDetails}>
+                        {employment.hired_date && (
+                          <div className={styles.detailItem}>
+                            <FiCalendar />
+                            <span>Работает с: {formatDate(employment.hired_date)}</span>
+                          </div>
+                        )}
                         {employment.locations.length > 0 && (
-                          <div className="employment-locations">
-                            <h4><i className="fas fa-map-marker-alt"></i> Мои локации:</h4>
-                            <div className="locations-list">
+                          <div className={styles.locationsSection}>
+                            <h5>Локации:</h5>
+                            <div className={styles.locationsList}>
                               {employment.locations.map(loc => (
-                                <div key={loc.id} className="location-item">
-                                  <div className="location-info">
+                                <div key={loc.id} className={styles.locationItem}>
+                                  <FiMapPin />
+                                  <div>
                                     <strong>{loc.location_name}</strong>
                                     {loc.position && (
-                                      <span className="position-badge">
-                                        <i className="fas fa-user-tie"></i> {loc.position}
-                                      </span>
+                                      <span className={styles.positionTag}>{loc.position}</span>
                                     )}
                                   </div>
-                                  {loc.location_address && (
-                                    <p className="location-address">{loc.location_address}</p>
-                                  )}
-                                  {loc.permissions_count > 0 && (
-                                    <span className="permissions-badge">
-                                      <i className="fas fa-key"></i> {loc.permissions_count} прав доступа
-                                    </span>
-                                  )}
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
                       </div>
-
-                      <div className="business-card-footer">
+                      <div className={styles.employmentActions}>
                         <Link 
-                          to={`/business/${employment.business.slug}/main`} 
-                          className="dashboard-btn"
+                          to={`/business/${employment.business.slug}/main`}
+                          className={styles.workLink}
                         >
-                          <i className="fas fa-door-open"></i> Перейти к работе
+                          Перейти к работе
+                          <FiChevronRight />
                         </Link>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
-              ) : (
-                <div className="no-businesses">
-                  <i className="fas fa-briefcase"></i>
-                  <h3>Вы пока нигде не работаете</h3>
-                  <p>Когда вас пригласят в бизнес, здесь появится информация о вашей работе</p>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'business' && userData.is_business && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="business-tab"
-            >
-              <div className="business-header">
-                <h1>Бизнес-панель</h1>
-                <Link to="/business/new" className="new-business-btn">
-                  <i className="fas fa-plus"></i> Добавить бизнес
-                </Link>
               </div>
+            )}
+          </div>
+        </section>
+      )}
 
-              {userData.businesses?.length > 0 ? (
-                <div className="businesses-grid">
-                  {userData.businesses.map(business => (
-                    <motion.div
-                      key={business.id}
-                      whileHover={{ y: -5 }}
-                      className="business-card-profile"
-                    >
-                      <div className="business-card-header">
-                        {business.business_logo && (
-                          <img 
-                            src={business.business_logo} 
-                            alt={`${business.name} logo`} 
-                            className="business-logo" 
-                          />
-                        )}
-                        <h3>{business.name}</h3>
-                        <span className="business-type">{business.business_type}</span>
+      {/* Tabs Section */}
+      <section className={styles.tabsSection}>
+        <div className={styles.pageContainer}>
+          <div className={styles.tabsHeader}>
+            <h3 className={styles.sectionTitle}>Настройки и управление</h3>
+          </div>
+          <div className={styles.tabsGrid}>
+            {tabs.map(tab => (
+              <motion.div
+                key={tab.id}
+                whileHover={{ scale: 1.02, y: -5 }}
+                className={styles.tabCard}
+                onClick={() => setActiveTab(activeTab === tab.id ? null : tab.id)}
+              >
+                <div className={styles.tabIcon}>{tab.icon}</div>
+                <h4>{tab.label}</h4>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <AnimatePresence mode="wait">
+            {activeTab && (
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className={styles.tabContent}
+              >
+                {activeTab === 'profile' && (
+                  <div className={styles.profileTab}>
+                    <div className={styles.profileCard}>
+                      <div className={styles.cardHeader}>
+                        <h4>Основная информация</h4>
+                        <button className={styles.editBtn}>Редактировать</button>
                       </div>
-                      <div className="business-card-body">
-                        <p className="business-description">
-                          {business.description || 'Описание отсутствует'}
-                        </p>
-                        <div className="business-info">
+                      <div className={styles.infoGrid}>
+                        <div className={styles.infoItem}>
+                          <FiUser className={styles.infoIcon} />
                           <div>
-                            <i className="fas fa-map-marker-alt"></i>
-                            <span>{business.address || 'Адрес не указан'}</span>
+                            <label>Имя</label>
+                            <p>{userData.first_name}</p>
                           </div>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <FiMail className={styles.infoIcon} />
                           <div>
-                            <i className="fas fa-phone"></i>
-                            <span>{business.phone || 'Телефон не указан'}</span>
+                            <label>Email</label>
+                            <p>{userData.email}</p>
+                          </div>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <FiPhone className={styles.infoIcon} />
+                          <div>
+                            <label>Телефон</label>
+                            <p>{userData.phone || 'Не указан'}</p>
+                          </div>
+                        </div>
+                        <div className={styles.infoItem}>
+                          <FiCalendar className={styles.infoIcon} />
+                          <div>
+                            <label>Дата регистрации</label>
+                            <p>{formatDate(userData.date_joined)}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="business-card-footer">
-                        <Link 
-                          to={`/business/${business.slug}/main`} 
-                          className="dashboard-btn"
-                        >
-                          <i className="fas fa-tachometer-alt"></i> Панель управления
-                        </Link>
-                        {/* <div className="business-actions">
-                          <Link 
-                            to={`/business/${business.slug}/edit`} 
-                            className="edit-btn"
-                            title="Редактировать бизнес"
-                          >
-                            <i className="fas fa-edit"></i>
-                            <span className="btn-tooltip">Редактировать</span>
-                          </Link>
-                          <Link 
-                            to={`/business/${business.slug}/products`} 
-                            className="products-btn"
-                            title="Управление товарами"
-                          >
-                            <i className="fas fa-boxes"></i>
-                            <span className="btn-tooltip">Товары</span>
-                          </Link>
-                        </div> */}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'security' && (
+                  <div className={styles.securityTab}>
+                    <div className={styles.securityGrid}>
+                      <div className={styles.securityCard}>
+                        <div className={styles.securityHeader}>
+                          <FiLock />
+                          <h4>Пароль</h4>
+                        </div>
+                        <p>Измените ваш пароль для повышения безопасности</p>
+                        <button className={styles.securityBtn}>Изменить пароль</button>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-businesses">
-                  <i className="fas fa-briefcase"></i>
-                  <h3>У вас пока нет бизнесов</h3>
-                  <p>Создайте свой первый бизнес, чтобы начать продавать товары</p>
-                  <Link to="/business/new" className="create-business-btn">
-                    Создать бизнес
-                  </Link>
-                </div>
-              )}
-            </motion.div>
-          )}
+                      <div className={styles.securityCard}>
+                        <div className={styles.securityHeader}>
+                          <RiShieldUserLine />
+                          <h4>2FA</h4>
+                        </div>
+                        <p>Включите двухфакторную аутентификацию</p>
+                        <button className={styles.securityBtn}>Настроить 2FA</button>
+                      </div>
+                      <div className={styles.securityCard}>
+                        <div className={styles.securityHeader}>
+                          <FiGlobe />
+                          <h4>Сессии</h4>
+                        </div>
+                        <p>Управление активными сессиями</p>
+                        <button className={styles.securityBtn}>Просмотреть сессии</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-          {activeTab === 'security' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="security-tab"
-            >
-              <h1>Безопасность</h1>
-              <div className="security-section">
-                <h2>Настройки безопасности</h2>
-                <div className="security-grid">
-                  <div className="security-item">
-                    <i className="fas fa-lock"></i>
-                    <div>
-                      <h3>Пароль</h3>
-                      <p>Последнее изменение: 3 месяца назад</p>
+                {activeTab === 'wallet' && (
+                  <div className={styles.walletTab}>
+                    <div className={styles.balanceCard}>
+                      <h4>Текущий баланс</h4>
+                      <p className={styles.balanceAmount}>12,450 ₽</p>
+                      <div className={styles.balanceActions}>
+                        <button className={styles.balanceBtn}>Пополнить</button>
+                        <button className={styles.balanceBtn}>Вывести</button>
+                      </div>
                     </div>
-                    <button className="change-btn" disabled>Изменить</button>
                   </div>
-                  <div className="security-item">
-                    <i className="fas fa-mobile-alt"></i>
-                    <div>
-                      <h3>Двухфакторная аутентификация</h3>
-                      <p>Не активирована</p>
-                    </div>
-                    <button className="enable-btn" disabled>Включить</button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
+                )}
 
-          {activeTab === 'settings' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="settings-tab"
-            >
-              <h1>Настройки</h1>
-              <div className="settings-section">
-                <h2>Персональные настройки</h2>
-                <div className="settings-grid">
-                  <div className="settings-item">
-                    <i className="fas fa-bell"></i>
-                    <div>
-                      <h3>Уведомления</h3>
-                      <p>Настройте получение уведомлений</p>
+                {activeTab === 'settings' && (
+                  <div className={styles.settingsTab}>
+                    <div className={styles.settingsGrid}>
+                      <div className={styles.settingCard}>
+                        <div className={styles.settingHeader}>
+                          <FiBell />
+                          <h4>Уведомления</h4>
+                        </div>
+                        <p>Настройте получение уведомлений</p>
+                        <button className={styles.settingBtn}>Настроить</button>
+                      </div>
+                      <div className={styles.settingCard}>
+                        <div className={styles.settingHeader}>
+                          <FiMoon />
+                          <h4>Тема</h4>
+                        </div>
+                        <p>Темная тема активна</p>
+                        <button className={styles.settingBtn}>Изменить</button>
+                      </div>
+                      <div className={styles.settingCard}>
+                        <div className={styles.settingHeader}>
+                          <RiNotificationLine />
+                          <h4>Конфиденциальность</h4>
+                        </div>
+                        <p>Настройки приватности</p>
+                        <button className={styles.settingBtn}>Управлять</button>
+                      </div>
                     </div>
-                    <button className="settings-btn">Настроить</button>
                   </div>
-                  <div className="settings-item">
-                    <i className="fas fa-palette"></i>
-                    <div>
-                      <h3>Тема оформления</h3>
-                      <p>Темная</p>
-                    </div>
-                    <button className="settings-btn">Изменить</button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </section>
+
+      {/* Logout Button */}
+      <section className={styles.footerSection}>
+        <div className={styles.pageContainer}>
+          <button 
+            className={styles.logoutButton}
+            onClick={handleLogout}
+          >
+            <FiLogOut />
+            Выйти из аккаунта
+          </button>
+        </div>
+      </section>
     </div>
   );
 };

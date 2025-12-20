@@ -236,11 +236,16 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
                     
                     {binding.attributes && binding.attributes.length > 0 && (
                       <div className={styles.attributes}>
-                        {binding.attributes.map((attr, idx) => (
+                        {binding.attributes.slice(0, 3).map((attr, idx) => (
                           <span key={idx} className={styles.attribute}>
                             {attr.attribute_name}: {attr.display_value || attr.custom_value}
                           </span>
                         ))}
+                        {binding.attributes.length > 3 && (
+                          <span className={styles.attributeMore}>
+                            +{binding.attributes.length - 3} еще
+                          </span>
+                        )}
                       </div>
                     )}
 
