@@ -498,6 +498,17 @@
   margin: 0;
 }
 
+.cameraInfo {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.cameraInfoText {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.75rem;
+}
+
 .switchCameraButton {
   position: absolute;
   bottom: 1rem;
@@ -505,26 +516,45 @@
   background: rgba(0, 0, 0, 0.7);
   border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
-  width: 48px;
+  min-width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
   font-size: 1.2rem;
   transition: all 0.3s ease;
   z-index: 10;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  padding: 0 0.75rem;
 }
 
 .switchCameraButton:hover {
   background: rgba(0, 0, 0, 0.9);
   border-color: rgba(255, 255, 255, 0.5);
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .switchCameraButton:active {
   transform: scale(0.95);
+}
+
+.switchCameraButtonText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .switchCameraButton {
+    width: 48px;
+    padding: 0;
+  }
+
+  .switchCameraButtonText {
+    display: none;
+  }
 }

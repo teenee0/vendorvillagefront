@@ -22,6 +22,7 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
   const [cameraPermission, setCameraPermission] = useState(null);
   const [facingMode, setFacingMode] = useState('environment'); // 'environment' (задняя) или 'user' (передняя)
   const [availableCameras, setAvailableCameras] = useState([]);
+  const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
   const scannerRef = useRef(null);
   const html5QrCodeRef = useRef(null);
   const lastScannedToken = useRef(null);
@@ -116,33 +117,151 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
 
   // Функция для безопасной остановки камеры
   const stopCamera = React.useCallback(async () => {
-    if (html5QrCodeRef.current && cameraActive) {
+    if (html5QrCodeRef.current) {
       try {
         await html5QrCodeRef.current.stop();
         html5QrCodeRef.current.clear();
-        setCameraActive(false);
       } catch (err) {
         // Игнорируем ошибки, если камера уже остановлена
+      }
+      html5QrCodeRef.current = null;
+    }
+    setCameraActive(false);
+  }, []);
+
+  // Функция запуска камеры
+  const startCamera = React.useCallback(async (mode = facingMode, cameraIndex = currentCameraIndex) => {
+    if (!scannerRef.current || html5QrCodeRef.current) {
+      return;
+    }
+
+    try {
+      // Проверка разрешений камеры
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
+        stream.getTracks().forEach(track => track.stop());
+        setCameraPermission('granted');
+      } catch (permErr) {
+        if (isMountedRef.current) {
+          setCameraPermission('denied');
+          setError('Нет доступа к камере. Разрешите доступ к камере в настройках браузера.');
+          setUseCamera(false);
+          return;
+        }
+      }
+
+      const html5QrCode = new Html5Qrcode(scannerRef.current.id);
+      html5QrCodeRef.current = html5QrCode;
+
+      // Адаптивные настройки для мобильных устройств
+      const qrboxSize = isMobile 
+        ? Math.min(window.innerWidth * 0.8, window.innerHeight * 0.4, 300)
+        : 250;
+
+      const config = {
+        fps: isMobile ? 5 : 10,
+        qrbox: { 
+          width: qrboxSize, 
+          height: qrboxSize 
+        },
+        aspectRatio: 1.0,
+        disableFlip: false,
+      };
+
+      // Определяем какую камеру использовать
+      let videoConstraints;
+      if (availableCameras.length > 1 && cameraIndex < availableCameras.length) {
+        videoConstraints = { deviceId: { exact: availableCameras[cameraIndex].id } };
+      } else if (availableCameras.length === 1) {
+        videoConstraints = { deviceId: { exact: availableCameras[0].id } };
+      } else {
+        videoConstraints = { facingMode: mode };
+      }
+
+      await html5QrCode.start(
+        videoConstraints,
+        config,
+        (decodedText, decodedResult) => {
+          if (!decodedText || !decodedText.trim()) {
+            return;
+          }
+          
+          if (!isMountedRef.current) {
+            return;
+          }
+          
+          setQrToken(decodedText);
+          
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              handleScanWithToken(decodedText);
+            }
+          }, 100);
+        },
+        (errorMessage) => {
+          // Игнорируем обычные ошибки сканирования
+        }
+      );
+
+      if (isMountedRef.current) {
+        setCameraActive(true);
+        setError(null);
+      }
+    } catch (err) {
+      if (isMountedRef.current) {
+        let errorMsg = 'Не удалось запустить камеру.';
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          errorMsg = 'Доступ к камере запрещен. Разрешите доступ в настройках браузера.';
+          setCameraPermission('denied');
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          errorMsg = 'Камера не найдена. Убедитесь, что устройство имеет камеру.';
+        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+          errorMsg = 'Камера уже используется другим приложением.';
+        }
+        setError(errorMsg);
+        setUseCamera(false);
         setCameraActive(false);
       }
     }
-  }, [cameraActive]);
+  }, [facingMode, currentCameraIndex, isMobile, availableCameras, handleScanWithToken]);
 
-  // Функция переключения камеры
+  // Функция переключения камеры (упрощенная версия как в QRTestScanner)
   const switchCamera = React.useCallback(async () => {
-    if (!cameraActive || !isMobile) return;
+    if (!cameraActive) return;
     
+    await stopCamera();
+    
+    // Переключаем между передней и задней камерой
     const newFacingMode = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(newFacingMode);
     
-    // Останавливаем текущую камеру
-    await stopCamera();
+    // Если есть список камер, переключаемся на следующую
+    let nextCameraIndex = currentCameraIndex;
+    if (availableCameras.length > 1) {
+      nextCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+      setCurrentCameraIndex(nextCameraIndex);
+    }
     
-    // Небольшая задержка перед запуском новой камеры
+    // Небольшая задержка перед запуском новой камеры для корректного переключения
     setTimeout(() => {
-      // Эффект автоматически перезапустится благодаря изменению facingMode
-    }, 300);
-  }, [cameraActive, facingMode, isMobile, stopCamera]);
+      if (isMountedRef.current) {
+        startCamera(newFacingMode, nextCameraIndex);
+      }
+    }, 400);
+  }, [cameraActive, isMobile, stopCamera, facingMode, currentCameraIndex, availableCameras, startCamera]);
+
+  // Получение списка камер при монтировании
+  useEffect(() => {
+    const getCameras = async () => {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        setAvailableCameras(devices);
+      } catch (err) {
+        console.error('Ошибка получения списка камер:', err);
+      }
+    };
+    getCameras();
+  }, []);
 
   // Инициализация и управление камерой
   useEffect(() => {
@@ -159,143 +278,22 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
 
     // Ждем, пока элемент будет готов (особенно важно для мобильных)
     if (!scannerRef.current) {
-      // Небольшая задержка для рендеринга элемента на мобильных
       const timer = setTimeout(() => {
         // Эффект перезапустится автоматически благодаря зависимостям
       }, 200);
       return () => clearTimeout(timer);
     }
 
-    let html5QrCode = null;
-    let retryTimeout = null;
-
-    const startCamera = async () => {
-      try {
-        // Проверка разрешений камеры
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
-          stream.getTracks().forEach(track => track.stop());
-          setCameraPermission('granted');
-        } catch (permErr) {
-          if (isMountedRef.current) {
-            setCameraPermission('denied');
-            setError('Нет доступа к камере. Разрешите доступ к камере в настройках браузера.');
-            setUseCamera(false);
-            return;
-          }
-        }
-
-        html5QrCode = new Html5Qrcode(scannerRef.current.id);
-        html5QrCodeRef.current = html5QrCode;
-
-        // Адаптивные настройки для мобильных устройств
-        const qrboxSize = isMobile 
-          ? Math.min(window.innerWidth * 0.8, window.innerHeight * 0.4, 300)
-          : 250;
-
-        const config = {
-          fps: isMobile ? 5 : 10, // Меньше FPS на мобильных для экономии ресурсов
-          qrbox: { 
-            width: qrboxSize, 
-            height: qrboxSize 
-          },
-          aspectRatio: 1.0,
-          disableFlip: false, // Разрешаем переворот для лучшего распознавания
-        };
-
-        // Получаем список доступных камер
-        let cameraId = null;
-        try {
-          const devices = await Html5Qrcode.getCameras();
-          setAvailableCameras(devices);
-          
-          // Ищем камеру с нужным facingMode
-          if (facingMode === 'environment') {
-            // Ищем заднюю камеру
-            const backCamera = devices.find(device => 
-              device.label.toLowerCase().includes('back') || 
-              device.label.toLowerCase().includes('rear') ||
-              device.label.toLowerCase().includes('environment')
-            );
-            cameraId = backCamera ? backCamera.id : devices.find(d => d.id)?.id;
-          } else {
-            // Ищем переднюю камеру
-            const frontCamera = devices.find(device => 
-              device.label.toLowerCase().includes('front') || 
-              device.label.toLowerCase().includes('user') ||
-              device.label.toLowerCase().includes('facing')
-            );
-            cameraId = frontCamera ? frontCamera.id : devices.find(d => d.id)?.id;
-          }
-        } catch (err) {
-          // Игнорируем ошибки получения списка камер
-        }
-
-        const videoConstraints = cameraId 
-          ? { deviceId: { exact: cameraId } }
-          : { facingMode };
-
-        await html5QrCode.start(
-          videoConstraints,
-          config,
-          (decodedText, decodedResult) => {
-            if (!decodedText || !decodedText.trim()) {
-              return;
-            }
-            
-            if (!isMountedRef.current) {
-              return;
-            }
-            
-            setQrToken(decodedText);
-            
-            // Небольшая задержка перед обработкой, чтобы избежать множественных вызовов
-            setTimeout(() => {
-              if (isMountedRef.current) {
-                handleScanWithToken(decodedText);
-              }
-            }, 100);
-          },
-          (errorMessage) => {
-            // Игнорируем обычные ошибки сканирования (они нормальны при поиске QR-кода)
-          }
-        );
-
-        if (isMountedRef.current) {
-          setCameraActive(true);
-          setError(null);
-        }
-      } catch (err) {
-        if (isMountedRef.current) {
-          let errorMsg = 'Не удалось запустить камеру.';
-          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-            errorMsg = 'Доступ к камере запрещен. Разрешите доступ в настройках браузера.';
-            setCameraPermission('denied');
-          } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-            errorMsg = 'Камера не найдена. Убедитесь, что устройство имеет камеру.';
-          } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-            errorMsg = 'Камера уже используется другим приложением.';
-          }
-          setError(errorMsg);
-          setUseCamera(false);
-          setCameraActive(false);
-        }
+    const timer = setTimeout(() => {
+      if (scannerRef.current && !html5QrCodeRef.current && !cameraActive && useCamera && !customerData) {
+        startCamera();
       }
-    };
-
-    // Небольшая задержка для мобильных устройств, чтобы элемент точно был готов
-    const delay = isMobile ? 300 : 100;
-    retryTimeout = setTimeout(() => {
-      startCamera();
-    }, delay);
+    }, isMobile ? 300 : 100);
 
     return () => {
-      if (retryTimeout) {
-        clearTimeout(retryTimeout);
-      }
-      stopCamera();
+      clearTimeout(timer);
     };
-  }, [useCamera, customerData, handleScanWithToken, stopCamera, cameraActive, isMobile, facingMode]);
+  }, [useCamera, customerData, cameraActive, isMobile, startCamera]);
 
   // Обработка закрытия модального окна
   const handleClose = React.useCallback(async () => {
@@ -357,14 +355,28 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
                     <>
                       <div className={styles.scanningHint}>
                         <p>Наведите камеру на QR-код</p>
+                        {/* Информация о камере */}
+                        {availableCameras.length > 0 && (
+                          <div className={styles.cameraInfo}>
+                            <p className={styles.cameraInfoText}>
+                              Камера: {availableCameras[currentCameraIndex]?.label || 'Не выбрана'}
+                            </p>
+                            <p className={styles.cameraInfoText}>
+                              {facingMode === 'environment' ? 'Задняя камера' : 'Передняя камера'}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      {isMobile && availableCameras.length > 1 && (
+                      {availableCameras.length > 1 && (
                         <button
                           className={styles.switchCameraButton}
                           onClick={switchCamera}
                           title={facingMode === 'environment' ? 'Переключить на переднюю камеру' : 'Переключить на заднюю камеру'}
                         >
                           <FaSync />
+                          <span className={styles.switchCameraButtonText}>
+                            {facingMode === 'environment' ? 'На переднюю' : 'На заднюю'}
+                          </span>
                         </button>
                       )}
                     </>
