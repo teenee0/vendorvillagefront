@@ -153,19 +153,20 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
       const html5QrCode = new Html5Qrcode(scannerRef.current.id);
       html5QrCodeRef.current = html5QrCode;
 
-      // Адаптивные настройки для мобильных устройств
+      // Адаптивные настройки для быстрого распознавания
+      // Увеличиваем область сканирования для лучшего захвата QR-кода
       const qrboxSize = isMobile 
-        ? Math.min(window.innerWidth * 0.8, window.innerHeight * 0.4, 300)
-        : 250;
+        ? Math.min(window.innerWidth * 0.9, window.innerHeight * 0.5, 350)
+        : 300;
 
       const config = {
-        fps: isMobile ? 5 : 10,
+        fps: 20, // Увеличенная частота кадров для быстрого распознавания
         qrbox: { 
           width: qrboxSize, 
           height: qrboxSize 
         },
         aspectRatio: 1.0,
-        disableFlip: false,
+        disableFlip: false, // Разрешаем переворот для лучшего распознавания
       };
 
       // Определяем какую камеру использовать
@@ -192,11 +193,10 @@ const QRScanner = ({ locationId, onCustomerSelected, onClose }) => {
           
           setQrToken(decodedText);
           
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              handleScanWithToken(decodedText);
-            }
-          }, 100);
+          // Убираем задержку для мгновенной обработки
+          if (isMountedRef.current) {
+            handleScanWithToken(decodedText);
+          }
         },
         (errorMessage) => {
           // Игнорируем обычные ошибки сканирования
