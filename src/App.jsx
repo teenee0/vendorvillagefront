@@ -20,6 +20,7 @@ import ProductsPage from './pages/MarkeplaceProducts/ProductsPage';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
 import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
 import AccountPage from './pages/Account/AccoutPage';
+import AccountPageMobile from './pages/Account/AccountPageMobile';
 import AuthPage from './pages/Registration/Registration';
 import PasswordReset from './pages/PasswordReset/PasswordReset';
 import PublicRoute from './pages/PublicRoute/PublicRoute';
@@ -289,7 +290,15 @@ function App() {
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                 </Route>
                 <Route element={<PrivateRoute />}>
-                  <Route path="/account" element={<AccountPage />} />
+                  <Route 
+                    path="/account" 
+                    element={
+                      <ResponsiveRoute 
+                        desktopComponent={AccountPage}
+                        mobileComponent={AccountPageMobile}
+                      />
+                    } 
+                  />
                 </Route>
               </Routes>
             </motion.main>
