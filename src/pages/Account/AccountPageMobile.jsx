@@ -303,11 +303,6 @@ const AccountPageMobile = () => {
 
   return (
     <div className={styles.accountPage}>
-      {/* Sticky Header */}
-      <div className={styles.header}>
-        <h1 className={styles.headerTitle}>Аккаунт</h1>
-      </div>
-
       {/* User Avatar Section */}
       <section className={styles.userAvatarSection}>
         <div className={styles.avatarWrapper}>
