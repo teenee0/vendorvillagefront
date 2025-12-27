@@ -46,6 +46,20 @@ const ProductPageNewMobile = () => {
     });
     const [defectSaving, setDefectSaving] = useState(false);
     const [defectError, setDefectError] = useState('');
+    const [writeoffModal, setWriteoffModal] = useState({
+        open: false,
+        stockId: null,
+        variantName: '',
+        locationName: '',
+        batchNumber: '',
+        quantity: '',
+        reason: 'other',
+        reasonDetail: '',
+        availableQuantity: 0,
+        writeoffId: null, // ID списания для редактирования
+    });
+    const [writeoffSaving, setWriteoffSaving] = useState(false);
+    const [writeoffError, setWriteoffError] = useState('');
     const [expandedAttributes, setExpandedAttributes] = useState({}); // {variantId: true/false}
     const [batchSort, setBatchSort] = useState('recent');
     const [batchFilter, setBatchFilter] = useState('all');
@@ -386,7 +400,22 @@ const ProductPageNewMobile = () => {
                 is_active: !currentActive
             });
 
-            await fetchProduct();
+            // Обновляем состояние локально без перезагрузки страницы
+            setProduct(prev => ({
+                ...prev,
+                locations: prev.locations.map(loc =>
+                    loc.id === locationId
+                        ? {
+                              ...loc,
+                              variants: loc.variants.map(v =>
+                                  v.id === variantId
+                                      ? { ...v, is_price_active: !currentActive }
+                                      : v
+                              )
+                          }
+                        : loc
+                )
+            }));
         } catch (err) {
             console.error('Ошибка изменения статуса:', err);
             alert('Ошибка изменения статуса: ' + (err.response?.data?.detail || err.message));
@@ -412,7 +441,22 @@ const ProductPageNewMobile = () => {
 
             await axios.post(`/api/business/${business_slug}/location-price/create/`, updateData);
 
-            await fetchProduct();
+            // Обновляем состояние локально без перезагрузки страницы
+            setProduct(prev => ({
+                ...prev,
+                locations: prev.locations.map(loc =>
+                    loc.id === locationId
+                        ? {
+                              ...loc,
+                              variants: loc.variants.map(v =>
+                                  v.id === variantId
+                                      ? { ...v, [flagName]: !currentValue }
+                                      : v
+                              )
+                          }
+                        : loc
+                )
+            }));
         } catch (err) {
             console.error('Ошибка изменения статуса:', err);
             const errorMessage = err.response?.data?.detail || err.response?.data?.message || err.message;
@@ -788,6 +832,110 @@ const ProductPageNewMobile = () => {
             await fetchProduct();
         } catch (err) {
             alert('Не удалось удалить брак: ' + (err.response?.data?.detail || err.message));
+        }
+    };
+
+    const openWriteoffModal = (line, writeoff = null) => {
+        setWriteoffError('');
+        // При редактировании доступное количество = availableQuantity + текущее количество списания
+        const availableQty = writeoff 
+            ? (line.availableQuantity || 0) + (writeoff.quantity || 0)
+            : (line.availableQuantity || 0);
+        
+        setWriteoffModal({
+            open: true,
+            stockId: line.stockId,
+            variantName: line.variantName,
+            locationName: line.locationName,
+            batchNumber: line.batchNumber,
+            quantity: writeoff ? writeoff.quantity : '',
+            reason: writeoff ? writeoff.reason : 'other',
+            reasonDetail: writeoff ? (writeoff.reasonDetail || '') : '',
+            availableQuantity: availableQty,
+            writeoffId: writeoff ? writeoff.id : null,
+        });
+    };
+
+    const closeWriteoffModal = () => {
+        setWriteoffModal({
+            open: false,
+            stockId: null,
+            variantName: '',
+            locationName: '',
+            batchNumber: '',
+            quantity: '',
+            reason: 'other',
+            reasonDetail: '',
+            availableQuantity: 0,
+            writeoffId: null,
+        });
+    };
+
+    const handleSaveWriteoff = async () => {
+        if (!writeoffModal.stockId) return;
+        const qty = Number(writeoffModal.quantity);
+        if (!qty || qty <= 0) {
+            setWriteoffError('Количество должно быть больше 0');
+            return;
+        }
+        if (qty > writeoffModal.availableQuantity) {
+            setWriteoffError(`Количество не может превышать доступное: ${formatNumber(writeoffModal.availableQuantity)} ${product?.unit_display || 'шт.'}`);
+            return;
+        }
+
+        setWriteoffSaving(true);
+        try {
+            if (writeoffModal.writeoffId) {
+                // Редактирование существующего списания
+                await axios.patch(
+                    `/api/business/${business_slug}/stocks/writeoffs/${writeoffModal.writeoffId}/update/`,
+                    {
+                        quantity: qty,
+                        reason: writeoffModal.reason,
+                        reason_detail: writeoffModal.reasonDetail || '',
+                    }
+                );
+            } else {
+                // Создание нового списания
+                await axios.post(
+                    `/api/business/${business_slug}/stocks/${writeoffModal.stockId}/writeoffs/create/`,
+                    {
+                        quantity: qty,
+                        reason: writeoffModal.reason,
+                        reason_detail: writeoffModal.reasonDetail || '',
+                    }
+                );
+            }
+            await fetchBatchesAndDefects();
+            await fetchProduct();
+            closeWriteoffModal();
+        } catch (err) {
+            const resp = err.response?.data;
+            const detail =
+                resp?.detail ||
+                resp?.message ||
+                (typeof resp === 'string'
+                    ? resp
+                    : Object.values(resp || {})[0]);
+            setWriteoffError(detail || (writeoffModal.writeoffId ? 'Не удалось обновить списание' : 'Не удалось создать списание'));
+        } finally {
+            setWriteoffSaving(false);
+        }
+    };
+
+    const handleDeleteWriteoff = async (writeoffId) => {
+        if (!window.confirm('Удалить запись о списании?')) return;
+        setWriteoffSaving(true);
+        try {
+            await axios.delete(`/api/business/${business_slug}/stocks/writeoffs/${writeoffId}/delete/`);
+            await fetchBatchesAndDefects();
+            await fetchProduct();
+        } catch (err) {
+            const resp = err.response?.data;
+            const detail = resp?.detail || resp?.message || 'Не удалось удалить списание';
+            alert(detail);
+        } finally {
+            setWriteoffSaving(false);
         }
     };
 
@@ -1335,6 +1483,9 @@ const ProductPageNewMobile = () => {
                                                         )}
                                                         <span>Резерв: {formatNumber(line.reservedQuantity)} {line.unit_display || 'шт.'}</span>
                                                         <span>Брак: {formatNumber(line.defectQuantity)} {line.unit_display || 'шт.'}</span>
+                                                        {line.writeoffQuantity !== undefined && line.writeoffQuantity !== null && line.writeoffQuantity > 0 && (
+                                                            <span>Списано: {formatNumber(line.writeoffQuantity)} {line.unit_display || 'шт.'}</span>
+                                                        )}
                                                         {line.inventoryAdjustment !== undefined && line.inventoryAdjustment !== null && line.inventoryAdjustment !== 0 && (
                                                             <span className={line.inventoryAdjustment > 0 ? styles.inventorySurplus : styles.inventoryShortage}>
                                                                 {line.inventoryAdjustment > 0 ? 'Прибыло' : 'Убыло'} в результате инвентаризации: {formatNumber(Math.abs(line.inventoryAdjustment))} {line.unit_display || 'шт.'}
@@ -1355,13 +1506,73 @@ const ProductPageNewMobile = () => {
                                                     >
                                                         <i className="fa fa-exclamation-triangle"></i> Добавить брак
                                                     </button>
+                                                    <button
+                                                        className={styles.secondaryButton}
+                                                        onClick={() => openWriteoffModal(line)}
+                                                        disabled={writeoffSaving}
+                                                    >
+                                                        <i className="fa fa-trash"></i> Списать товар
+                                                    </button>
                                                 </div>
+                                                {line.writeoffs && line.writeoffs.length > 0 && (
+                                                    <div className={styles.defectsList}>
+                                                        {line.writeoffs.map(writeoff => (
+                                                            <div key={writeoff.id} className={styles.defectItem}>
+                                                                <div>
+                                                                    <strong>Списание: {formatNumber(writeoff.quantity)} {product?.unit_display || 'шт.'}</strong>
+                                                                    <span>
+                                                                        {writeoff.reason} 
+                                                                        {writeoff.reasonDetail ? ` - ${writeoff.reasonDetail}` : ''}
+                                                                        {writeoff.transfer && (
+                                                                            <span className={styles.transferBadge}>
+                                                                                (Перемещение {writeoff.transferNumber})
+                                                                            </span>
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                                <div className={styles.defectActions}>
+                                                                    {!writeoff.transfer && (
+                                                                        <>
+                                                                            <button
+                                                                                className={styles.linkButton}
+                                                                                onClick={() => {
+                                                                                    // Находим line для этого writeoff
+                                                                                    const line = batchesData
+                                                                                        .flatMap(b => b.lines)
+                                                                                        .find(l => l.writeoffs?.some(w => w.id === writeoff.id));
+                                                                                    if (line) {
+                                                                                        openWriteoffModal(line, writeoff);
+                                                                                    }
+                                                                                }}
+                                                                                disabled={writeoffSaving}
+                                                                            >
+                                                                                Изменить
+                                                                            </button>
+                                                                            <button
+                                                                                className={styles.linkButtonDanger}
+                                                                                onClick={() => handleDeleteWriteoff(writeoff.id)}
+                                                                                disabled={writeoffSaving}
+                                                                            >
+                                                                                Удалить
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                    {writeoff.transfer && (
+                                                                        <span className={styles.transferInfo}>
+                                                                            Связано с перемещением
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                                 {line.defects.length > 0 && (
                                                     <div className={styles.defectsList}>
                                                         {line.defects.map(defect => (
                                                             <div key={defect.id} className={styles.defectItem}>
                                                                 <div>
-                                                                    <strong>{formatNumber(defect.quantity)} {product?.unit_display || 'шт.'}</strong>
+                                                                    <strong>Брак: {formatNumber(defect.quantity)} {product?.unit_display || 'шт.'}</strong>
                                                                     <span>{defect.reason || 'Без комментария'}</span>
                                                                 </div>
                                                                 <div className={styles.defectActions}>
@@ -1927,6 +2138,123 @@ const ProductPageNewMobile = () => {
                                 disabled={defectSaving}
                             >
                                 {defectSaving ? 'Сохраняем...' : 'Сохранить'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {writeoffModal.open && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h3>{writeoffModal.writeoffId ? 'Редактирование списания' : 'Списать товар'}</h3>
+                            <button className={styles.closeButton} onClick={closeWriteoffModal}>
+                                <i className="fa fa-times"></i>
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            <div className={styles.defectMeta}>
+                                <div className={styles.defectMetaRow}>
+                                    <span className={styles.defectMetaLabel}>Партия:</span>
+                                    <span className={styles.defectMetaValue}>
+                                        {writeoffModal.batchNumber || 'Без номера'}
+                                    </span>
+                                </div>
+                                <div className={styles.defectMetaRow}>
+                                    <span className={styles.defectMetaLabel}>Вариант:</span>
+                                    <span className={styles.defectMetaValue}>{writeoffModal.variantName}</span>
+                                </div>
+                                <div className={styles.defectMetaRow}>
+                                    <span className={styles.defectMetaLabel}>Локация:</span>
+                                    <span className={styles.defectMetaValue}>{writeoffModal.locationName}</span>
+                                </div>
+                                <div className={styles.defectMetaRow}>
+                                    <span className={styles.defectMetaLabel}>Доступно:</span>
+                                    <span className={styles.defectMetaValue}>
+                                        {formatNumber(writeoffModal.availableQuantity)} {product?.unit_display || 'шт.'}
+                                    </span>
+                                </div>
+                            </div>
+                            <label>
+                                Количество для списания
+                                <input
+                                    type="number"
+                                    step={product?.unit_display === 'шт.' ? '1' : '0.001'}
+                                    min="0.001"
+                                    max={writeoffModal.availableQuantity}
+                                    value={writeoffModal.quantity}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Очищаем ошибку при изменении
+                                        if (writeoffError) {
+                                            setWriteoffError('');
+                                        }
+                                        if (value === '') {
+                                            setWriteoffModal(prev => ({ ...prev, quantity: '' }));
+                                            return;
+                                        }
+                                        const numValue = Number(value);
+                                        if (!isNaN(numValue) && numValue > 0) {
+                                            // Ограничиваем максимальным доступным количеством
+                                            const limitedValue = Math.min(numValue, writeoffModal.availableQuantity);
+                                            setWriteoffModal(prev => ({ ...prev, quantity: limitedValue.toString() }));
+                                        }
+                                    }}
+                                    placeholder="Введите количество"
+                                />
+                                {writeoffModal.availableQuantity > 0 && (
+                                    <span className={styles.inputHint}>
+                                        Максимум: {formatNumber(writeoffModal.availableQuantity)} {product?.unit_display || 'шт.'}
+                                    </span>
+                                )}
+                            </label>
+                            <label>
+                                Причина списания
+                                <div className={styles.reasonSelector}>
+                                    {[
+                                        { value: 'expired', label: 'Истек срок годности', icon: 'fa-calendar-times' },
+                                        { value: 'damaged', label: 'Поврежден', icon: 'fa-exclamation-triangle' },
+                                        { value: 'lost', label: 'Потерян', icon: 'fa-search' },
+                                        { value: 'other', label: 'Другое', icon: 'fa-ellipsis-h' }
+                                    ].map(reason => (
+                                        <button
+                                            key={reason.value}
+                                            type="button"
+                                            className={`${styles.reasonOption} ${writeoffModal.reason === reason.value ? styles.reasonOptionActive : ''}`}
+                                            onClick={() => setWriteoffModal(prev => ({ ...prev, reason: reason.value }))}
+                                        >
+                                            <i className={`fa ${reason.icon}`}></i>
+                                            <span>{reason.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </label>
+                            <label>
+                                Дополнительная информация
+                                <textarea
+                                    rows={4}
+                                    value={writeoffModal.reasonDetail}
+                                    onChange={(e) => setWriteoffModal(prev => ({ ...prev, reasonDetail: e.target.value }))}
+                                    placeholder="Опишите детали списания, например: повреждена упаковка, товар утерян при транспортировке и т.д."
+                                />
+                            </label>
+                            {writeoffError && <div className={styles.errorMessage}>{writeoffError}</div>}
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button
+                                className={styles.secondaryButton}
+                                onClick={closeWriteoffModal}
+                                disabled={writeoffSaving}
+                            >
+                                Отмена
+                            </button>
+                            <button
+                                className={styles.primaryButton}
+                                onClick={handleSaveWriteoff}
+                                disabled={writeoffSaving}
+                            >
+                                {writeoffSaving ? 'Сохраняем...' : (writeoffModal.writeoffId ? 'Сохранить' : 'Списать')}
                             </button>
                         </div>
                     </div>

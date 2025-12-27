@@ -3,6 +3,8 @@ import axios from '../../api/axiosDefault';
 import { FaTimes, FaSearch, FaSortAmountDown, FaSortAmountUp, FaCheck, FaSpinner } from 'react-icons/fa';
 import styles from './ProductSelectorModal.module.css';
 import { useFileUtils } from '../../hooks/useFileUtils';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import Loader from '../Loader';
 
 const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariants = [] }) => {
   const { getFileUrl } = useFileUtils();
@@ -15,6 +17,10 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
   const [searchInput, setSearchInput] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
   const [selectedItems, setSelectedItems] = useState(selectedVariants);
+  const [pagination, setPagination] = useState({
+    has_next: false,
+    current_page: 1
+  });
 
   // Загрузка локаций
   const fetchLocations = useCallback(async () => {
@@ -26,13 +32,15 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
     }
   }, [businessSlug]);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (page = 1, append = false) => {
     setLoading(true);
     try {
       const sortParam = sortOrder === 'newest' ? '-created_at' : 'created_at';
       const locationParam = selectedLocationId ? `&location=${selectedLocationId}` : '';
+      const pageSize = 20;
+      const pageParam = `&page=${page}&page_size=${pageSize}`;
       const response = await axios.get(
-        `/api/v1/business/${businessSlug}/products/?sort=${sortParam}${locationParam}`
+        `/api/v1/business/${businessSlug}/products/?sort=${sortParam}${locationParam}${pageParam}`
       );
       
       // Преобразуем в привязки (вариант + локация + цена)
@@ -64,8 +72,18 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
         });
       });
       
+      if (append) {
+        setBindings(prev => [...prev, ...allBindingsData]);
+        setAllBindings(prev => [...prev, ...allBindingsData]);
+      } else {
       setBindings(allBindingsData);
       setAllBindings(allBindingsData);
+      }
+      
+      // Обновляем пагинацию
+      if (response.data.pagination) {
+        setPagination(response.data.pagination);
+      }
     } catch (err) {
       console.error('Ошибка загрузки товаров:', err);
     } finally {
@@ -78,8 +96,21 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
   }, [fetchLocations]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    // Сбрасываем на первую страницу при изменении фильтров
+    setBindings([]);
+    setAllBindings([]);
+    setPagination({ has_next: false, current_page: 1 });
+    fetchProducts(1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortOrder, selectedLocationId]);
+
+  // Функция для загрузки следующей страницы
+  const loadMoreBindings = useCallback(async () => {
+    if (!pagination.has_next || loading) return;
+    
+    const nextPage = pagination.current_page + 1;
+    await fetchProducts(nextPage, true);
+  }, [pagination, loading, fetchProducts]);
 
   const toggleSelection = (binding) => {
     setSelectedItems(prev => {
@@ -182,26 +213,28 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
             </button>
           </div>
 
-          {sortOrder === 'newest' && (
-            <button
-              className={styles.refreshButton}
-              onClick={fetchProducts}
-              disabled={loading}
-            >
-              Обновить
-            </button>
-          )}
         </div>
 
-        <div className={styles.content}>
-          {loading ? (
+        <div className={styles.content} id="product-selector-scrollable">
+          {loading && bindings.length === 0 ? (
             <div className={styles.loading}>Загрузка...</div>
           ) : filteredBindings.length === 0 ? (
             <div className={styles.emptyState}>
               <p>Товары не найдены</p>
             </div>
           ) : (
-            <div className={styles.productGrid}>
+            <InfiniteScroll
+              dataLength={bindings.length}
+              next={loadMoreBindings}
+              hasMore={pagination.has_next && !searchQuery}
+              loader={
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+                  <Loader size="small" />
+                </div>
+              }
+              scrollableTarget="product-selector-scrollable"
+              className={styles.productGrid}
+            >
               {filteredBindings.map(binding => (
                 <div
                   key={binding.id}
@@ -261,7 +294,7 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
                   </div>
                 </div>
               ))}
-            </div>
+            </InfiniteScroll>
           )}
         </div>
 

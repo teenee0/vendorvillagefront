@@ -130,11 +130,6 @@ const InventoryListPageMobile = () => {
     const handleDeleteInventory = async (e, inventoryId, status) => {
         e.stopPropagation();
         
-        if (status === 'in_progress') {
-            alert('Нельзя удалить активную инвентаризацию. Сначала отмените или завершите её.');
-            return;
-        }
-
         if (!window.confirm('Вы уверены, что хотите удалить эту инвентаризацию?')) {
             return;
         }
@@ -250,7 +245,6 @@ const InventoryListPageMobile = () => {
                                         {inventory.status_display}
                                     </span>
                                 </div>
-                                {inventory.status !== 'in_progress' && (
                                     <button
                                         className={styles.deleteButton}
                                         onClick={(e) => handleDeleteInventory(e, inventory.id, inventory.status)}
@@ -263,7 +257,6 @@ const InventoryListPageMobile = () => {
                                             <FaTrash />
                                         )}
                                     </button>
-                                )}
                             </div>
 
                             {inventory.notes && (

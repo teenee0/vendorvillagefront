@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import styles from './ProductSalesHistory.module.css';
 import Loader from '../Loader';
-import * as XLSX from 'xlsx';
 
 const ProductSalesHistory = ({ businessSlug, productId }) => {
     const navigate = useNavigate();
@@ -55,99 +54,47 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
         navigate(`/business/${businessSlug}/batches?batch=${batchId}`);
     };
 
-    const exportToExcel = () => {
-        if (!data) return;
+    const exportToExcel = async () => {
+        try {
+            // Строим параметры запроса на основе текущих фильтров
+            const params = {};
+            if (filters.location) params.location = filters.location;
+            if (filters.variant) params.variant = filters.variant;
+            if (filters.startDate) params.start_date = filters.startDate;
+            if (filters.endDate) params.end_date = filters.endDate;
 
-        const workbook = XLSX.utils.book_new();
+            const response = await axios.get(
+                `/api/business/${businessSlug}/products/${productId}/sales-history/export-excel/`,
+                { 
+                    params,
+                    responseType: 'blob' 
+                }
+            );
 
-        // Лист 1: Статистика
-        const statsData = [
-            ['Показатель', 'Значение'],
-            ['Всего продаж', data.statistics.total_sales],
-            ['Продано единиц', data.statistics.total_quantity_sold],
-            ['Выручка', data.statistics.total_revenue.toFixed(2) + ' ₸'],
-            ['Возвратов', data.statistics.total_returns_count],
-            ['Возвращено единиц', data.statistics.total_returned_quantity],
-            ['Сумма возвратов', data.statistics.total_refunded.toFixed(2) + ' ₸'],
-            ['Чистая выручка', data.statistics.net_revenue.toFixed(2) + ' ₸'],
-        ];
-        const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
-        XLSX.utils.book_append_sheet(workbook, statsSheet, 'Статистика');
-
-        // Лист 2: Продажи по партиям
-        if (data.batches_breakdown.length > 0) {
-            const batchesData = [
-                ['Номер партии', 'Продано единиц', 'Выручка (₸)'],
-                ...data.batches_breakdown.map(batch => [
-                    batch.batch_number || 'Без номера',
-                    batch.quantity_sold,
-                    batch.revenue.toFixed(2),
-                ]),
-            ];
-            const batchesSheet = XLSX.utils.aoa_to_sheet(batchesData);
-            XLSX.utils.book_append_sheet(workbook, batchesSheet, 'По партиям');
+            // Создаем ссылку для скачивания файла
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Получаем имя файла из заголовка Content-Disposition
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = `История_продаж_${new Date().toISOString().split('T')[0]}.xlsx`;
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+            
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Ошибка экспорта в Excel:', err);
+            alert('Ошибка экспорта в Excel: ' + (err.response?.data?.detail || err.message));
         }
-
-        // Лист 3: Продажи по локациям
-        if (data.locations_breakdown.length > 0) {
-            const locationsData = [
-                ['Локация', 'Продано единиц', 'Выручка (₸)'],
-                ...data.locations_breakdown.map(location => [
-                    location.location_name,
-                    location.quantity_sold,
-                    location.revenue.toFixed(2),
-                ]),
-            ];
-            const locationsSheet = XLSX.utils.aoa_to_sheet(locationsData);
-            XLSX.utils.book_append_sheet(workbook, locationsSheet, 'По локациям');
-        }
-
-        // Лист 4: Детальная история продаж
-        const salesData = [
-            [
-                'Дата продажи',
-                'Номер чека',
-                'Вариант',
-                'SKU',
-                'Локация',
-                'Партия',
-                'Количество',
-                'Цена за единицу (₸)',
-                'Скидка (%)',
-                'Скидка (₸)',
-                'Итого (₸)',
-                'Возвращено',
-                'Возврат (₸)',
-                'Покупатель',
-                'Телефон',
-            ],
-            ...data.sales.map(sale => [
-                new Date(sale.sale_date).toLocaleString('ru-RU'),
-                sale.receipt.number,
-                sale.variant.auto_name,
-                sale.variant.sku || '',
-                sale.location.name,
-                sale.batch?.batch_number || '',
-                sale.quantity,
-                sale.price_per_unit.toFixed(2),
-                sale.discount_percent || 0,
-                sale.discount_amount || 0,
-                sale.final_total_price.toFixed(2),
-                sale.total_returned || 0,
-                sale.returns?.reduce((sum, ret) => sum + ret.refund_amount, 0).toFixed(2) || '0.00',
-                sale.receipt.customer_name || '',
-                sale.receipt.customer_phone || '',
-            ]),
-        ];
-        const salesSheet = XLSX.utils.aoa_to_sheet(salesData);
-        XLSX.utils.book_append_sheet(workbook, salesSheet, 'Детальная история');
-
-        // Генерируем имя файла с датой
-        const dateStr = new Date().toISOString().split('T')[0];
-        const fileName = `История_продаж_${dateStr}.xlsx`;
-
-        // Сохраняем файл
-        XLSX.writeFile(workbook, fileName);
     };
 
     if (loading) return <Loader />;
@@ -163,7 +110,7 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
                     <div className={styles.statValue}>{data.statistics.total_sales}</div>
                 </div>
                 <div className={styles.statCard}>
-                    <div className={styles.statLabel}>Продано единиц</div>
+                    <div className={styles.statLabel}>Продано {data.product?.unit_display || 'шт.'}</div>
                     <div className={styles.statValue}>{data.statistics.total_quantity_sold}</div>
                 </div>
                 <div className={styles.statCard}>
@@ -173,7 +120,7 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
                 <div className={styles.statCard}>
                     <div className={styles.statLabel}>Возвратов</div>
                     <div className={styles.statValue}>
-                        {data.statistics.total_returns_count} ({data.statistics.total_returned_quantity} шт.)
+                        {data.statistics.total_returns_count} ({data.statistics.total_returned_quantity} {data.product?.unit_display || 'шт.'})
                     </div>
                 </div>
                 <div className={styles.statCard}>
@@ -221,7 +168,7 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
                             <thead>
                                 <tr>
                                     <th>Номер партии</th>
-                                    <th>Продано единиц</th>
+                                    <th>Продано {data.product?.unit_display || 'шт.'}</th>
                                     <th>Выручка</th>
                                     <th></th>
                                 </tr>
@@ -257,7 +204,7 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
                             <thead>
                                 <tr>
                                     <th>Локация</th>
-                                    <th>Продано единиц</th>
+                                    <th>Продано {data.product?.unit_display || 'шт.'}</th>
                                     <th>Выручка</th>
                                 </tr>
                             </thead>
@@ -327,7 +274,7 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
                                     <div className={styles.salePricing}>
                                         <div className={styles.priceRow}>
                                             <span>Количество:</span>
-                                            <strong>{sale.quantity} шт.</strong>
+                                            <strong>{sale.quantity} {data.product?.unit_display || 'шт.'}</strong>
                                         </div>
                                         <div className={styles.priceRow}>
                                             <span>Цена за единицу:</span>
@@ -353,13 +300,13 @@ const ProductSalesHistory = ({ businessSlug, productId }) => {
                                 {sale.has_returns && (
                                     <div className={styles.returnsSection}>
                                         <div className={styles.returnsHeader}>
-                                            ⚠️ Возвраты ({sale.total_returned} из {sale.quantity} шт.)
+                                            ⚠️ Возвраты ({sale.total_returned} из {sale.quantity} {data.product?.unit_display || 'шт.'})
                                         </div>
                                         {sale.returns.map((ret) => (
                                             <div key={ret.id} className={styles.returnItem}>
                                                 <div className={styles.returnInfo}>
                                                     <span>{new Date(ret.return_date).toLocaleString('ru-RU')}</span>
-                                                    <span>{ret.quantity} шт.</span>
+                                                    <span>{ret.quantity} {data.product?.unit_display || 'шт.'}</span>
                                                     {ret.is_defect && <span className={styles.defectBadge}>БРАК</span>}
                                                 </div>
                                                 <div className={styles.returnAmount}>Возврат: {ret.refund_amount.toFixed(2)} ₸</div>

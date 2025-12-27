@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { SnowfallProvider } from './contexts/SnowfallContext'
 import './index.css'
 
 const root = document.getElementById('root');
@@ -11,7 +12,9 @@ reactRoot.render(
   <BrowserRouter>
      {/* <StrictMode> __запросы дважды отправляются из за StrictMode__ */}
       <ThemeProvider>
-        <App />
+        <SnowfallProvider>
+          <App />
+        </SnowfallProvider>
       </ThemeProvider>
     {/* </StrictMode> */}
   </BrowserRouter>,

@@ -114,11 +114,46 @@
   margin: 0;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--gilded-shadow);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--platinum-gleam);
+  background: var(--phantom-noir);
+}
+
+.tabActive {
+  color: var(--royal-emerald);
+  border-bottom-color: var(--royal-emerald);
+}
+
 .batchesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
 }
+
+/* TransferCard стили теперь в компоненте TransferCard */
 
 @media (max-width: 768px) {
   .container {
@@ -133,5 +168,106 @@
   .batchesGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Модальное окно для деталей перемещения */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+}
+
+.modalCloseButton {
+  background: transparent;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.modalCloseButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.modalContent {
+  padding: 1.5rem;
+}
+
+.modalInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.itemsSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.itemsSection h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--platinum-gleam);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--phantom-noir);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
 }
 

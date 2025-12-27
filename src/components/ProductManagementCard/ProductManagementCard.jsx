@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ProductManagementCard.module.css';
-import { getImageUrl } from '../../utils/getImageUrl';
-// import '../ProductCard/ProductCard.css';
+import { useFileUtils } from '../../hooks/useFileUtils';
 
 const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete }) => {
     const navigate = useNavigate();
+    const { getFileUrl } = useFileUtils();
     const [imageLoading, setImageLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
+    const imgRef = useRef(null);
 
     const mainImage = product.main_image;
 
@@ -16,8 +17,21 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
         if (mainImage?.image) {
             setImageLoading(true);
             setImageError(false);
+        } else {
+            setImageLoading(false);
+            setImageError(true);
         }
     }, [mainImage?.image]);
+    
+    // Проверяем, загружено ли изображение из кэша после рендера
+    useEffect(() => {
+        if (imgRef.current && mainImage?.image && imageLoading) {
+            // Проверяем, загружено ли изображение из кэша браузера
+            if (imgRef.current.complete && imgRef.current.naturalHeight !== 0) {
+                setImageLoading(false);
+            }
+        }
+    });
 
     const handleCardClick = () => {
         navigate(`/business/${businessSlug}/products/${product.id}/`);
@@ -49,15 +63,18 @@ const ProductManagementCard = ({ product, businessSlug, onToggleStatus, onDelete
                             </div>
                         )}
                     <img
-                        src={getImageUrl(mainImage.image)}
+                        ref={imgRef}
+                        src={getFileUrl(mainImage.image)}
                         alt={product.name}
                         loading="lazy"
-                            className={`product-img ${styles.image} ${imageLoading ? styles.imageHidden : styles.imageVisible}`}
-                            onLoad={() => setImageLoading(false)}
+                        className={`product-img ${styles.image} ${imageLoading ? styles.imageHidden : styles.imageVisible}`}
+                        onLoad={() => {
+                            setImageLoading(false);
+                        }}
                         onError={(e) => {
                             e.target.onerror = null;
-                                setImageError(true);
-                                setImageLoading(false);
+                            setImageError(true);
+                            setImageLoading(false);
                         }}
                     />
                     </>

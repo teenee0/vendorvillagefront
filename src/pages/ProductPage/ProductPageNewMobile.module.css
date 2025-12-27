@@ -1081,6 +1081,26 @@
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+    align-items: center;
+}
+
+.transferBadge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(45, 175, 159, 0.2);
+    border: 1px solid var(--royal-emerald);
+    border-radius: 6px;
+    color: var(--royal-emerald);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.transferInfo {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.7;
 }
 
 .defectActions button {
@@ -1690,6 +1710,60 @@
     font-size: 0.85rem;
     margin-top: 0.5rem;
     font-style: italic;
+}
+
+.reasonSelector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.reasonOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    color: var(--silver-whisper);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 80px;
+}
+
+.reasonOption:hover {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 175, 159, 0.2);
+}
+
+.reasonOptionActive {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.2);
+    color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.15);
+}
+
+.reasonOptionActive:hover {
+    background: rgba(45, 175, 159, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(45, 175, 159, 0.3);
+}
+
+.reasonOption i {
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.reasonOptionActive i {
+    opacity: 1;
 }
 
 /* Стили для полей ввода в модальном окне брака */

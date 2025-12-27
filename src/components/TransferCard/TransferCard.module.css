@@ -1,0 +1,248 @@
+.card {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--royal-emerald), #2d8f8a);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(45, 175, 159, 0.2);
+  border-color: var(--royal-emerald);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.transferNumber {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status_draft {
+  background: rgba(176, 176, 176, 0.2);
+  color: var(--silver-whisper);
+  border: 1px solid rgba(176, 176, 176, 0.3);
+}
+
+.status_completed {
+  background: rgba(45, 175, 159, 0.2);
+  color: var(--royal-emerald);
+  border: 1px solid rgba(45, 175, 159, 0.3);
+}
+
+.status_cancelled {
+  background: rgba(218, 53, 69, 0.2);
+  color: #da3545;
+  border: 1px solid rgba(218, 53, 69, 0.3);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.viewButton,
+.deleteButton {
+  background: transparent;
+  border: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.viewButton:hover {
+  background: rgba(45, 175, 159, 0.1);
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+}
+
+.deleteButton:hover {
+  background: rgba(218, 53, 69, 0.1);
+  border-color: #da3545;
+  color: #da3545;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.locations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border-radius: 8px;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.locationRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--royal-emerald);
+  padding: 0.25rem 0;
+  margin: -0.25rem 0;
+}
+
+.locationLabel {
+  font-size: 0.9rem;
+  color: var(--silver-whisper);
+  font-weight: 500;
+  min-width: 40px;
+}
+
+.locationValue {
+  font-size: 0.95rem;
+  color: var(--platinum-gleam);
+  font-weight: 600;
+  flex: 1;
+}
+
+.icon {
+  color: var(--royal-emerald);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.statIcon {
+  font-size: 1.5rem;
+  color: var(--royal-emerald);
+  flex-shrink: 0;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.label {
+  color: var(--silver-whisper);
+  font-weight: 500;
+}
+
+.value {
+  color: var(--platinum-gleam);
+}
+
+.footer {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--gilded-shadow);
+  margin-top: auto;
+}
+
+.createdAt {
+  font-size: 0.85rem;
+  color: var(--palladium-mist);
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .transferNumber {
+    font-size: 1rem;
+  }
+
+  .locations {
+    padding: 0.75rem;
+  }
+
+  .stats {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+

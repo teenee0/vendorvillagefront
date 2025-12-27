@@ -11,6 +11,7 @@ import {
 import styles from './InventorySessionPage.module.css';
 import Loader from '../../components/Loader';
 import dayjs from 'dayjs';
+import { useFileUtils } from '../../hooks/useFileUtils';
 
 const InventorySessionPage = () => {
     const { business_slug, session_id } = useParams();
@@ -25,6 +26,7 @@ const InventorySessionPage = () => {
     const [updatingItem, setUpdatingItem] = useState(null);
     const [localQuantities, setLocalQuantities] = useState({}); // Локальное состояние для значений ввода
     const scanInputRef = useRef(null);
+    const { getFileUrl } = useFileUtils();
 
     useEffect(() => {
         fetchSession();
@@ -453,6 +455,16 @@ const InventorySessionPage = () => {
                         className={`${styles.itemCard} ${getStatusColor(item.status)}`}
                     >
                         <div className={styles.itemHeader}>
+                            {item.main_image?.image && (
+                                <img
+                                    src={getFileUrl(item.main_image.image)}
+                                    alt={item.variant_name || item.product_name}
+                                    className={styles.itemImage}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                    }}
+                                />
+                            )}
                             <div className={styles.itemInfo}>
                                 <h3>{item.variant_name || item.product_name}</h3>
                                 {item.variant_sku && (

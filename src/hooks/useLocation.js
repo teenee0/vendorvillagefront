@@ -3,13 +3,21 @@ import { useParams } from 'react-router-dom';
 
 export const useLocation = () => {
   const { business_slug } = useParams();
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Инициализируем сразу из localStorage, чтобы значение было доступно с первого рендера
+  const [selectedLocation, setSelectedLocation] = useState(() => {
+    if (typeof window !== 'undefined' && business_slug) {
+      return localStorage.getItem(`business_${business_slug}_location`);
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const savedLocation = localStorage.getItem(`business_${business_slug}_location`);
-    setSelectedLocation(savedLocation);
-    setLoading(false);
+    if (business_slug) {
+      const savedLocation = localStorage.getItem(`business_${business_slug}_location`);
+      setSelectedLocation(savedLocation);
+      setLoading(false);
+    }
   }, [business_slug]);
 
   const updateLocation = (locationId) => {

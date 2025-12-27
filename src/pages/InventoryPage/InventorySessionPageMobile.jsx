@@ -14,6 +14,7 @@ import {
 import styles from './InventorySessionPageMobile.module.css';
 import Loader from '../../components/Loader';
 import dayjs from 'dayjs';
+import { useFileUtils } from '../../hooks/useFileUtils';
 
 const InventorySessionPageMobile = () => {
     const { business_slug, session_id } = useParams();
@@ -29,6 +30,7 @@ const InventorySessionPageMobile = () => {
     const [localQuantities, setLocalQuantities] = useState({});
     const [showFilters, setShowFilters] = useState(false);
     const scanInputRef = useRef(null);
+    const { getFileUrl } = useFileUtils();
 
     useEffect(() => {
         fetchSession();
@@ -442,6 +444,16 @@ const InventorySessionPageMobile = () => {
                             className={`${styles.itemCard} ${getStatusColor(item.status)}`}
                         >
                             <div className={styles.itemHeader}>
+                                {item.main_image?.image && (
+                                    <img
+                                        src={getFileUrl(item.main_image.image)}
+                                        alt={item.variant_name || item.product_name}
+                                        className={styles.itemImage}
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                        }}
+                                    />
+                                )}
                                 <div className={styles.itemInfo}>
                                     <h3>{item.variant_name || item.product_name}</h3>
                                     {item.variant_sku && (

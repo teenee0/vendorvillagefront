@@ -696,6 +696,8 @@ const SalesPageMobile = () => {
             
             // Нельзя списать больше, чем итоговая сумма покупки
             bonusRedeemed = Math.min(bonusRedeemed, total);
+            // Округляем бонусы до целых
+            bonusRedeemed = Math.round(bonusRedeemed);
             
             // Вычитаем бонусы из итоговой суммы
             total = total - bonusRedeemed;
@@ -756,7 +758,8 @@ const SalesPageMobile = () => {
             bonusAccrual = Math.min(bonusAccrual, parseFloat(bonusSettings.max_bonus_amount));
         }
 
-        return Math.max(0, bonusAccrual);
+        // Округляем бонусы до целых
+        return Math.max(0, Math.round(bonusAccrual));
     };
 
     // Complete sale
@@ -1043,10 +1046,12 @@ const SalesPageMobile = () => {
                         } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
                             bonusRedeemed = Math.min(bonusRedemptionAmount, total);
                         }
+                        // Округляем бонусы до целых
+                        bonusRedeemed = Math.round(bonusRedeemed);
                         return bonusRedeemed > 0 ? (
                             <div className={styles.totalRow} style={{ color: 'var(--accent-green)', fontSize: '14px', marginTop: '4px' }}>
                                 <span>Списано бонусов:</span>
-                                <span>-{bonusRedeemed.toFixed(2)} баллов</span>
+                                <span>-{bonusRedeemed} баллов</span>
                             </div>
                         ) : null;
                     })()}
@@ -1487,7 +1492,7 @@ const SalesPageMobile = () => {
                                                 >
                                                     <option value="">-- Выберите партию --</option>
                                                     {selectedVariant.stocks_data.stocks
-                                                        .filter(stock => stock.batch_info)
+                                                        .filter(stock => stock.batch_info && parseFloat(stock.available_quantity || 0) > 0)
                                                         .map(stock => {
                                                             const batch = stock.batch_info;
                                                             const date = new Date(batch.received_date);
@@ -2480,10 +2485,12 @@ const SalesPageMobile = () => {
                                                     } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
                                                         bonusRedeemed = Math.min(bonusRedemptionAmount, totalBeforeBonuses);
                                                     }
+                                                    // Округляем бонусы до целых
+                                                    bonusRedeemed = Math.round(bonusRedeemed);
                                                     return bonusRedeemed > 0 ? (
                                                         <div className={styles.receiptTotalRow} style={{ color: 'var(--accent-green)', fontSize: '14px', marginTop: '8px' }}>
                                                             <span>Списано бонусов:</span>
-                                                            <span>-{bonusRedeemed.toFixed(2)} баллов</span>
+                                                            <span>-{bonusRedeemed} баллов</span>
                                                         </div>
                                                     ) : null;
                                                 })()}
@@ -2617,10 +2624,10 @@ const SalesPageMobile = () => {
                                                         <div className={styles.bonusPredictionCard}>
                                                             <div className={styles.bonusPredictionLabel}>После этой покупки:</div>
                                                             <div className={styles.bonusPredictionValue}>
-                                                                +{bonusPrediction.toFixed(2)} баллов
+                                                                +{bonusPrediction} баллов
                                                             </div>
                                                             <div className={styles.bonusPredictionHint}>
-                                                                (≈ {bonusPrediction.toFixed(2)} ₸)
+                                                                (≈ {bonusPrediction} ₸)
                                                             </div>
                                                             <div className={styles.bonusPercentInfo}>
                                                                 Процент начисления: {parseFloat(bonusPercentToUse).toFixed(2)}%
@@ -2716,7 +2723,7 @@ const SalesPageMobile = () => {
                                                                     {bonusRedemptionPercent > 0 && (
                                                                         <div className={styles.bonusRedemptionPreview}>
                                                                             Будет списано: <span className={styles.bonusRedemptionPreviewValue}>
-                                                                                {(parseFloat(selectedCustomer.balance || 0) * bonusRedemptionPercent / 100).toFixed(2)} баллов
+                                                                                {Math.round(parseFloat(selectedCustomer.balance || 0) * bonusRedemptionPercent / 100)} баллов
                                                                             </span>
                                                                         </div>
                                                                     )}
@@ -2873,13 +2880,13 @@ const SalesPageMobile = () => {
                                                 {parseFloat(receiptData.bonus_info.accrued || 0) > 0 && (
                                                     <p>
                                                         <strong>Начислено бонусов:</strong>{' '}
-                                                        +{parseFloat(receiptData.bonus_info.accrued).toFixed(2)} баллов
+                                                        +{Math.round(parseFloat(receiptData.bonus_info.accrued))} баллов
                                                     </p>
                                                 )}
                                                 {parseFloat(receiptData.bonus_info.redeemed || 0) > 0 && (
                                                     <p>
                                                         <strong>Списано бонусов:</strong>{' '}
-                                                        -{parseFloat(receiptData.bonus_info.redeemed).toFixed(2)} баллов
+                                                        -{Math.round(parseFloat(receiptData.bonus_info.redeemed))} баллов
                                                     </p>
                                                 )}
                                                 <p>

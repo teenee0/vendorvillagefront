@@ -1,0 +1,925 @@
+.container {
+  min-height: 100vh;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--platinum-gleam);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.backButton:hover {
+  background: var(--obsidian-elite);
+  border-color: var(--royal-emerald);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.titleIcon {
+  font-size: 2rem;
+  color: var(--royal-emerald);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.formSection {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  margin: 0;
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.toggleButton:hover {
+  background: var(--obsidian-elite);
+  border-color: var(--royal-emerald);
+  color: var(--platinum-gleam);
+}
+
+.collapsedMessage {
+  text-align: center;
+  padding: 2rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--silver-whisper);
+}
+
+.collapsedMessage p {
+  margin: 0.5rem 0;
+}
+
+.collapsedCount {
+  color: var(--royal-emerald);
+  font-weight: 600;
+  margin-top: 1rem !important;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--silver-whisper);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.formGroup input:disabled,
+.formGroup select:disabled,
+.formGroup textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.addItemSection {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.addItemRow {
+  display: grid;
+  grid-template-columns: 2fr 150px auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--royal-emerald), #2d8f8a);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.addButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.itemCard {
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.itemInfo {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.itemImage {
+  width: 70px;
+  height: 98px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.noImage {
+  width: 70px;
+  height: 98px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--palladium-mist);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.itemInfo h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+}
+
+.itemMeta {
+  margin: 0;
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+}
+
+.removeButton {
+  background: rgba(218, 53, 69, 0.1);
+  border: 1px solid rgba(218, 53, 69, 0.3);
+  color: #da3545;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeButton:hover:not(:disabled) {
+  background: rgba(218, 53, 69, 0.2);
+}
+
+.itemControls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.emptyItems {
+  text-align: center;
+  padding: 2rem;
+  color: var(--silver-whisper);
+}
+
+.emptySubtext {
+  font-size: 0.85rem;
+  color: var(--palladium-mist);
+  margin-top: 0.5rem;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 2rem;
+  color: var(--silver-whisper);
+  background: var(--obsidian-elite);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.emptyMessage p {
+  margin: 0.5rem 0;
+}
+
+/* Сетка карточек товаров */
+.stocksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stockCard {
+  background: var(--obsidian-elite);
+  border: 2px solid var(--gilded-shadow);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.stockCard:hover {
+  border-color: var(--royal-emerald);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.2);
+}
+
+.stockImage {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.stockNoImage {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--palladium-mist);
+}
+
+.stockInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stockName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.stockBatch {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+}
+
+.stockQuantities {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.quantityRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.quantityLabel {
+  color: var(--silver-whisper);
+}
+
+.quantityValue {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+}
+
+.quantityValueAvailable {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.quantityValueReserved {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.quantityValueDefect {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.stockAction {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(45, 175, 159, 0.2);
+  border: 1px solid var(--royal-emerald);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--royal-emerald);
+}
+
+.addIcon {
+  font-size: 0.9rem;
+}
+
+/* Модальное окно для количества */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.quantityModal {
+  background: linear-gradient(135deg, var(--obsidian-elite) 0%, var(--phantom-noir) 100%);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--platinum-gleam);
+}
+
+.modalCloseButton {
+  background: transparent;
+  border: none;
+  color: var(--silver-whisper);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.modalCloseButton:hover {
+  background: var(--phantom-noir);
+  color: var(--platinum-gleam);
+}
+
+.modalContent {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modalStockInfo {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.modalStockImage {
+  width: 80px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.modalStockNoImage {
+  width: 80px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gilded-shadow);
+  border-radius: 8px;
+  color: var(--palladium-mist);
+  flex-shrink: 0;
+}
+
+.modalStockInfo h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+}
+
+.modalStockInfo p {
+  margin: 0;
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+}
+
+.modalQuantities {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.quantityInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.quantityInfo span {
+  color: var(--silver-whisper);
+}
+
+.quantityInfo strong {
+  color: var(--platinum-gleam);
+  font-weight: 600;
+}
+
+.availableText {
+  color: #4caf50 !important;
+}
+
+.reservedText {
+  color: #ff9800 !important;
+}
+
+.defectText {
+  color: #f44336 !important;
+}
+
+.modalFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modalFormGroup label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--silver-whisper);
+}
+
+.quantityInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.quantityInput {
+  flex: 1;
+  padding: 0.75rem;
+  padding-right: 3rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.quantityInput:focus {
+  outline: none;
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.unitLabel {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--silver-whisper);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.helpText {
+  color: var(--palladium-mist);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--gilded-shadow);
+  justify-content: flex-end;
+}
+
+.modalCancelButton,
+.modalAddButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalCancelButton {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+}
+
+.modalCancelButton:hover:not(:disabled) {
+  background: var(--obsidian-elite);
+}
+
+.modalAddButton {
+  background: linear-gradient(135deg, var(--royal-emerald), #2d8f8a);
+  color: white;
+}
+
+.modalAddButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.modalAddButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Бейджи для количеств в карточке позиции */
+.itemQuantities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.availableBadge,
+.reservedBadge,
+.defectBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.availableBadge {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.reservedBadge {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.defectBadge {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.cancelButton,
+.submitButton,
+.completeButton {
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cancelButton {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: var(--obsidian-elite);
+}
+
+.submitButton {
+  background: linear-gradient(135deg, var(--royal-emerald), #2d8f8a);
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.completeButton {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+}
+
+.completeButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.completeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Стили для документов */
+.documentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.documentCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 8px;
+}
+
+.documentIcon {
+  font-size: 1.5rem;
+  color: var(--royal-emerald);
+  flex-shrink: 0;
+}
+
+.documentInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.documentName {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 0.95rem;
+}
+
+.documentDescription {
+  color: var(--silver-whisper);
+  font-size: 0.85rem;
+}
+
+.documentMeta {
+  color: var(--palladium-mist);
+  font-size: 0.8rem;
+}
+
+.documentActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.downloadButton,
+.deleteDocumentButton {
+  background: transparent;
+  border: 1px solid var(--gilded-shadow);
+  color: var(--silver-whisper);
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.downloadButton:hover {
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+  background: rgba(45, 175, 159, 0.1);
+}
+
+.deleteDocumentButton:hover {
+  border-color: #da3545;
+  color: #da3545;
+  background: rgba(218, 53, 69, 0.1);
+}
+
+.addDocumentSection {
+  padding: 1.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 12px;
+  margin-top: 1.5rem;
+}
+
+.addDocumentButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--royal-emerald);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.addDocumentButton:hover:not(:disabled) {
+  background: #2a9f8f;
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.addDocumentButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .addItemRow {
+    grid-template-columns: 1fr;
+  }
+
+  .itemControls {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .submitButton,
+  .completeButton {
+    width: 100%;
+  }
+
+  .stocksGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .modalCancelButton,
+  .modalAddButton {
+    width: 100%;
+  }
+}
+

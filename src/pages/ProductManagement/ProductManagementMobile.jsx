@@ -103,7 +103,22 @@ const ProductManagementMobile = () => {
         setMobilePriceMin(priceMin);
         setMobilePriceMax(priceMax);
         setMobileSelectedCategory(selectedCategory);
-        setMobileSelectedLocation(selectedLocation || 'all');
+        // Читаем локацию из query параметра, если есть
+        const locationFromQuery = new URLSearchParams(location.search).get('location');
+        if (locationFromQuery) {
+            // Если локация есть в query, используем её
+            setMobileSelectedLocation(locationFromQuery);
+        } else {
+            // Если локации нет в query
+            const hasOtherParams = location.search && location.search.length > 1 && location.search !== '?';
+            if (hasOtherParams) {
+                // Если query не пустой (есть другие параметры) - пользователь выбрал "по всем локациям"
+                setMobileSelectedLocation('all');
+            } else {
+                // Если query пустой (первый заход) - используем локацию из localStorage, если есть
+                setMobileSelectedLocation(selectedLocation || 'all');
+            }
+        }
         setMobileLocationBinding(locationBinding);
         setMobileInStockOnly(inStockOnly);
         setIsMobileFiltersOpen(true);
@@ -113,8 +128,8 @@ const ProductManagementMobile = () => {
         setIsMobileFiltersOpen(false);
     };
 
-    const updateURLWithFilters = (filters, priceMin, priceMax, category, locationBinding = 'all', inStock = false) => {
-        const params = new URLSearchParams();
+    const updateURLWithFilters = (filters, priceMin, priceMax, category, locationBinding = 'all', inStock = false, queryParams = null) => {
+        const params = queryParams || new URLSearchParams();
         
         if (searchQuery) params.set('search', searchQuery);
         if (sortOption) params.set('sort', sortOption);
@@ -144,10 +159,15 @@ const ProductManagementMobile = () => {
         setLocationBinding(mobileLocationBinding);
         setInStockOnly(mobileInStockOnly);
         
+        // Устанавливаем локацию в query параметр, не меняя localStorage
+        const queryParams = new URLSearchParams(location.search);
+        queryParams.set('page', 1);
+        
         if (mobileSelectedLocation && mobileSelectedLocation !== 'all') {
-            updateLocation(mobileSelectedLocation);
+            queryParams.set('location', mobileSelectedLocation);
         } else {
-            updateLocation('all');
+            // Если выбрано "По всем точкам", удаляем параметр location (фильтруем по всем локациям, не используя localStorage)
+            queryParams.delete('location');
         }
         
         updateURLWithFilters(
@@ -156,7 +176,8 @@ const ProductManagementMobile = () => {
             mobilePriceMax,
             mobileSelectedCategory,
             mobileLocationBinding,
-            mobileInStockOnly
+            mobileInStockOnly,
+            queryParams
         );
         
         closeMobileFilters();
@@ -262,9 +283,20 @@ const ProductManagementMobile = () => {
             // Устанавливаем размер страницы на 2 товара
             queryParams.set('page_size', '2');
 
-            const locationParam = getLocationParam();
-            if (locationParam && locationParam.location) {
-                queryParams.set('location', locationParam.location);
+            // Используем локацию из query параметра (если есть), иначе из localStorage через хук
+            const locationFromQuery = new URLSearchParams(location.search).get('location');
+            if (locationFromQuery) {
+                // Если локация указана в query, используем её (это фильтр локации на странице товаров)
+                queryParams.set('location', locationFromQuery);
+            } else if (location.search && location.search.length > 1) {
+                // Если в query есть параметры, но нет location - это значит пользователь выбрал "по всем локациям"
+                // Не используем localStorage, не добавляем параметр location (показываем все локации)
+            } else {
+                // Если query пустой (первый заход на страницу), используем выбранную локацию из localStorage
+                const locationParam = getLocationParam();
+                if (locationParam && locationParam.location && locationParam.location !== 'all') {
+                    queryParams.set('location', locationParam.location);
+                }
             }
             
             if (locationBinding && locationBinding !== 'all') {
@@ -392,9 +424,20 @@ const ProductManagementMobile = () => {
             queryParams.set('page', nextPage);
             queryParams.set('page_size', '2'); // Загружаем по 2 товара
 
-            const locationParam = getLocationParam();
-            if (locationParam && locationParam.location) {
-                queryParams.set('location', locationParam.location);
+            // Используем локацию из query параметра (если есть), иначе из localStorage через хук
+            const locationFromQuery = new URLSearchParams(location.search).get('location');
+            if (locationFromQuery) {
+                // Если локация указана в query, используем её (это фильтр локации на странице товаров)
+                queryParams.set('location', locationFromQuery);
+            } else if (location.search && location.search.length > 1) {
+                // Если в query есть параметры, но нет location - это значит пользователь выбрал "по всем локациям"
+                // Не используем localStorage, не добавляем параметр location (показываем все локации)
+            } else {
+                // Если query пустой (первый заход на страницу), используем выбранную локацию из localStorage
+                const locationParam = getLocationParam();
+                if (locationParam && locationParam.location && locationParam.location !== 'all') {
+                    queryParams.set('location', locationParam.location);
+                }
             }
             
             if (locationBinding && locationBinding !== 'all') {
@@ -618,7 +661,7 @@ const ProductManagementMobile = () => {
                             ) : (
                                 <div className={styles.categoriesList}>
                                     <button
-                                        className={`${styles.categoryButton} ${(!mobileSelectedLocation || mobileSelectedLocation === 'all') ? styles.active : ''}`}
+                                        className={`${styles.categoryButton} ${mobileSelectedLocation === 'all' ? styles.active : ''}`}
                                         onClick={() => setMobileSelectedLocation('all')}
                                     >
                                         По всем точкам

@@ -8,6 +8,7 @@ import BusinessFooter from './components/BusinessFooter/BusinessFooter.jsx';
 import EnvironmentIndicator from './components/EnvironmentIndicator/EnvironmentIndicator';
 import TokenRefreshManager from './components/TokenRefreshManager/TokenRefreshManager';
 import CityRequiredWrapper from './components/CityRequiredWrapper/CityRequiredWrapper';
+import SnowfallEffect from './components/Snowfall/Snowfall.jsx';
 import Main from './pages/Main/Main';
 import MainMobile from './pages/Main/MainMobile';
 import Marketplace from './pages/Marketplace/Marketplace';
@@ -48,6 +49,8 @@ import EmployeeInvite from './pages/EmployeeInvite/EmployeeInvite.jsx';
 import VariantLocationPricePage from './pages/VariantLocationPricePage/VariantLocationPricePage.jsx';
 import BatchManagement from './pages/BatchManagement/BatchManagement.jsx';
 import BatchManagementMobile from './pages/BatchManagement/BatchManagementMobile.jsx';
+import CreateTransferPage from './pages/CreateTransferPage/CreateTransferPage.jsx';
+import CreateTransferPageMobile from './pages/CreateTransferPage/CreateTransferPageMobile.jsx';
 import TasksPage from './pages/TasksPage/TasksPage.jsx';
 import TasksPageMobile from './pages/TasksPage/TasksPageMobile.jsx';
 import TaskDetailPage from './pages/TaskDetailPage/TaskDetailPage.jsx';
@@ -96,6 +99,7 @@ function App() {
       <>
         {/* <EnvironmentIndicator /> */}
         <TokenRefreshManager />
+        <SnowfallEffect />
         <BusinessHeader />
         <div className="content-wrapper-business">
           <AnimatePresence mode='wait'>
@@ -204,6 +208,15 @@ function App() {
                         } 
                       />
                       <Route 
+                        path="/business/:business_slug/transfers/create" 
+                        element={
+                          <ResponsiveRoute 
+                            desktopComponent={CreateTransferPage}
+                            mobileComponent={CreateTransferPageMobile}
+                          />
+                        } 
+                      />
+                      <Route 
                         path="/business/:business_slug/tasks" 
                         element={
                           <ResponsiveRoute
@@ -255,6 +268,7 @@ function App() {
       <>
         {/* <EnvironmentIndicator /> */}
         <TokenRefreshManager />
+        <SnowfallEffect />
         <Header />
         <div className="content-wrapper">
           <CityRequiredWrapper>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import {
@@ -12,7 +12,9 @@ import {
   FaCalendarAlt,
   FaExchangeAlt,
   FaChevronDown,
-  FaChevronUp
+  FaChevronUp,
+  FaFileExcel,
+  FaCaretDown
 } from 'react-icons/fa';
 import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
 import { DatePicker, ConfigProvider } from 'antd';
@@ -62,6 +64,14 @@ const TransactionsPage = () => {
   });
   const [returnLoading, setReturnLoading] = useState(false);
   const [expandedAttributes, setExpandedAttributes] = useState(new Set());
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [exportParams, setExportParams] = useState({
+    location: '',
+    startDate: null,
+    endDate: null,
+  });
+  const [exportLoading, setExportLoading] = useState(false);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -203,9 +213,178 @@ const TransactionsPage = () => {
     }
   };
 
+  const openExportModal = () => {
+    setExportModalOpen(true);
+    // Сбрасываем параметры при открытии
+    setExportParams({
+      location: '',
+      startDate: null,
+      endDate: null,
+    });
+  };
+
+  const closeExportModal = () => {
+    setExportModalOpen(false);
+  };
+
+  const handleExportDateChange = (dates) => {
+    if (dates && dates.length === 2) {
+      setExportParams(prev => ({
+        ...prev,
+        startDate: dates[0]?.toDate() || null,
+        endDate: dates[1]?.toDate() || null,
+      }));
+    } else {
+      setExportParams(prev => ({
+        ...prev,
+        startDate: null,
+        endDate: null,
+      }));
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+      const params = {};
+      
+      if (exportParams.location) {
+        params.location = exportParams.location;
+      }
+      if (exportParams.startDate) {
+        params.start = dayjs(exportParams.startDate).tz(tz).startOf('day').utc().format();
+      }
+      if (exportParams.endDate) {
+        params.end = dayjs(exportParams.endDate).tz(tz).endOf('day').utc().format();
+      }
+
+      const response = await axios.get(
+        `/api/business/${business_slug}/receipts/export-excel/`,
+        { 
+          params,
+          responseType: 'blob' 
+        }
+      );
+
+      // Создаем ссылку для скачивания файла
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Получаем имя файла из заголовка Content-Disposition
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `Чеки_${new Date().toISOString().split('T')[0]}.xlsx`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      closeExportModal();
+    } catch (err) {
+      console.error('Ошибка экспорта в Excel:', err);
+      alert('Ошибка экспорта в Excel: ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const formatDisplayDate = (date) => {
     if (!date) return 'Не указано';
     return dayjs(date).tz(tz).format('DD.MM.YYYY HH:mm');
+  };
+
+  // Компонент селектора с поиском
+  const SearchableLocationSelect = ({ locations, value, onChange }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const selectRef = useRef(null);
+
+    // Фильтруем опции по поисковому запросу
+    const filteredLocations = locations.filter(location =>
+      location.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Получаем выбранную локацию
+    const selectedLocation = locations.find(loc => String(loc.id) === String(value));
+
+    // Закрываем при клике вне компонента
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (selectRef.current && !selectRef.current.contains(event.target)) {
+          setIsOpen(false);
+          setSearchQuery('');
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSelect = (locationId) => {
+      onChange(locationId);
+      setIsOpen(false);
+      setSearchQuery('');
+    };
+
+    return (
+      <div className={styles.searchableSelect} ref={selectRef}>
+        <div
+          className={styles.searchableSelectTrigger}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className={styles.searchableSelectValue}>
+            {selectedLocation ? selectedLocation.name : 'Все локации'}
+          </span>
+          <FaCaretDown className={styles.searchableSelectArrow} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease' }} />
+        </div>
+        {isOpen && (
+          <div className={styles.searchableSelectDropdown}>
+            <div className={styles.searchableSelectSearch}>
+              <FaSearch />
+              <input
+                type="text"
+                placeholder="Поиск локации..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+              />
+            </div>
+            <div className={styles.searchableSelectOptions}>
+              <div
+                className={`${styles.searchableSelectOption} ${!value ? styles.searchableSelectOptionSelected : ''}`}
+                onClick={() => handleSelect('')}
+              >
+                Все локации
+              </div>
+              {filteredLocations.length === 0 ? (
+                <div className={styles.searchableSelectNoResults}>
+                  Ничего не найдено
+                </div>
+              ) : (
+                filteredLocations.map(location => (
+                  <div
+                    key={location.id}
+                    className={`${styles.searchableSelectOption} ${String(location.id) === String(value) ? styles.searchableSelectOptionSelected : ''}`}
+                    onClick={() => handleSelect(location.id)}
+                  >
+                    {location.name}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const handleSearch = (e) => {
@@ -232,6 +411,21 @@ const TransactionsPage = () => {
       fetchReturns();
     }
   }, [business_slug, activeTab]);
+
+  // Загружаем локации для модального окна экспорта
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await axios.get(`/api/business/${business_slug}/locations/`);
+        setLocations(response.data);
+      } catch (err) {
+        console.error('Ошибка загрузки локаций:', err);
+      }
+    };
+    if (business_slug) {
+      fetchLocations();
+    }
+  }, [business_slug]);
 
   // Автоматически открыть чек из query параметра
   useEffect(() => {
@@ -337,6 +531,9 @@ const TransactionsPage = () => {
               )}
             </div>
           </div>
+          <button onClick={openExportModal} className={styles.exportButton}>
+            <FaFileExcel /> Экспорт в Excel
+          </button>
         </div>
         {activeTab === 'receipts' ? (
           <div className={styles.receiptsList}>
@@ -738,6 +935,66 @@ const TransactionsPage = () => {
           </div>
         </div>
       )}
+      {/* Модальное окно экспорта */}
+      {exportModalOpen && (
+        <div className={styles.modalOverlay} onClick={closeExportModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Экспорт чеков в Excel</h2>
+              <ModalCloseButton onClick={closeExportModal} />
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.exportForm}>
+                <div className={styles.formGroup}>
+                  <label>Локация:</label>
+                  <SearchableLocationSelect
+                    locations={locations}
+                    value={exportParams.location}
+                    onChange={(locationId) => setExportParams(prev => ({ ...prev, location: locationId }))}
+                  />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label>Период:</label>
+                  <ConfigProvider locale={ruRU}>
+                    <DatePicker.RangePicker
+                      value={
+                        exportParams.startDate && exportParams.endDate
+                          ? [dayjs(exportParams.startDate), dayjs(exportParams.endDate)]
+                          : null
+                      }
+                      onChange={handleExportDateChange}
+                      format="DD.MM.YYYY"
+                      className={styles.dateInput}
+                      disabledDate={(current) => current && current > dayjs().endOf('day')}
+                      placeholder={['Начало', 'Конец']}
+                      getPopupContainer={(trigger) => trigger.parentElement}
+                    />
+                  </ConfigProvider>
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button
+                    onClick={handleExport}
+                    disabled={exportLoading}
+                    className={styles.exportSubmitButton}
+                  >
+                    {exportLoading ? 'Экспорт...' : 'Экспортировать'}
+                  </button>
+                  <button
+                    onClick={closeExportModal}
+                    className={styles.cancelButton}
+                    disabled={exportLoading}
+                  >
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {returnModal.open && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>

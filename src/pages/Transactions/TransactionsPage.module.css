@@ -161,6 +161,37 @@
   position: relative;
 }
 
+.exportButton {
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  border: none;
+  color: var(--platinum-gleam);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-soft);
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.exportButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.exportButton:active {
+  transform: translateY(0);
+}
+
+.exportButton svg {
+  font-size: 18px;
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -622,6 +653,7 @@
   border: 1px solid var(--gilded-shadow);
   border-radius: var(--radius-xl);
   width: 100%;
+  max-width: 600px;
   max-height: 90vh;
   overflow: hidden;
   color: var(--platinum-gleam);
@@ -629,6 +661,215 @@
   animation: slideUp var(--transition-normal);
   display: flex;
   flex-direction: column;
+}
+
+.modalBody {
+  padding: 24px 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.exportForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 14px;
+}
+
+.selectInput {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: var(--radius-md);
+  color: var(--platinum-gleam);
+  padding: 12px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.selectInput:hover {
+  border-color: var(--royal-emerald);
+}
+
+.selectInput:focus {
+  outline: none;
+  border-color: var(--royal-emerald);
+  box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+/* SearchableSelect */
+.searchableSelect {
+  position: relative;
+}
+
+.searchableSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--onyx-midnight);
+  border: 2px solid var(--gilded-shadow);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: var(--platinum-gleam);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-height: 48px;
+}
+
+.searchableSelectTrigger:hover {
+  border-color: var(--royal-emerald);
+}
+
+.searchableSelectValue {
+  flex: 1;
+  text-align: left;
+}
+
+.searchableSelectArrow {
+  color: var(--silver-whisper);
+  font-size: 16px;
+  transition: transform var(--transition-normal);
+  margin-left: 12px;
+}
+
+.searchableSelectDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--obsidian-elite);
+  border: 2px solid var(--gilded-shadow);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard);
+  z-index: 1001;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.searchableSelectSearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--onyx-midnight);
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.searchableSelectSearch svg {
+  color: var(--silver-whisper);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.searchableSelectSearch input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--platinum-gleam);
+  font-size: 16px;
+  outline: none;
+  min-height: 40px;
+}
+
+.searchableSelectSearch input::placeholder {
+  color: var(--silver-whisper);
+  opacity: 0.6;
+}
+
+.searchableSelectOptions {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.searchableSelectOption {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--platinum-gleam);
+  font-size: 15px;
+  transition: all var(--transition-fast);
+}
+
+.searchableSelectOption:hover {
+  background: var(--phantom-noir);
+}
+
+.searchableSelectOptionSelected {
+  background: rgba(45, 175, 159, 0.2);
+  font-weight: 600;
+  color: var(--royal-emerald);
+}
+
+.searchableSelectNoResults {
+  padding: 16px;
+  text-align: center;
+  color: var(--silver-whisper);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.exportSubmitButton {
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  border: none;
+  color: var(--platinum-gleam);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-soft);
+}
+
+.exportSubmitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.exportSubmitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancelButton {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: var(--gilded-shadow);
+  border-color: var(--velvet-ruby);
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @keyframes slideUp {

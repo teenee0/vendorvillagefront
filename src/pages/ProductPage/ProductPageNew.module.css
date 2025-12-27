@@ -89,18 +89,55 @@
 }
 
 .secondaryButton {
-    background: transparent;
-    border: 1px solid var(--sage-green);
+    background: linear-gradient(145deg, rgba(76, 175, 80, 0.1), rgba(56, 142, 60, 0.05));
+    border: 1.5px solid var(--sage-green);
     color: var(--platinum-gleam);
-    border-radius: 8px;
-    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
     cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.secondaryButton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.secondaryButton:hover::before {
+    left: 100%;
 }
 
 .secondaryButton:hover {
     border-color: var(--imperial-gold);
     color: var(--imperial-gold);
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.08));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.secondaryButton:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.15);
+}
+
+.secondaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .linkButton {
@@ -249,7 +286,15 @@
 }
 
 .batchLineActions {
-    margin-top: 0.75rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.3), rgba(26, 26, 26, 0.2));
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .defectsList {
@@ -273,6 +318,26 @@
 .defectActions {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
+}
+
+.transferBadge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(45, 175, 159, 0.2);
+    border: 1px solid var(--royal-emerald);
+    border-radius: 6px;
+    color: var(--royal-emerald);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.transferInfo {
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.7;
 }
 
 .defectsJournal {
@@ -584,6 +649,329 @@
     color: var(--silver-whisper);
     font-size: 0.85rem;
     font-style: italic;
+}
+
+.reasonSelector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.reasonOption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--onyx-midnight);
+    border: 2px solid var(--gilded-shadow);
+    border-radius: 12px;
+    color: var(--silver-whisper);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 80px;
+}
+
+.reasonOption:hover {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 175, 159, 0.2);
+}
+
+.reasonOptionActive {
+    border-color: var(--royal-emerald);
+    background: rgba(45, 175, 159, 0.2);
+    color: var(--royal-emerald);
+    box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.15);
+}
+
+.reasonOptionActive:hover {
+    background: rgba(45, 175, 159, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(45, 175, 159, 0.3);
+}
+
+.reasonOption i {
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.reasonOptionActive i {
+    opacity: 1;
+}
+
+.exportButton {
+    background: linear-gradient(145deg, rgba(76, 175, 80, 0.1), rgba(56, 142, 60, 0.05));
+    border: 1.5px solid var(--sage-green);
+    color: var(--platinum-gleam);
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.exportButton:hover {
+    border-color: var(--imperial-gold);
+    color: var(--imperial-gold);
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.08));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.historyButton {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(145deg, rgba(45, 175, 159, 0.15), rgba(30, 130, 120, 0.1));
+    border: 1.5px solid var(--royal-emerald);
+    border-radius: 10px;
+    color: var(--royal-emerald);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 6px rgba(45, 175, 159, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.historyButton::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(45, 175, 159, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.historyButton:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.historyButton:hover {
+    border-color: var(--royal-emerald);
+    background: linear-gradient(145deg, rgba(45, 175, 159, 0.25), rgba(30, 130, 120, 0.15));
+    color: var(--royal-emerald);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(45, 175, 159, 0.3);
+}
+
+.historyButton:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(45, 175, 159, 0.2);
+}
+
+.historyButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.historyButton i {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s;
+}
+
+.historyButton:hover i {
+    transform: rotate(360deg);
+}
+
+.historyContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.historyDateGroup {
+    border-left: 3px solid var(--royal-emerald);
+    padding-left: 1rem;
+}
+
+.historyDateHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--imperial-gold);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.historyRecords {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.historyRecord {
+    background: var(--onyx-midnight);
+    border: 1px solid var(--gilded-shadow);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.historyRecordHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.historyRecordType {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--platinum-gleam);
+}
+
+.historyRecordTime {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.historyRecordUser {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.historyRecordChanges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.historyChangeItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+}
+
+.historyChangeOld {
+    color: var(--velvet-ruby);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.historyChangeNew {
+    color: var(--royal-emerald);
+    font-weight: 500;
+}
+
+.historyRecordReason {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--silver-whisper);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.historyRecordQuantity {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+.historyRecordDescription {
+    color: var(--silver-whisper);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.historyRecordReceipt {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--royal-emerald);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.locationBatchesSection {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--gilded-shadow);
+}
+
+.locationBatchesHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.locationBatchesTitle {
+    color: var(--imperial-gold);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.locationBatchFilters {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.loadMoreBatchesContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.loadMoreButton {
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
+    border: 1px solid var(--imperial-gold);
+    color: var(--imperial-gold);
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.loadMoreButton:hover {
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.1));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.loadMoreButton:active {
+    transform: translateY(0);
 }
 .container {
     padding: 2rem;

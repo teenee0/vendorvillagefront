@@ -1,0 +1,56 @@
+.snowfall-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.snowfall-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.snowfall-toggle:active {
+  transform: scale(0.95);
+}
+
+.snowfall-toggle i {
+  transition: transform 0.3s ease;
+}
+
+.snowfall-toggle:hover i {
+  transform: rotate(180deg);
+}
+
+/* Светлая тема */
+.light-theme .snowfall-toggle {
+  color: #333;
+}
+
+.light-theme .snowfall-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Анимация снежинки при включении */
+.snowfall-toggle i.fa-snowflake {
+  animation: snowflake-pulse 2s ease-in-out infinite;
+}
+
+@keyframes snowflake-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+

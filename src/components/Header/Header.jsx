@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import CitySelector from '../CitySelector/CitySelector';
 import { useCity } from '../../hooks/useCity';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import SnowfallToggle from '../SnowfallToggle/SnowfallToggle';
 import { FaTimes } from 'react-icons/fa';
 
 function Header() {
@@ -90,6 +91,9 @@ function Header() {
                 <li className={styles.navItem}>
                   <ThemeToggle />
                 </li>
+                <li className={styles.navItem}>
+                  <SnowfallToggle />
+                </li>
               </ul>
             </div>
           </div>
@@ -168,6 +172,11 @@ function Header() {
               <li className={styles.mobileNavItem}>
                 <div className={styles.mobileNavLink}>
                   <ThemeToggle />
+                </div>
+              </li>
+              <li className={styles.mobileNavItem}>
+                <div className={styles.mobileNavLink}>
+                  <SnowfallToggle />
                 </div>
               </li>
             </ul>
