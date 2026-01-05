@@ -6,7 +6,7 @@ import ProductCard from '../../components/ProductCard/ProductCard.jsx';
 import Loader from '../../components/Loader';
 import TextType from '../../components/TextType/TextType.jsx';
 import LogoLoop from '../../components/LogoLoop/LogoLoop.jsx';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import styles from './MainMobile.module.css';
 
 function MainMobile() {
@@ -16,10 +16,7 @@ function MainMobile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
-  const carouselRef = useRef(null);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
+  const servicesScrollRef = useRef(null);
 
   const currentUrl = `${window.location.origin}${location.pathname}`;
 
@@ -99,46 +96,12 @@ function MainMobile() {
     }
   };
 
-  const servicesPerPage = 1; // На мобилке показываем по 1 карточке
-  const totalPages = Math.ceil(services.length / servicesPerPage);
-
-  const goToNext = () => {
-    setCurrentServiceIndex((prev) => (prev + 1) % totalPages);
-  };
-
-  const goToPrev = () => {
-    setCurrentServiceIndex((prev) => (prev - 1 + totalPages) % totalPages);
-  };
-
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    
-    const distance = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-
-    if (distance > minSwipeDistance) {
-      // Swipe left - next
-      goToNext();
-    } else if (distance < -minSwipeDistance) {
-      // Swipe right - prev
-      goToPrev();
-    }
-
-    touchStartX.current = 0;
-    touchEndX.current = 0;
-  };
-
-  const handleServiceClick = (service) => {
-    if (service.available) {
-      navigate(service.link);
+  const scrollServices = (direction) => {
+    if (servicesScrollRef.current) {
+      servicesScrollRef.current.scrollBy({
+        left: direction === 'next' ? 300 : -300,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -245,69 +208,72 @@ function MainMobile() {
         />
       </section>
 
-      {/* Services Carousel */}
+      {/* Services Section */}
       <section className={styles.servicesSection}>
-        <div 
-          className={styles.servicesCarouselWrapper}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className={styles.servicesCarouselContainer}>
-            <div 
-              className={styles.servicesCarousel} 
-              ref={carouselRef}
-              style={{ transform: `translateX(-${currentServiceIndex * 100}%)` }}
-            >
-              {Array.from({ length: totalPages }).map((_, pageIndex) => (
-                <div key={pageIndex} className={styles.servicesPage}>
-                  {services
-                    .slice(pageIndex * servicesPerPage, (pageIndex + 1) * servicesPerPage)
-                    .map((service) => (
-                      <div 
-                        key={service.id} 
-                        className={`${styles.serviceCard} ${styles[service.gradient]}`}
-                        onClick={() => handleServiceClick(service)}
-                      >
-                        <div className={styles.serviceCardBackground}></div>
-                        <div className={styles.serviceCardContent}>
-                          <div className={styles.serviceIcon}>
-                            <i className={`fas ${service.icon}`}></i>
-                          </div>
-                          <h3 className={styles.serviceTitle}>{service.title}</h3>
-                          <p className={styles.serviceDescription}>{service.description}</p>
-                          {service.available ? (
-                            <div className={styles.serviceLink}>
-                              Перейти
-                              <i className="fas fa-arrow-right"></i>
-                            </div>
-                          ) : (
-                            <div className={`${styles.serviceLink} ${styles.serviceLinkComingSoon}`}>
-                              Скоро
-                              <i className="fas fa-clock"></i>
-                            </div>
-                          )}
-                        </div>
-                        <div className={styles.serviceCardOverlay}></div>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            <span className={styles.sectionTitleIcon}>
+              <i className="fas fa-store"></i>
+            </span>
+            Наши сервисы
+          </h2>
+        </div>
+        <div className={styles.servicesCarouselWrapper}>
+          <button 
+            className={`${styles.navBtn} ${styles.navBtnLeft}`}
+            onClick={() => scrollServices('prev')}
+            aria-label="Предыдущий слайд"
+          >
+            <FaChevronLeft />
+          </button>
+          <div 
+            className={styles.servicesScroll}
+            ref={servicesScrollRef}
+          >
+            <div className={styles.servicesGrid}>
+              {services.map((service) => (
+                <Link
+                  key={service.id}
+                  to={service.available ? service.link : '#'}
+                  className={`${styles.serviceCard} ${styles[service.gradient]}`}
+                  onClick={(e) => {
+                    if (!service.available) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  <div className={styles.serviceCardBackground}></div>
+                  <div className={styles.serviceCardContent}>
+                    <div className={styles.serviceIcon}>
+                      <i className={`fas ${service.icon}`}></i>
+                    </div>
+                    <h3 className={styles.serviceTitle}>{service.title}</h3>
+                    <p className={styles.serviceDescription}>{service.description}</p>
+                    {service.available ? (
+                      <div className={styles.serviceLink}>
+                        Перейти
+                        <i className="fas fa-arrow-right"></i>
                       </div>
-                    ))}
-                </div>
+                    ) : (
+                      <div className={`${styles.serviceLink} ${styles.serviceLinkComingSoon}`}>
+                        Скоро
+                        <i className="fas fa-clock"></i>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.serviceCardOverlay}></div>
+                </Link>
               ))}
             </div>
           </div>
+          <button 
+            className={`${styles.navBtn} ${styles.navBtnRight}`}
+            onClick={() => scrollServices('next')}
+            aria-label="Следующий слайд"
+          >
+            <FaChevronRight />
+          </button>
         </div>
-        {totalPages > 1 && (
-          <div className={styles.carouselIndicators}>
-            {Array.from({ length: totalPages }).map((_, index) => (
-              <button
-                key={index}
-                className={`${styles.carouselIndicator} ${index === currentServiceIndex ? styles.carouselIndicatorActive : ''}`}
-                onClick={() => setCurrentServiceIndex(index)}
-                aria-label={`Перейти к странице ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* Marketplace Products Section */}

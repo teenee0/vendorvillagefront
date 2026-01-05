@@ -101,10 +101,19 @@ const ProductPageNew = () => {
     const [locationBatchesLoading, setLocationBatchesLoading] = useState({}); // {locationId: boolean}
     const salesChartRef = useRef(null);
     const salesChartInstance = useRef(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
         fetchProduct();
     }, [business_slug, product_id]);
+
+    // Сброс индекса изображения при загрузке нового продукта
+    useEffect(() => {
+        if (product?.images?.length > 0) {
+            const mainIndex = product.images.findIndex(img => img.is_main);
+            setCurrentImageIndex(mainIndex >= 0 ? mainIndex : 0);
+        }
+    }, [product?.id]);
 
     useEffect(() => {
         // Загружаем локации отдельным запросом после загрузки основного продукта
@@ -1255,7 +1264,16 @@ const ProductPageNew = () => {
 
     if (!product) return null;
 
-    const mainImage = product.images.find(img => img.is_main) || product.images[0];
+    const images = product.images || [];
+    const currentImage = images[currentImageIndex] || images[0];
+
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+    };
+
+    const handleNextImage = () => {
+        setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+    };
 
     return (
         <div className={styles.container}>
@@ -1278,13 +1296,44 @@ const ProductPageNew = () => {
             </div>
 
             <div className={styles.productInfo}>
-                {mainImage && (
+                {images.length > 0 && (
                     <div className={styles.imageContainer}>
-                        <img 
-                            src={getFileUrl(mainImage.image)} 
-                            alt={product.name}
-                            className={styles.mainImage}
-                        />
+                        {images.length > 1 && (
+                            <>
+                                <button 
+                                    className={styles.imageNavButton}
+                                    onClick={handlePrevImage}
+                                    aria-label="Предыдущее изображение"
+                                >
+                                    <i className="fa fa-chevron-left"></i>
+                                </button>
+                                <button 
+                                    className={`${styles.imageNavButton} ${styles.imageNavButtonRight}`}
+                                    onClick={handleNextImage}
+                                    aria-label="Следующее изображение"
+                                >
+                                    <i className="fa fa-chevron-right"></i>
+                                </button>
+                            </>
+                        )}
+                        <div 
+                            className={styles.imageSlider}
+                            style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+                        >
+                            {images.map((img, index) => (
+                                <img 
+                                    key={img.id || index}
+                                    src={getFileUrl(img.image)} 
+                                    alt={`${product.name} - фото ${index + 1}`}
+                                    className={styles.mainImage}
+                                />
+                            ))}
+                        </div>
+                        {images.length > 1 && (
+                            <div className={styles.imageIndicator}>
+                                {currentImageIndex + 1} / {images.length}
+                            </div>
+                        )}
                     </div>
                 )}
                 <div className={styles.details}>

@@ -156,7 +156,7 @@
   overflow: hidden;
 }
 
-/* Services Carousel */
+/* Services Section */
 .servicesSection {
   padding: 1.5rem 1rem;
   position: relative;
@@ -165,33 +165,55 @@
 
 .servicesCarouselWrapper {
   position: relative;
-  width: 100%;
-  margin-bottom: 1.5rem;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
-.servicesCarouselContainer {
+.navBtn {
+  display: none; /* Скрываем кнопки навигации на мобильных устройствах */
+}
+
+.navBtnLeft,
+.navBtnRight {
+  display: none;
+}
+
+.servicesScroll {
   flex: 1;
-  overflow: hidden;
-  position: relative;
-  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gilded-shadow) var(--phantom-noir);
+  padding-bottom: 0.5rem;
+  touch-action: pan-x;
 }
 
-.servicesCarousel {
-  display: flex;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
+.servicesScroll::-webkit-scrollbar {
+  height: 6px;
 }
 
-.servicesPage {
-  min-width: 100%;
+.servicesScroll::-webkit-scrollbar-track {
+  background: var(--phantom-noir);
+  border-radius: 3px;
+}
+
+.servicesScroll::-webkit-scrollbar-thumb {
+  background: var(--gilded-shadow);
+  border-radius: 3px;
+}
+
+.servicesScroll::-webkit-scrollbar-thumb:hover {
+  background: var(--royal-emerald);
+}
+
+.servicesGrid {
   display: flex;
-  flex-direction: column;
   gap: 1rem;
-  padding: 0 0.25rem;
-  box-sizing: border-box;
-  flex-shrink: 0;
+  min-width: max-content;
+  align-items: stretch;
 }
 
 .serviceCard {
@@ -209,8 +231,12 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  width: 100%;
+  width: 280px;
+  flex-shrink: 0;
+  flex-grow: 0;
   user-select: none;
+  text-decoration: none;
+  color: inherit;
 }
 
 .serviceCard:active {
@@ -365,35 +391,6 @@
   pointer-events: none;
 }
 
-/* Carousel Indicators */
-.carouselIndicators {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  z-index: 10;
-  position: relative;
-  width: 100%;
-}
-
-.carouselIndicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--gilded-shadow);
-  cursor: pointer;
-  transition: all 0.3s;
-  padding: 0;
-  border: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.carouselIndicatorActive {
-  background: var(--royal-emerald);
-  width: 24px;
-  border-radius: 4px;
-}
 
 .serviceCardOverlay {
   position: absolute;
@@ -596,9 +593,15 @@
     padding: 1.25rem 0.875rem;
   }
 
+  .servicesCarouselWrapper {
+    gap: 0;
+  }
+
   .serviceCard {
     padding: 1rem;
     min-height: 220px;
+    min-width: 260px;
+    max-width: 260px;
     border-radius: 10px;
   }
 

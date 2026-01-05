@@ -60,7 +60,31 @@ const ProductPageNewMobile = () => {
     });
     const [writeoffSaving, setWriteoffSaving] = useState(false);
     const [writeoffError, setWriteoffError] = useState('');
+    const [batchHistoryModal, setBatchHistoryModal] = useState({
+        open: false,
+        stockId: null,
+        batchNumber: '',
+        variantName: '',
+        locationName: '',
+        history: [],
+        loading: false,
+    });
+    const [variantLocationHistoryModal, setVariantLocationHistoryModal] = useState({
+        open: false,
+        variantLocationId: null,
+        variantName: '',
+        locationName: '',
+        history: [],
+        loading: false,
+        page: 1,
+        hasMore: false,
+        loadingMore: false,
+    });
     const [expandedAttributes, setExpandedAttributes] = useState({}); // {variantId: true/false}
+    const [locationBatchesShown, setLocationBatchesShown] = useState({}); // {locationId: count}
+    const [locationBatchFilter, setLocationBatchFilter] = useState({}); // {locationId: 'all'|'has_stock'|'sold_out'}
+    const [locationBatchesData, setLocationBatchesData] = useState({}); // {locationId: {batches: [], pagination: {}}}
+    const [locationBatchesLoading, setLocationBatchesLoading] = useState({}); // {locationId: boolean}
     const [batchSort, setBatchSort] = useState('recent');
     const [batchFilter, setBatchFilter] = useState('all');
     const [batchPage, setBatchPage] = useState(1);
@@ -78,16 +102,63 @@ const ProductPageNewMobile = () => {
     const [analyticsPeriod, setAnalyticsPeriod] = useState('day');
     const salesChartRef = useRef(null);
     const salesChartInstance = useRef(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const touchStartX = useRef(0);
+    const touchEndX = useRef(0);
+    const [dragOffset, setDragOffset] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         fetchProduct();
     }, [business_slug, product_id]);
+
+    // Сброс индекса изображения при загрузке нового продукта
+    useEffect(() => {
+        if (product?.images?.length > 0) {
+            const mainIndex = product.images.findIndex(img => img.is_main);
+            setCurrentImageIndex(mainIndex >= 0 ? mainIndex : 0);
+        }
+    }, [product?.id]);
+
+    useEffect(() => {
+        // Загружаем локации отдельным запросом после загрузки основного продукта
+        if (product && product.id && !product.locations) {
+            fetchProductLocations();
+        }
+    }, [product?.id, business_slug, product_id]);
 
     useEffect(() => {
         if (activeTab === 'batches') {
             fetchBatchesAndDefects();
         }
     }, [activeTab, business_slug, product_id, batchSort, batchFilter, batchPage, batchPageSize, defectSort, defectPage, defectPageSize]);
+
+    useEffect(() => {
+        if (activeTab === 'locations' && product?.locations) {
+            // Загружаем партии для каждой локации
+            product.locations.forEach(location => {
+                const filter = locationBatchFilter[location.id] || 'all';
+                fetchBatchesForLocation(location.id, filter, 1, false);
+            });
+        }
+    }, [activeTab, business_slug, product_id, product?.locations?.length]);
+
+    // Перезагружаем партии при изменении фильтра локаций
+    useEffect(() => {
+        if (activeTab === 'locations' && product?.locations) {
+            if (selectedLocationFilter) {
+                // Загружаем партии только для выбранной локации
+                const filter = locationBatchFilter[selectedLocationFilter] || 'all';
+                fetchBatchesForLocation(selectedLocationFilter, filter, 1, false);
+            } else {
+                // Загружаем партии для всех локаций
+                product.locations.forEach(location => {
+                    const filter = locationBatchFilter[location.id] || 'all';
+                    fetchBatchesForLocation(location.id, filter, 1, false);
+                });
+            }
+        }
+    }, [selectedLocationFilter, activeTab]);
 
     useEffect(() => {
         if (activeTab === 'analytics') {
@@ -248,6 +319,27 @@ const ProductPageNewMobile = () => {
             setError(err.response?.data?.detail || 'Ошибка загрузки товара');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchProductLocations = async (locationId = null) => {
+        try {
+            const params = locationId ? { location_id: locationId } : {};
+            const response = await axios.get(
+                `/api/business/${business_slug}/products/${product_id}/locations/`,
+                { params }
+            );
+            setProduct(prev => ({
+                ...prev,
+                locations: response.data.locations || []
+            }));
+        } catch (err) {
+            console.error('Ошибка загрузки локаций товара:', err);
+            // Не показываем ошибку пользователю, просто оставляем пустой массив
+            setProduct(prev => ({
+                ...prev,
+                locations: []
+            }));
         }
     };
 
@@ -533,13 +625,13 @@ const ProductPageNewMobile = () => {
     };
 
 
-    // Фильтрация локаций
-    const filteredLocations = product && selectedLocationFilter
-        ? product.locations.filter(loc => loc.id === selectedLocationFilter)
-        : product?.locations || [];
+    // Используем локации напрямую из продукта (уже отфильтрованные на сервере)
+    const filteredLocations = product?.locations || [];
 
     // Фильтрация локаций для выпадающего меню по поисковому запросу
-    const filteredLocationOptions = (product?.locations || []).filter(loc => 
+    // Используем locations_for_filter из продукта (список для фильтрации)
+    const locationOptions = product?.locations_for_filter || [];
+    const filteredLocationOptions = locationOptions.filter(loc => 
         loc.name.toLowerCase().includes(locationSearchTerm.toLowerCase())
     );
 
@@ -547,10 +639,14 @@ const ProductPageNewMobile = () => {
         setSelectedLocationFilter(locationId);
         setIsLocationDropdownOpen(false);
         setLocationSearchTerm('');
+        // Загружаем локации с фильтром с сервера
+        fetchProductLocations(locationId);
     };
 
     const handleClearFilter = () => {
         setSelectedLocationFilter(null);
+        // Загружаем все локации
+        fetchProductLocations();
         setLocationSearchTerm('');
     };
 
@@ -740,7 +836,7 @@ const ProductPageNewMobile = () => {
         }
     };
 
-    const openDefectModal = (line, defect = null) => {
+    const openDefectModal = (line, defect = null, locationId = null) => {
         setDefectError('');
         // При редактировании доступное количество = availableQuantity + текущее количество дефекта
         const availableQty = defect 
@@ -752,6 +848,7 @@ const ProductPageNewMobile = () => {
             stockId: line.stockId,
             variantName: line.variantName,
             locationName: line.locationName,
+            locationId: locationId || line.locationId || null,
             batchNumber: line.batchNumber,
             quantity: defect ? defect.quantity : '',
             reason: defect ? defect.reason : '',
@@ -766,6 +863,7 @@ const ProductPageNewMobile = () => {
             stockId: null,
             variantName: '',
             locationName: '',
+            locationId: null,
             batchNumber: '',
             quantity: '',
             reason: '',
@@ -807,6 +905,11 @@ const ProductPageNewMobile = () => {
             }
             await fetchBatchesAndDefects();
             await fetchProduct();
+            // Обновляем партии локации, если указана локация
+            if (defectModal.locationId && product?.locations) {
+                const filter = locationBatchFilter[defectModal.locationId] || 'all';
+                await fetchBatchesForLocation(defectModal.locationId, filter, 1, false);
+            }
             closeDefectModal();
         } catch (err) {
             const resp = err.response?.data;
@@ -830,12 +933,19 @@ const ProductPageNewMobile = () => {
             );
             await fetchBatchesAndDefects();
             await fetchProduct();
+            // Обновляем партии всех локаций после удаления брака
+            if (product?.locations) {
+                for (const location of product.locations) {
+                    const filter = locationBatchFilter[location.id] || 'all';
+                    await fetchBatchesForLocation(location.id, filter, 1, false);
+                }
+            }
         } catch (err) {
             alert('Не удалось удалить брак: ' + (err.response?.data?.detail || err.message));
         }
     };
 
-    const openWriteoffModal = (line, writeoff = null) => {
+    const openWriteoffModal = (line, writeoff = null, locationId = null) => {
         setWriteoffError('');
         // При редактировании доступное количество = availableQuantity + текущее количество списания
         const availableQty = writeoff 
@@ -847,6 +957,7 @@ const ProductPageNewMobile = () => {
             stockId: line.stockId,
             variantName: line.variantName,
             locationName: line.locationName,
+            locationId: locationId || line.locationId || null,
             batchNumber: line.batchNumber,
             quantity: writeoff ? writeoff.quantity : '',
             reason: writeoff ? writeoff.reason : 'other',
@@ -862,6 +973,7 @@ const ProductPageNewMobile = () => {
             stockId: null,
             variantName: '',
             locationName: '',
+            locationId: null,
             batchNumber: '',
             quantity: '',
             reason: 'other',
@@ -908,6 +1020,11 @@ const ProductPageNewMobile = () => {
             }
             await fetchBatchesAndDefects();
             await fetchProduct();
+            // Обновляем партии локации, если указана локация
+            if (writeoffModal.locationId && product?.locations) {
+                const filter = locationBatchFilter[writeoffModal.locationId] || 'all';
+                await fetchBatchesForLocation(writeoffModal.locationId, filter, 1, false);
+            }
             closeWriteoffModal();
         } catch (err) {
             const resp = err.response?.data;
@@ -930,12 +1047,231 @@ const ProductPageNewMobile = () => {
             await axios.delete(`/api/business/${business_slug}/stocks/writeoffs/${writeoffId}/delete/`);
             await fetchBatchesAndDefects();
             await fetchProduct();
+            // Обновляем партии всех локаций после удаления списания
+            if (product?.locations) {
+                for (const location of product.locations) {
+                    const filter = locationBatchFilter[location.id] || 'all';
+                    await fetchBatchesForLocation(location.id, filter, 1, false);
+                }
+            }
         } catch (err) {
             const resp = err.response?.data;
             const detail = resp?.detail || resp?.message || 'Не удалось удалить списание';
             alert(detail);
         } finally {
             setWriteoffSaving(false);
+        }
+    };
+
+    // Функция для загрузки партий для конкретной локации
+    const fetchBatchesForLocation = async (locationId, filter = 'all', page = 1, append = false) => {
+        try {
+            setLocationBatchesLoading(prev => ({ ...prev, [locationId]: true }));
+            const params = {
+                location_id: locationId,
+                location_filter: filter,
+                location_sort: 'recent',
+                location_page: page,
+                location_page_size: 3,
+            };
+            const response = await axios.get(
+                `/api/business/${business_slug}/products/${product_id}/batches-defects/`,
+                { params }
+            );
+            const newBatches = response.data.batches || [];
+            const pagination = response.data.batches_pagination || null;
+            
+            if (append) {
+                setLocationBatchesData(prev => ({
+                    ...prev,
+                    [locationId]: {
+                        batches: [...(prev[locationId]?.batches || []), ...newBatches],
+                        pagination: pagination,
+                    }
+                }));
+            } else {
+                setLocationBatchesData(prev => ({
+                    ...prev,
+                    [locationId]: {
+                        batches: newBatches,
+                        pagination: pagination,
+                    }
+                }));
+            }
+        } catch (err) {
+            console.error(`Ошибка загрузки партий для локации ${locationId}:`, err);
+            setLocationBatchesData(prev => ({
+                ...prev,
+                [locationId]: {
+                    batches: prev[locationId]?.batches || [],
+                    pagination: prev[locationId]?.pagination || null,
+                }
+            }));
+        } finally {
+            setLocationBatchesLoading(prev => ({ ...prev, [locationId]: false }));
+        }
+    };
+
+    // Функция для загрузки еще партий для локации
+    const handleLoadMoreBatches = (locationId) => {
+        const currentData = locationBatchesData[locationId];
+        const currentFilter = locationBatchFilter[locationId] || 'all';
+        if (!currentData || !currentData.pagination) return;
+        
+        const nextPage = (currentData.pagination.current_page || 1) + 1;
+        if (nextPage <= (currentData.pagination.total_pages || 1)) {
+            fetchBatchesForLocation(locationId, currentFilter, nextPage, true);
+        }
+    };
+
+    // Функция для установки фильтра партий для локации
+    const handleLocationBatchFilterChange = (locationId, filter) => {
+        setLocationBatchFilter(prev => ({
+            ...prev,
+            [locationId]: filter
+        }));
+        fetchBatchesForLocation(locationId, filter, 1, false);
+    };
+
+    // Функции для работы с модальным окном истории партии
+    const openBatchHistoryModal = async (stockId, variantName, locationName, batchNumber) => {
+        setBatchHistoryModal({
+            open: true,
+            stockId: stockId,
+            batchNumber: batchNumber,
+            variantName: variantName,
+            locationName: locationName,
+            history: [],
+            loading: true,
+        });
+        
+        try {
+            const response = await axios.get(`/api/business/${business_slug}/stocks/${stockId}/movement-history/`);
+            setBatchHistoryModal(prev => ({
+                ...prev,
+                history: response.data.history || [],
+                loading: false,
+            }));
+        } catch (err) {
+            console.error('Ошибка загрузки истории:', err);
+            alert('Не удалось загрузить историю движения товара');
+            setBatchHistoryModal(prev => ({
+                ...prev,
+                loading: false,
+            }));
+        }
+    };
+
+    const closeBatchHistoryModal = () => {
+        setBatchHistoryModal({
+            open: false,
+            stockId: null,
+            batchNumber: '',
+            variantName: '',
+            locationName: '',
+            history: [],
+            loading: false,
+        });
+    };
+
+    // Функции для работы с модальным окном истории варианта в локации
+    const openVariantLocationHistoryModal = async (variantLocationId, variantName, locationName) => {
+        setVariantLocationHistoryModal({
+            open: true,
+            variantLocationId,
+            variantName,
+            locationName,
+            history: [],
+            loading: true,
+            page: 1,
+            hasMore: false,
+            loadingMore: false,
+        });
+
+        try {
+            const response = await axios.get(
+                `/api/business/${business_slug}/variant-locations/${variantLocationId}/movement-history/`,
+                { params: { page: 1, page_size: 20 } }
+            );
+
+            setVariantLocationHistoryModal(prev => ({
+                ...prev,
+                history: response.data.history || [],
+                loading: false,
+                hasMore: response.data.pagination?.has_next || false,
+                page: 1,
+            }));
+        } catch (err) {
+            console.error('Ошибка загрузки истории:', err);
+            alert('Ошибка загрузки истории: ' + (err.response?.data?.detail || err.message));
+            setVariantLocationHistoryModal(prev => ({
+                ...prev,
+                loading: false,
+            }));
+        }
+    };
+
+    const closeVariantLocationHistoryModal = () => {
+        setVariantLocationHistoryModal({
+            open: false,
+            variantLocationId: null,
+            variantName: '',
+            locationName: '',
+            history: [],
+            loading: false,
+            page: 1,
+            hasMore: false,
+            loadingMore: false,
+        });
+    };
+
+    const loadMoreVariantLocationHistory = async () => {
+        const { variantLocationId, page, hasMore, loadingMore } = variantLocationHistoryModal;
+        
+        if (!hasMore || loadingMore) return;
+
+        setVariantLocationHistoryModal(prev => ({ ...prev, loadingMore: true }));
+
+        try {
+            const response = await axios.get(
+                `/api/business/${business_slug}/variant-locations/${variantLocationId}/movement-history/`,
+                { params: { page: page + 1, page_size: 20 } }
+            );
+
+            setVariantLocationHistoryModal(prev => ({
+                ...prev,
+                history: [...prev.history, ...(response.data.history || [])],
+                page: page + 1,
+                hasMore: response.data.pagination?.has_next || false,
+                loadingMore: false,
+            }));
+        } catch (err) {
+            console.error('Ошибка загрузки истории:', err);
+            setVariantLocationHistoryModal(prev => ({ ...prev, loadingMore: false }));
+        }
+    };
+
+    const exportVariantLocationHistoryToExcel = async () => {
+        const { variantLocationId, variantName, locationName } = variantLocationHistoryModal;
+        
+        try {
+            const response = await axios.get(
+                `/api/business/${business_slug}/variant-locations/${variantLocationId}/movement-history/export-excel/`,
+                { responseType: 'blob' }
+            );
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            const filename = `История_движения_${variantName}_${locationName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Ошибка экспорта:', err);
+            alert('Ошибка экспорта в Excel: ' + (err.response?.data?.detail || err.message));
         }
     };
 
@@ -960,7 +1296,64 @@ const ProductPageNewMobile = () => {
 
     if (!product) return null;
 
-    const mainImage = product.images.find(img => img.is_main) || product.images[0];
+    const images = product.images || [];
+    const currentImage = images[currentImageIndex] || images[0];
+
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+    };
+
+    const handleNextImage = () => {
+        setCurrentImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+    };
+
+    const handleTouchStart = (e) => {
+        touchStartX.current = e.touches[0].clientX;
+        setIsDragging(true);
+        setDragOffset(0);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging || !touchStartX.current || images.length <= 1) return;
+        
+        const currentX = e.touches[0].clientX;
+        const deltaX = currentX - touchStartX.current; // Инвертировано: теперь положительное значение = движение вправо
+        
+        // Вычисляем смещение в процентах от ширины контейнера
+        const containerWidth = e.currentTarget.offsetWidth || window.innerWidth;
+        const offsetPercent = (deltaX / containerWidth) * 100;
+        
+        // Ограничиваем смещение, чтобы не выйти за границы
+        const maxOffset = 100;
+        const clampedOffset = Math.max(-maxOffset, Math.min(maxOffset, offsetPercent));
+        
+        setDragOffset(clampedOffset);
+        touchEndX.current = currentX;
+    };
+
+    const handleTouchEnd = () => {
+        if (!isDragging) return;
+        
+        const distance = (touchEndX.current || touchStartX.current) - touchStartX.current; // Инвертировано
+        const containerWidth = window.innerWidth;
+        const distancePercent = (Math.abs(distance) / containerWidth) * 100;
+        const threshold = 20; // Порог в процентах для переключения
+
+        if (distancePercent > threshold && images.length > 1) {
+            if (distance > 0) {
+                // Свайп вправо - предыдущее изображение
+                handlePrevImage();
+            } else {
+                // Свайп влево - следующее изображение
+                handleNextImage();
+            }
+        }
+        
+        setIsDragging(false);
+        setDragOffset(0);
+        touchStartX.current = 0;
+        touchEndX.current = 0;
+    };
 
     return (
         <div className={styles.container}>
@@ -983,13 +1376,34 @@ const ProductPageNewMobile = () => {
             </div>
 
             <div className={styles.productInfo}>
-                {mainImage && (
-                    <div className={styles.imageContainer}>
-                        <img 
-                            src={getFileUrl(mainImage.image)} 
-                            alt={product.name}
-                            className={styles.mainImage}
-                        />
+                {images.length > 0 && (
+                    <div 
+                        className={styles.imageContainer}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        <div 
+                            className={styles.imageSlider}
+                            style={{ 
+                                transform: `translateX(calc(-${currentImageIndex * 100}% + ${dragOffset}%))`,
+                                transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                            }}
+                        >
+                            {images.map((img, index) => (
+                                <img 
+                                    key={img.id || index}
+                                    src={getFileUrl(img.image)} 
+                                    alt={`${product.name} - фото ${index + 1}`}
+                                    className={styles.mainImage}
+                                />
+                            ))}
+                        </div>
+                        {images.length > 1 && (
+                            <div className={styles.imageIndicator}>
+                                {currentImageIndex + 1} / {images.length}
+                            </div>
+                        )}
                     </div>
                 )}
                 <div className={styles.details}>
@@ -1266,6 +1680,15 @@ const ProductPageNewMobile = () => {
                                                             >
                                                                 Изменить
                                                             </button>
+                                                            {variant.price_id && (
+                                                                <button
+                                                                    onClick={() => openVariantLocationHistoryModal(variant.price_id, variant.name, location.name)}
+                                                                    className={styles.historyButton}
+                                                                    title="История движения"
+                                                                >
+                                                                    <i className="fa fa-history"></i> История
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     <div className={styles.activeFlagsSection}>
@@ -1372,6 +1795,205 @@ const ProductPageNewMobile = () => {
                                 );
                             })}
                         </div>
+
+                        {/* Партии для этой локации */}
+                        {(() => {
+                            const locationData = locationBatchesData[location.id];
+                            const isLoading = locationBatchesLoading[location.id];
+                            const currentFilter = locationBatchFilter[location.id] || 'all';
+                            
+                            if (isLoading && !locationData) {
+                                return (
+                                    <div className={styles.locationBatchesSection}>
+                                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                            <Loader size="small" />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            
+                            const locationBatches = locationData?.batches || [];
+                            
+                            if (locationBatches.length === 0 && !isLoading) return null;
+                            
+                            const pagination = locationData?.pagination;
+                            const hasMore = pagination && pagination.has_next;
+                            
+                            return (
+                                <div className={styles.locationBatchesSection}>
+                                    <div className={styles.locationBatchesHeader}>
+                                        <h4 className={styles.locationBatchesTitle}>Партии товара</h4>
+                                        {/* Фильтры для партий */}
+                                        <div className={styles.locationBatchFilters}>
+                                            <button
+                                                className={`${styles.filterButton} ${currentFilter === 'all' ? styles.filterButtonActive : ''}`}
+                                                onClick={() => handleLocationBatchFilterChange(location.id, 'all')}
+                                                disabled={isLoading}
+                                            >
+                                                Все
+                                            </button>
+                                            <button
+                                                className={`${styles.filterButton} ${currentFilter === 'has_stock' ? styles.filterButtonActive : ''}`}
+                                                onClick={() => handleLocationBatchFilterChange(location.id, 'has_stock')}
+                                                disabled={isLoading}
+                                            >
+                                                С остатком
+                                            </button>
+                                            <button
+                                                className={`${styles.filterButton} ${currentFilter === 'sold_out' ? styles.filterButtonActive : ''}`}
+                                                onClick={() => handleLocationBatchFilterChange(location.id, 'sold_out')}
+                                                disabled={isLoading}
+                                            >
+                                                Распроданы
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={styles.locationBatchesList}>
+                                        {locationBatches.flatMap((batch, batchIdx) => 
+                                            batch.lines?.map((line, lineIdx) => (
+                                                <div key={`${batchIdx}-${lineIdx}`} className={styles.locationBatchItem}>
+                                                    <div className={styles.locationBatchItemHeader}>
+                                                        <div className={styles.locationBatchItemInfo}>
+                                                            <strong>{line.variantName}</strong>
+                                                            {batch.batchNumber && (
+                                                                <span className={styles.batchNumber}>Партия: {batch.batchNumber}</span>
+                                                            )}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => openBatchHistoryModal(line.stockId, line.variantName, line.locationName, batch.batchNumber)}
+                                                            className={styles.historyButton}
+                                                            title="История движения партии"
+                                                        >
+                                                            <i className="fa fa-history"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div className={styles.locationBatchItemDetails}>
+                                                        <div className={styles.locationBatchDetailItem}>
+                                                            <span>Количество:</span>
+                                                            <strong>{formatNumber(line.quantity)} {product?.unit_display || 'шт.'}</strong>
+                                                        </div>
+                                                        {batch.receivedDate && (
+                                                            <div className={styles.locationBatchDetailItem}>
+                                                                <span>Дата поступления:</span>
+                                                                <span>{new Date(batch.receivedDate).toLocaleDateString('ru-RU')}</span>
+                                                            </div>
+                                                        )}
+                                                        {batch.supplier && (
+                                                            <div className={styles.locationBatchDetailItem}>
+                                                                <span>Поставщик:</span>
+                                                                <span>{batch.supplier}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className={styles.locationBatchItemActions}>
+                                                        <button
+                                                            className={styles.secondaryButton}
+                                                            onClick={() => openDefectModal(line, null, location.id)}
+                                                            disabled={defectSaving}
+                                                        >
+                                                            <i className="fa fa-exclamation-triangle"></i> Добавить брак
+                                                        </button>
+                                                        <button
+                                                            className={styles.secondaryButton}
+                                                            onClick={() => openWriteoffModal(line, null, location.id)}
+                                                            disabled={writeoffSaving}
+                                                        >
+                                                            <i className="fa fa-trash"></i> Списать товар
+                                                        </button>
+                                                    </div>
+                                                    {line.writeoffs && line.writeoffs.length > 0 && (
+                                                        <div className={styles.defectsList}>
+                                                            {line.writeoffs.map(writeoff => (
+                                                                <div key={writeoff.id} className={styles.defectItem}>
+                                                                    <div>
+                                                                        <strong>Списание: {formatNumber(writeoff.quantity)} {product?.unit_display || 'шт.'}</strong>
+                                                                        <span>
+                                                                            {writeoff.reasonDisplay || writeoff.reason} 
+                                                                            {writeoff.reasonDetail ? ` - ${writeoff.reasonDetail}` : ''}
+                                                                            {writeoff.transfer && (
+                                                                                <span className={styles.transferBadge}>
+                                                                                    (Перемещение {writeoff.transferNumber})
+                                                                                </span>
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className={styles.defectActions}>
+                                                                        {!writeoff.transfer && (
+                                                                            <>
+                                                                                <button
+                                                                                    className={styles.linkButton}
+                                                                                    onClick={() => openWriteoffModal(line, writeoff, location.id)}
+                                                                                    disabled={writeoffSaving}
+                                                                                >
+                                                                                    Изменить
+                                                                                </button>
+                                                                                <button
+                                                                                    className={styles.linkButtonDanger}
+                                                                                    onClick={() => handleDeleteWriteoff(writeoff.id)}
+                                                                                    disabled={writeoffSaving}
+                                                                                >
+                                                                                    Удалить
+                                                                                </button>
+                                                                            </>
+                                                                        )}
+                                                                        {writeoff.transfer && (
+                                                                            <span className={styles.transferInfo}>
+                                                                                Связано с перемещением
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {line.defects && line.defects.length > 0 && (
+                                                        <div className={styles.defectsList}>
+                                                            {line.defects.map(defect => (
+                                                                <div key={defect.id} className={styles.defectItem}>
+                                                                    <div>
+                                                                        <strong>Брак: {formatNumber(defect.quantity)} {product?.unit_display || 'шт.'}</strong>
+                                                                        <span>{defect.reason || 'Без комментария'}</span>
+                                                                    </div>
+                                                                    <div className={styles.defectActions}>
+                                                                        <button
+                                                                            className={styles.linkButton}
+                                                                            onClick={() => openDefectModal(line, defect, location.id)}
+                                                                            disabled={defectSaving}
+                                                                        >
+                                                                            Изменить
+                                                                        </button>
+                                                                        <button
+                                                                            className={styles.linkButtonDanger}
+                                                                            onClick={() => handleDeleteDefect(defect.id)}
+                                                                            disabled={defectSaving}
+                                                                        >
+                                                                            Удалить
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                    
+                                    {hasMore && (
+                                        <div className={styles.loadMoreBatchesContainer}>
+                                            <button
+                                                onClick={() => handleLoadMoreBatches(location.id)}
+                                                disabled={isLoading}
+                                                className={styles.loadMoreButton}
+                                            >
+                                                {isLoading ? 'Загрузка...' : 'Загрузить еще'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 ))}
                 </div>
@@ -2255,6 +2877,232 @@ const ProductPageNewMobile = () => {
                                 disabled={writeoffSaving}
                             >
                                 {writeoffSaving ? 'Сохраняем...' : (writeoffModal.writeoffId ? 'Сохранить' : 'Списать')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Модальное окно истории партии */}
+            {batchHistoryModal.open && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent} style={{ maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div className={styles.modalHeader}>
+                            <h3>История движения товара</h3>
+                            <button className={styles.closeButton} onClick={closeBatchHistoryModal}>
+                                <i className="fa fa-times"></i>
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            {batchHistoryModal.loading ? (
+                                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <Loader size="medium" />
+                                </div>
+                            ) : batchHistoryModal.history.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--silver-whisper)' }}>
+                                    История движения отсутствует
+                                </div>
+                            ) : (
+                                <div>
+                                    <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--onyx-midnight)', borderRadius: '8px', border: '1px solid var(--gilded-shadow)' }}>
+                                        <div><strong>Вариант:</strong> {batchHistoryModal.variantName}</div>
+                                        <div><strong>Локация:</strong> {batchHistoryModal.locationName}</div>
+                                        {batchHistoryModal.batchNumber && <div><strong>Партия:</strong> {batchHistoryModal.batchNumber}</div>}
+                                    </div>
+                                    <div className={styles.historyContainer}>
+                                        {batchHistoryModal.history.map((dateGroup, idx) => (
+                                            <div key={idx} className={styles.historyDateGroup}>
+                                                <div className={styles.historyDateHeader}>
+                                                    <i className="fa fa-calendar"></i>
+                                                    <span>{dateGroup.date_display}</span>
+                                                </div>
+                                                <div className={styles.historyRecords}>
+                                                    {dateGroup.records.map((record, recordIdx) => {
+                                                        const isPositive = record.quantity > 0;
+                                                        const quantityDisplay = Math.abs(record.quantity);
+                                                        return (
+                                                            <div key={recordIdx} className={styles.historyRecord}>
+                                                                <div className={styles.historyRecordHeader}>
+                                                                    <span className={styles.historyRecordType}>
+                                                                        {record.type === 'received' && <i className="fa fa-arrow-down" style={{ color: '#4ade80' }}></i>}
+                                                                        {record.type === 'sale' && <i className="fa fa-shopping-cart" style={{ color: '#f87171' }}></i>}
+                                                                        {record.type === 'return' && <i className="fa fa-undo" style={{ color: '#4ade80' }}></i>}
+                                                                        {record.type === 'defect' && <i className="fa fa-exclamation-triangle" style={{ color: '#fbbf24' }}></i>}
+                                                                        {record.type === 'writeoff' && <i className="fa fa-trash" style={{ color: '#f87171' }}></i>}
+                                                                        {record.type === 'inventory' && <i className="fa fa-clipboard-check" style={{ color: record.quantity > 0 ? '#4ade80' : '#f87171' }}></i>}
+                                                                        {record.type_display}
+                                                                    </span>
+                                                                    <span className={styles.historyRecordTime}>
+                                                                        {record.date ? new Date(record.date).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    </span>
+                                                                </div>
+                                                                <div className={styles.historyRecordQuantity} style={{ color: isPositive ? '#4ade80' : '#f87171' }}>
+                                                                    {isPositive ? '+' : '-'}{formatNumber(quantityDisplay)} {product?.unit_display || 'шт.'}
+                                                                </div>
+                                                                {record.user && (
+                                                                    <div className={styles.historyRecordUser}>
+                                                                        <i className="fa fa-user"></i>
+                                                                        {record.user}
+                                                                    </div>
+                                                                )}
+                                                                {record.description && (
+                                                                    <div className={styles.historyRecordDescription}>
+                                                                        {record.description}
+                                                                    </div>
+                                                                )}
+                                                                {record.receipt_number && (
+                                                                    <div className={styles.historyRecordReceipt}>
+                                                                        <i className="fa fa-receipt"></i>
+                                                                        Чек: {record.receipt_number}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button
+                                className={styles.primaryButton}
+                                onClick={closeBatchHistoryModal}
+                            >
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Модальное окно истории варианта в локации */}
+            {variantLocationHistoryModal.open && (
+                <div className={styles.modalOverlay}>
+                    <div 
+                        className={styles.modalContent} 
+                        style={{ maxWidth: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+                    >
+                        <div className={styles.modalHeader}>
+                            <h3>История движения товара</h3>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <button
+                                    onClick={exportVariantLocationHistoryToExcel}
+                                    className={styles.exportButton}
+                                    title="Экспорт в Excel"
+                                >
+                                    <i className="fa fa-file-excel"></i> Excel
+                                </button>
+                                <button className={styles.closeButton} onClick={closeVariantLocationHistoryModal}>
+                                    <i className="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div 
+                            className={styles.modalBody} 
+                            style={{ flex: 1, overflowY: 'auto' }}
+                            onScroll={(e) => {
+                                const element = e.target;
+                                const scrollBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+                                if (scrollBottom < 100 && variantLocationHistoryModal.hasMore && !variantLocationHistoryModal.loadingMore) {
+                                    loadMoreVariantLocationHistory();
+                                }
+                            }}
+                        >
+                            {variantLocationHistoryModal.loading ? (
+                                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <Loader size="medium" />
+                                </div>
+                            ) : variantLocationHistoryModal.history.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--silver-whisper)' }}>
+                                    История движения отсутствует
+                                </div>
+                            ) : (
+                                <div>
+                                    <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--onyx-midnight)', borderRadius: '8px', border: '1px solid var(--gilded-shadow)' }}>
+                                        <div><strong>Вариант:</strong> {variantLocationHistoryModal.variantName}</div>
+                                        <div><strong>Локация:</strong> {variantLocationHistoryModal.locationName}</div>
+                                    </div>
+                                    <div className={styles.historyContainer}>
+                                        {variantLocationHistoryModal.history.map((dateGroup, idx) => (
+                                            <div key={idx} className={styles.historyDateGroup}>
+                                                <div className={styles.historyDateHeader}>
+                                                    <i className="fa fa-calendar"></i>
+                                                    <span>{dateGroup.date_display}</span>
+                                                </div>
+                                                <div className={styles.historyRecords}>
+                                                    {dateGroup.records.map((record, recordIdx) => {
+                                                        const isPositive = record.quantity > 0;
+                                                        const quantityDisplay = Math.abs(record.quantity);
+                                                        return (
+                                                            <div key={recordIdx} className={styles.historyRecord}>
+                                                                <div className={styles.historyRecordHeader}>
+                                                                    <span className={styles.historyRecordType}>
+                                                                        {record.type === 'received' && <i className="fa fa-arrow-down" style={{ color: '#4ade80' }}></i>}
+                                                                        {record.type === 'sale' && <i className="fa fa-shopping-cart" style={{ color: '#f87171' }}></i>}
+                                                                        {record.type === 'return' && <i className="fa fa-undo" style={{ color: '#4ade80' }}></i>}
+                                                                        {record.type === 'defect' && <i className="fa fa-exclamation-triangle" style={{ color: '#fbbf24' }}></i>}
+                                                                        {record.type === 'writeoff' && <i className="fa fa-trash" style={{ color: '#f87171' }}></i>}
+                                                                        {record.type === 'inventory' && <i className="fa fa-clipboard-check" style={{ color: record.quantity > 0 ? '#4ade80' : '#f87171' }}></i>}
+                                                                        {record.type_display}
+                                                                    </span>
+                                                                    <span className={styles.historyRecordTime}>
+                                                                        {record.date ? new Date(record.date).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    </span>
+                                                                </div>
+                                                                <div className={styles.historyRecordQuantity} style={{ color: isPositive ? '#4ade80' : '#f87171' }}>
+                                                                    {isPositive ? '+' : '-'}{formatNumber(quantityDisplay)} {product?.unit_display || 'шт.'}
+                                                                </div>
+                                                                {record.user && (
+                                                                    <div className={styles.historyRecordUser}>
+                                                                        <i className="fa fa-user"></i>
+                                                                        {record.user}
+                                                                    </div>
+                                                                )}
+                                                                {record.description && (
+                                                                    <div className={styles.historyRecordDescription}>
+                                                                        {record.description}
+                                                                    </div>
+                                                                )}
+                                                                {record.receipt_number && (
+                                                                    <div className={styles.historyRecordReceipt}>
+                                                                        <i className="fa fa-receipt"></i>
+                                                                        Чек: {record.receipt_number}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {variantLocationHistoryModal.loadingMore && (
+                                        <div style={{ textAlign: 'center', padding: '1rem' }}>
+                                            <Loader size="small" />
+                                        </div>
+                                    )}
+                                    {variantLocationHistoryModal.hasMore && !variantLocationHistoryModal.loadingMore && (
+                                        <div style={{ textAlign: 'center', padding: '1rem' }}>
+                                            <button
+                                                className={styles.loadMoreButton}
+                                                onClick={loadMoreVariantLocationHistory}
+                                            >
+                                                Загрузить еще
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <button
+                                className={styles.primaryButton}
+                                onClick={closeVariantLocationHistoryModal}
+                            >
+                                Закрыть
                             </button>
                         </div>
                     </div>
