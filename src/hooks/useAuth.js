@@ -38,7 +38,6 @@ const useAuth = () => {
       });
       
       if (response.status === 200) {
-        console.log('Токен успешно обновлен');
         return true;
       }
       return false;

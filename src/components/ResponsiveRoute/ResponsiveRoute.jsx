@@ -18,7 +18,6 @@ const ResponsiveRoute = ({
 
   // Выбираем компонент в зависимости от устройства
   const Component = isMobile ? MobileComponent : DesktopComponent;
-  console.log('isMobile', isMobile, 'Component', Component);
 
   // Если мобильная версия не предоставлена, используем десктопную
   if (isMobile && !MobileComponent) {
