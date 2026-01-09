@@ -46,6 +46,25 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
+// Список публичных эндпоинтов, где 401 - это нормальная ошибка (не требует обновления токена)
+const publicEndpoints = [
+  'accounts/api/auth/login/',
+  'accounts/api/auth/register/',
+  'accounts/api/auth/verify-email/',
+  'accounts/api/auth/password-reset/',
+  'accounts/api/auth/password-reset-confirm/',
+  'accounts/api/auth/resend-code/',
+  'accounts/api/auth/google/',
+  'accounts/api/auth/telegram/',
+  'accounts/api/token/refresh/', // Сам эндпоинт обновления токена тоже нужно исключить
+];
+
+// Функция для проверки, является ли URL публичным эндпоинтом
+const isPublicEndpoint = (url) => {
+  if (!url) return false;
+  return publicEndpoints.some(endpoint => url.includes(endpoint));
+};
+
 // Интерцептор ответов для автоматического обновления токенов
 axios.interceptors.response.use(
   (response) => {
@@ -54,8 +73,8 @@ axios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Если ошибка 401 и это не запрос обновления токена
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Если ошибка 401 и это не запрос обновления токена или публичный эндпоинт
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublicEndpoint(originalRequest.url)) {
       if (isRefreshing) {
         // Если уже идет обновление токена, добавляем запрос в очередь
         return new Promise((resolve, reject) => {

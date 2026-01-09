@@ -4,8 +4,10 @@ import axios from "../../api/axiosDefault.js";
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import styles from './Registration.module.css';
 import Loader from '../../components/Loader';
+import { useAuth } from '../../hooks/useAuth';
 
 const AuthPage = () => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isLoginView, setIsLoginView] = useState(true);
   const [registrationStep, setRegistrationStep] = useState(1); // 1 - форма регистрации, 2 - верификация email
   const [passwordResetStep, setPasswordResetStep] = useState(0); // 0 - нет сброса, 1 - ввод email, 2 - ввод кода и пароля
@@ -35,6 +37,13 @@ const AuthPage = () => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 5000);
   };
+
+  // Редирект, если пользователь уже залогинен
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate(redirectUrl, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate, redirectUrl]);
 
   useEffect(() => {
     // Google Auth Script
@@ -355,7 +364,7 @@ const AuthPage = () => {
         // Перенаправляем на страницу входа с сообщением об успехе
         setPasswordResetStep(0);
         setFormData(prev => ({ ...prev, resetCode: '', newPassword1: '', newPassword2: '' }));
-        setErrors({ success: 'Пароль успешно изменен. Теперь вы можете войти с новым паролем.' });
+        showNotification('success', 'Пароль успешно изменен. Теперь вы можете войти с новым паролем.');
       }
     } catch (error) {
       const errorData = error.response?.data;
@@ -448,7 +457,7 @@ const AuthPage = () => {
         email: pendingUser.email
       }, { withCredentials: true });
       
-      setErrors({ success: 'Код подтверждения отправлен повторно' });
+      showNotification('success', 'Код подтверждения отправлен повторно');
     } catch (error) {
       const errorData = error.response?.data;
       if (errorData) {
@@ -489,7 +498,7 @@ const AuthPage = () => {
         email: formData.email
       });
       
-      setErrors({ success: 'Код подтверждения отправлен повторно' });
+      showNotification('success', 'Код подтверждения отправлен повторно');
     } catch (error) {
       const errorData = error.response?.data;
       if (errorData) {
@@ -501,6 +510,20 @@ const AuthPage = () => {
       setIsLoading(false);
     }
   };
+
+  // Показываем загрузчик, пока проверяется аутентификация
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Loader size="large" />
+      </div>
+    );
+  }
+
+  // Если пользователь уже залогинен, ничего не рендерим (редирект произойдет в useEffect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className={`${styles.container} ${isLoginView ? styles.loginBg : styles.registerBg}`}>
@@ -554,9 +577,6 @@ const AuthPage = () => {
               {notification.message}
             </div>
           )}
-          
-          {errors.auth && <div className={styles.authError}>{errors.auth}</div>}
-          {errors.success && <div className={styles.successMessage}>{errors.success}</div>}
 
           {registrationStep === 2 && (
             <div className={styles.verificationInfo}>
