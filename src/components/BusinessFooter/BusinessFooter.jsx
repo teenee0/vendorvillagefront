@@ -14,26 +14,31 @@ export const BusinessFooter = () => {
   // Достаём `business_slug` из URL (например, "/business/myshop/main" → "myshop")
   const business_slug = location.pathname.split('/')[2];
   
-  // Состояние для локаций
+  // Состояние для локаций и бизнеса
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [businessInfo, setBusinessInfo] = useState(null);
   
-  // Загружаем локации при монтировании компонента
+  // Загружаем локации и информацию о бизнесе при монтировании компонента
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/business/${business_slug}/locations/`);
-        setLocations(response.data);
+        const [locationsRes, businessRes] = await Promise.all([
+          axios.get(`/api/business/${business_slug}/locations/`),
+          axios.get(`/api/business/${business_slug}/settings/`)
+        ]);
+        setLocations(locationsRes.data);
+        setBusinessInfo(businessRes.data);
       } catch (err) {
-        console.error('Ошибка при загрузке локаций:', err);
+        console.error('Ошибка при загрузке данных:', err);
       } finally {
         setLoading(false);
       }
     };
 
     if (business_slug) {
-      fetchLocations();
+      fetchData();
     }
   }, [business_slug]);
   
@@ -88,16 +93,59 @@ export const BusinessFooter = () => {
     navigate(`/business/${business_slug}/location-select`);
   };
 
-  const items = [
-    { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
-    { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
-    { icon: <div>📋</div>, label: 'Партии', onClick: () => handleNavigate('/batches') },
-    { icon: <div>💳</div>, label: 'Продажа', onClick: () => handleNavigate('/sale-products') },
-    { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
-    { icon: <div>✅</div>, label: 'Задачи', onClick: () => handleNavigate('/tasks') },
-    { icon: <div>📊</div>, label: 'Инвентаризация', onClick: () => handleNavigate('/inventory') },
-    { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
-  ];
+  // Функция для генерации элементов навигации в зависимости от типа бизнеса и типа импорта
+  const getNavigationItems = () => {
+    if (!businessInfo) {
+      // Если данные еще не загружены, возвращаем базовый набор
+      return [
+        { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
+        { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
+        { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
+      ];
+    }
+
+    const businessTypeName = businessInfo?.business_type_name || '';
+    const importType = businessInfo?.import_type || 'accounting_system';
+
+    // Если тип бизнеса - Рестораны
+    if (businessTypeName === 'Рестораны') {
+      return [
+        { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
+        { icon: <div>📦</div>, label: 'Меню', onClick: () => handleNavigate('/products') },
+        { icon: <div>💳</div>, label: 'Заказы', onClick: () => handleNavigate('/sale-products') },
+        { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
+        { icon: <div>✅</div>, label: 'Задачи', onClick: () => handleNavigate('/tasks') },
+        { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
+      ];
+    }
+
+    // Для товарного бизнеса (Маркетплейс и другие)
+    // Если используется учетная система (accounting_system)
+    if (importType === 'accounting_system') {
+      return [
+        { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
+        { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
+        { icon: <div>📋</div>, label: 'Партии', onClick: () => handleNavigate('/batches') },
+        { icon: <div>💳</div>, label: 'Продажа', onClick: () => handleNavigate('/sale-products') },
+        { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
+        { icon: <div>✅</div>, label: 'Задачи', onClick: () => handleNavigate('/tasks') },
+        { icon: <div>📊</div>, label: 'Инвентаризация', onClick: () => handleNavigate('/inventory') },
+        { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
+      ];
+    }
+
+    // Если используется своя система (own_system)
+    // Упрощенный набор страниц для своей системы
+    return [
+      { icon: <div>🏠</div>, label: 'Главная', onClick: () => handleNavigate('/main') },
+      { icon: <div>📦</div>, label: 'Товары', onClick: () => handleNavigate('/products') },
+      { icon: <div>📊</div>, label: 'Импорт Excel', onClick: () => handleNavigate('/products/excel-import') },
+      { icon: <div>📋</div>, label: 'Партии', onClick: () => handleNavigate('/batches') },
+      { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
+    ];
+  };
+
+  const items = getNavigationItems();
 
   // Выбираем компонент в зависимости от устройства
   if (isMobile) {

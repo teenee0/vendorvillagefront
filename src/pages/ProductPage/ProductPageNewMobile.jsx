@@ -770,6 +770,10 @@ const ProductPageNewMobile = () => {
                     variantId,
                     variantName: variant.name,
                     variantOnLocationId: variant.price_id,
+                    // Подтягиваем значения активности из БД, если они есть
+                    is_active_on_marketplace: variant.is_active_on_marketplace || false,
+                    is_active_for_offline_sale: variant.is_active_for_offline_sale || false,
+                    is_active_on_own_site: variant.is_active_on_own_site || false,
                 };
             }),
         }));
@@ -799,7 +803,6 @@ const ProductPageNewMobile = () => {
         }
 
         const payload = {
-            batch_number: batchForm.batch_number || undefined,
             received_date: batchForm.received_date || undefined,
             supplier: batchForm.supplier || undefined,
             notes: batchForm.notes || '',
@@ -814,6 +817,11 @@ const ProductPageNewMobile = () => {
                 is_active_on_own_site: !!line.is_active_on_own_site,
             })),
         };
+        
+        // Если batch_number указан и не пустой, добавляем его
+        if (batchForm.batch_number && batchForm.batch_number.trim() !== '') {
+            payload.batch_number = batchForm.batch_number;
+        }
 
         try {
             setBatchSaving(true);

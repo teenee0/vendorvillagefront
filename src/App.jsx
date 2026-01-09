@@ -37,6 +37,8 @@ import LocationWrapper from './components/LocationWrapper/LocationWrapper.jsx';
 import LocationSelectPage from './pages/LocationSelectPage/LocationSelectPage.jsx';
 import ProductAddPage from './pages/ProductAddPage/ProductAddPage.jsx';
 import ProductAddPageMobile from './pages/ProductAddPage/ProductAddPageMobile.jsx';
+import ExcelImportPage from './pages/ExcelImportPage/ExcelImportPage.jsx';
+import ExcelImportPageMobile from './pages/ExcelImportPage/ExcelImportPageMobile.jsx';
 import ProductPageNew from './pages/ProductPage/ProductPageNew.jsx';
 import ProductPageNewMobile from './pages/ProductPage/ProductPageNewMobile.jsx';
 import SalesPage from './pages/SalesPage/SalesPage.jsx';
@@ -140,6 +142,15 @@ function App() {
                           <ResponsiveRoute 
                             desktopComponent={ProductAddPage}
                             mobileComponent={ProductAddPageMobile}
+                          />
+                        } 
+                      />
+                      <Route 
+                        path="/business/:business_slug/products/excel-import" 
+                        element={
+                          <ResponsiveRoute 
+                            desktopComponent={ExcelImportPage}
+                            mobileComponent={ExcelImportPageMobile}
                           />
                         } 
                       />

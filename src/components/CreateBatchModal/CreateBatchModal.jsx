@@ -78,9 +78,10 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
       reserved_quantity: 0,
       defects: [],
       is_available_for_sale: true,
-      is_active_on_marketplace: false,
-      is_active_for_offline_sale: false,
-      is_active_on_own_site: false,
+      // Подтягиваем значения активности из БД, если они есть
+      is_active_on_marketplace: binding.is_active_on_marketplace || false,
+      is_active_for_offline_sale: binding.is_active_for_offline_sale || false,
+      is_active_on_own_site: binding.is_active_on_own_site || false,
       variant_name: `${binding.product_name} ${binding.variant_name || ''}`.trim(),
       variant_data: {
         name: binding.variant_name,
@@ -237,8 +238,14 @@ const CreateBatchModal = ({ businessSlug, onClose, onSuccess }) => {
         })
       };
       
+      // Удаляем пустые поля
       if (!batchData.received_by) {
         delete batchData.received_by;
+      }
+      
+      // Если batch_number пустой, не передаем его (будет сгенерирован автоматически)
+      if (!batchData.batch_number || batchData.batch_number.trim() === '') {
+        delete batchData.batch_number;
       }
       
       await onSuccess(batchData, documents);

@@ -67,6 +67,9 @@ const ProductSelectorModal = ({ businessSlug, onSelect, onClose, selectedVariant
               quantity: location.quantity,
               variant_on_location_id: location.id, // Для создания ProductStock
               unit_display: location.unit_display || unitDisplay, // Единица измерения
+              is_active_on_marketplace: location.is_active_on_marketplace || false,
+              is_active_for_offline_sale: location.is_active_for_offline_sale || false,
+              is_active_on_own_site: location.is_active_on_own_site || false,
             });
           });
         });
