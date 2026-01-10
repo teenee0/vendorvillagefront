@@ -302,10 +302,6 @@ function Main() {
                 Товары, блюда и бизнесы, которые могут вас заинтересовать
               </p>
             </div>
-            <Link to="/business-categories" className={styles.sectionViewAll}>
-              Смотреть все
-              <i className="fas fa-arrow-right"></i>
-            </Link>
           </div>
 
           {loading && products.length === 0 ? (
