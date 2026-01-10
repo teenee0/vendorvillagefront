@@ -126,7 +126,14 @@ const ProductCard = ({ product }) => {
                 <h3 className="product-name">{product.name}</h3>
                 
                 <div className="business-name">
-                    {product.business_name}
+                    <span>{product.business_name}</span>
+                    {product.business_logo && (
+                        <img 
+                            src={getImageUrl(product.business_logo)} 
+                            alt={product.business_name}
+                            className="business-logo"
+                        />
+                    )}
                 </div>
                 
                 <button

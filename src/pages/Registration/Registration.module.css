@@ -424,29 +424,48 @@
 
 /* Стили для верификации email */
 .verificationInfo {
-  background: linear-gradient(135deg, var(--blue-light) 0%, rgba(59, 130, 246, 0.05) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.03) 100%);
+  border: 2px solid rgba(59, 130, 246, 0.25);
+  border-radius: 16px;
+  padding: 28px 24px;
+  margin-bottom: 28px;
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.verificationInfo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-dark) 100%);
 }
 
 .verificationInfo p {
-  margin: 8px 0;
+  margin: 10px 0;
   color: var(--text-dark);
   font-size: 15px;
   font-weight: 500;
+  line-height: 1.6;
+}
+
+.verificationInfo p:first-child {
+  margin-top: 0;
+  font-size: 16px;
 }
 
 .verificationInfo strong {
-  color: var(--blue);
+  color: var(--blue-dark);
   font-weight: 700;
   background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-size: 16px;
 }
 
 .verificationActions {
@@ -525,14 +544,29 @@
 /* Анимация для ввода кода */
 .verificationCodeInput {
   text-align: center;
-  font-size: 18px;
-  letter-spacing: 2px;
-  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: 8px;
+  font-weight: 700;
+  padding: 20px 24px !important;
+  background: rgba(59, 130, 246, 0.05) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  font-family: 'Inter', monospace;
+  text-transform: uppercase;
+}
+
+.verificationCodeInput:focus {
+  background: rgba(59, 130, 246, 0.08) !important;
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+  letter-spacing: 10px;
 }
 
 .verificationCodeInput::placeholder {
   letter-spacing: normal;
-  font-weight: normal;
+  font-weight: 400;
+  text-transform: none;
+  font-size: 16px;
+  color: var(--medium-gray);
 }
 
 /* Стили для чекбокса согласия на обработку ПДн */
