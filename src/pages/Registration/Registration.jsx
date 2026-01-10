@@ -27,11 +27,201 @@ const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingUser, setPendingUser] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [resendCooldown, setResendCooldown] = useState(0); // Оставшееся время в секундах
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
   // Получаем URL для редиректа из query параметров
   const redirectUrl = searchParams.get('redirect') || '/account';
+  
+  // Извлечь сообщение об ошибке из формата Django REST Framework ErrorDetail
+  const extractErrorMessage = (detail) => {
+    if (!detail) return null;
+    
+    // Если это строка, попробуем извлечь сообщение из формата ErrorDetail
+    if (typeof detail === 'string') {
+      // Формат: "[ErrorDetail(string='текст сообщения', code='invalid')]"
+      const match = detail.match(/string='([^']+)'/);
+      if (match && match[1]) {
+        return match[1];
+      }
+      // Если не нашли, возвращаем как есть
+      return detail;
+    }
+    
+    // Если это массив, берем первый элемент
+    if (Array.isArray(detail) && detail.length > 0) {
+      const first = detail[0];
+      if (typeof first === 'string') {
+        const match = first.match(/string='([^']+)'/);
+        if (match && match[1]) {
+          return match[1];
+        }
+        return first;
+      }
+      return String(first);
+    }
+    
+    return String(detail);
+  };
+  
+  // Форматировать время для отображения таймера
+  const formatCooldownTime = (seconds) => {
+    if (seconds <= 0) return '';
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (minutes > 0) {
+      return `${minutes} мин ${secs} сек`;
+    }
+    return `${secs} сек`;
+  };
+  
+  // Получить ключ для localStorage по email
+  const getStorageKey = (email) => `verification_code_${email}`;
+  const getPasswordResetStorageKey = (email) => `password_reset_code_${email}`;
+  
+  // Получить данные о отправках из localStorage
+  const getSendHistory = (email) => {
+    const key = getStorageKey(email);
+    const data = localStorage.getItem(key);
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return { sends: [], lastSend: null };
+      }
+    }
+    return { sends: [], lastSend: null };
+  };
+  
+  // Получить данные о отправках password reset из localStorage
+  const getPasswordResetHistory = (email) => {
+    const key = getPasswordResetStorageKey(email);
+    const data = localStorage.getItem(key);
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return { sends: [], lastSend: null };
+      }
+    }
+    return { sends: [], lastSend: null };
+  };
+  
+  // Сохранить данные о отправке
+  const saveSendHistory = (email) => {
+    const key = getStorageKey(email);
+    const history = getSendHistory(email);
+    const now = Date.now();
+    const last24h = now - 24 * 60 * 60 * 1000;
+    
+    // Удаляем отправки старше 24 часов
+    history.sends = history.sends.filter(time => time > last24h);
+    history.sends.push(now);
+    history.lastSend = now;
+    
+    localStorage.setItem(key, JSON.stringify(history));
+  };
+  
+  // Сохранить данные о отправке password reset
+  const savePasswordResetHistory = (email) => {
+    const key = getPasswordResetStorageKey(email);
+    const history = getPasswordResetHistory(email);
+    const now = Date.now();
+    const last24h = now - 24 * 60 * 60 * 1000;
+    
+    // Удаляем отправки старше 24 часов
+    history.sends = history.sends.filter(time => time > last24h);
+    history.sends.push(now);
+    history.lastSend = now;
+    
+    localStorage.setItem(key, JSON.stringify(history));
+  };
+  
+  // Проверить, можно ли отправить код
+  const canResendCode = (email) => {
+    const history = getSendHistory(email);
+    const now = Date.now();
+    const last24h = now - 24 * 60 * 60 * 1000;
+    
+    // Удаляем отправки старше 24 часов
+    const recentSends = history.sends.filter(time => time > last24h);
+    
+    // Количество отправок (включая первую при регистрации)
+    const sendCount = recentSends.length;
+    
+    // Определяем минимальный интервал
+    // Первые 2 отправки (1-я и 2-я) - раз в минуту
+    // После 2 отправок (3-я и далее) - раз в 5 минут
+    const minInterval = sendCount < 2 ? 60 * 1000 : 5 * 60 * 1000; // 1 минута или 5 минут
+    
+    if (history.lastSend) {
+      const timeSinceLastSend = now - history.lastSend;
+      if (timeSinceLastSend < minInterval) {
+        return {
+          canSend: false,
+          remainingSeconds: Math.ceil((minInterval - timeSinceLastSend) / 1000)
+        };
+      }
+    }
+    
+    return { canSend: true, remainingSeconds: 0 };
+  };
+  
+  // Проверить, можно ли отправить код password reset
+  const canResendPasswordResetCode = (email) => {
+    const history = getPasswordResetHistory(email);
+    const now = Date.now();
+    const last24h = now - 24 * 60 * 60 * 1000;
+    
+    // Удаляем отправки старше 24 часов
+    const recentSends = history.sends.filter(time => time > last24h);
+    
+    // Количество отправок
+    const sendCount = recentSends.length;
+    
+    // Определяем минимальный интервал
+    // Первые 2 отправки (1-я и 2-я) - раз в минуту
+    // После 2 отправок (3-я и далее) - раз в 5 минут
+    const minInterval = sendCount < 2 ? 60 * 1000 : 5 * 60 * 1000; // 1 минута или 5 минут
+    
+    if (history.lastSend) {
+      const timeSinceLastSend = now - history.lastSend;
+      if (timeSinceLastSend < minInterval) {
+        return {
+          canSend: false,
+          remainingSeconds: Math.ceil((minInterval - timeSinceLastSend) / 1000)
+        };
+      }
+    }
+    
+    return { canSend: true, remainingSeconds: 0 };
+  };
+  
+  // Сброс таймера при выходе со шага верификации или password reset
+  useEffect(() => {
+    if (registrationStep !== 2 && passwordResetStep !== 2) {
+      setResendCooldown(0);
+    }
+  }, [registrationStep, passwordResetStep]);
+  
+  // Обновление таймера обратного отсчета (просто уменьшает значение каждую секунду)
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      setResendCooldown(prev => {
+        if (prev <= 1) {
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
@@ -335,6 +525,10 @@ const AuthPage = () => {
             email: response.data.email,
             id: response.data.pending_user_id
           });
+          // Сохраняем время первой отправки при регистрации
+          saveSendHistory(response.data.email);
+          // Устанавливаем таймер на 60 секунд (первая отправка - раз в минуту)
+          setResendCooldown(60);
           setRegistrationStep(2);
         } else if (registrationStep === 2) {
           // Второй этап - проверка кода верификации
@@ -347,11 +541,72 @@ const AuthPage = () => {
         }
       } else if (passwordResetStep === 1) {
         // Запрос сброса пароля
-        await axios.post('accounts/api/auth/password-reset/', {
-          email: formData.email
-        });
+        try {
+          await axios.post('accounts/api/auth/password-reset/', {
+            email: formData.email
+          });
+          
+          // Сохраняем время первой отправки password reset
+          savePasswordResetHistory(formData.email);
+          // Устанавливаем таймер на 60 секунд (первая отправка - раз в минуту)
+          setResendCooldown(60);
+          // Переходим на шаг 2 только при успешной отправке
+          setPasswordResetStep(2);
+        } catch (resetError) {
+          // Обрабатываем ошибку
+          const resetErrorData = resetError.response?.data;
+          
+          if (resetError.response?.status === 404) {
+            // Пользователь не найден - остаемся на шаге 1 и показываем ошибку
+            const message = extractErrorMessage(resetErrorData?.detail) || 'Пользователь с таким email не найден';
+            showNotification('error', message);
+            setErrors({ email: message });
+            // Не переходим на шаг 2
+            return;
+          } else if (resetError.response?.status === 429) {
+            // Лимит превышен - переходим на шаг 2 с таймером
+            const message = extractErrorMessage(resetErrorData?.detail) || 'Превышен лимит отправки кодов';
+            showNotification('error', message);
+            let totalSeconds = 0;
+            
+            // Проверяем формат с минутами и секундами: "через X мин Y сек"
+            const minSecMatch = message.match(/через\s+(\d+)\s*мин\s+(\d+)\s*сек/);
+            if (minSecMatch) {
+              const minutes = parseInt(minSecMatch[1]) || 0;
+              const seconds = parseInt(minSecMatch[2]) || 0;
+              totalSeconds = minutes * 60 + seconds;
+            } else {
+              // Проверяем формат только с секундами: "через X секунд"
+              const secMatch = message.match(/через\s+(\d+)\s*секунд/);
+              if (secMatch) {
+                totalSeconds = parseInt(secMatch[1]) || 0;
+              } else {
+                // Проверяем формат только с минутами: "через X мин"
+                const minMatch = message.match(/через\s+(\d+)\s*мин/);
+                if (minMatch) {
+                  totalSeconds = parseInt(minMatch[1]) * 60 || 0;
+                }
+              }
+            }
+            
+            if (totalSeconds > 0) {
+              setResendCooldown(totalSeconds);
+            }
+            // Переходим на шаг 2 даже при ошибке лимита
+            setPasswordResetStep(2);
+            return;
+          } else {
+            // Для других ошибок остаемся на шаге 1
+            const errorMsg = extractErrorMessage(resetErrorData?.detail) || 'Ошибка отправки кода';
+            showNotification('error', errorMsg);
+            setErrors({ email: errorMsg });
+            // Не переходим на шаг 2
+            return;
+          }
+        }
         
-        setPasswordResetStep(2);
+        // Если дошли сюда, значит запрос был успешным - выходим, чтобы не попасть в общий catch
+        return;
       } else if (passwordResetStep === 2) {
         // Подтверждение сброса пароля
         await axios.post('accounts/api/auth/password-reset-confirm/', {
@@ -449,6 +704,14 @@ const AuthPage = () => {
   const handleResendCode = async () => {
     if (!pendingUser) return;
     
+    // Проверяем локальный лимит (дополнительная проверка на фронтенде)
+    const { canSend, remainingSeconds } = canResendCode(pendingUser.email);
+    if (!canSend) {
+      setResendCooldown(remainingSeconds);
+      showNotification('error', `Повторную отправку кода можно сделать через ${remainingSeconds} сек`);
+      return;
+    }
+    
     setIsLoading(true);
     setErrors({});
     
@@ -457,13 +720,53 @@ const AuthPage = () => {
         email: pendingUser.email
       }, { withCredentials: true });
       
+      // Сохраняем время отправки
+      saveSendHistory(pendingUser.email);
+      
       showNotification('success', 'Код подтверждения отправлен повторно');
     } catch (error) {
       const errorData = error.response?.data;
-      if (errorData) {
-        setErrors({ auth: errorData.detail || 'Ошибка отправки кода' });
+      if (error.response?.status === 429) {
+        // Лимит превышен на сервере
+        const message = extractErrorMessage(errorData?.detail) || 'Превышен лимит отправки кодов';
+        showNotification('error', message);
+        setErrors({ auth: message });
+        
+        // Извлекаем время из сообщения для установки таймера
+        // Форматы: "через 3 мин 36 сек", "через 216 секунд", "через 5 мин"
+        let totalSeconds = 0;
+        
+        // Проверяем формат с минутами и секундами: "через X мин Y сек"
+        const minSecMatch = message.match(/через\s+(\d+)\s*мин\s+(\d+)\s*сек/);
+        if (minSecMatch) {
+          const minutes = parseInt(minSecMatch[1]) || 0;
+          const seconds = parseInt(minSecMatch[2]) || 0;
+          totalSeconds = minutes * 60 + seconds;
+        } else {
+          // Проверяем формат только с секундами: "через X секунд" или "через X сек"
+          const secMatch = message.match(/через\s+(\d+)\s*секунд/);
+          if (secMatch) {
+            totalSeconds = parseInt(secMatch[1]) || 0;
+          } else {
+            // Проверяем формат только с минутами: "через X мин"
+            const minMatch = message.match(/через\s+(\d+)\s*мин/);
+            if (minMatch) {
+              totalSeconds = parseInt(minMatch[1]) * 60 || 0;
+            }
+          }
+        }
+        
+        if (totalSeconds > 0) {
+          setResendCooldown(totalSeconds);
+        }
+      } else if (errorData) {
+        const message = extractErrorMessage(errorData.detail) || 'Ошибка отправки кода';
+        setErrors({ auth: message });
+        showNotification('error', message);
       } else {
-        setErrors({ auth: 'Произошла ошибка. Пожалуйста, попробуйте позже.' });
+        const message = 'Произошла ошибка. Пожалуйста, попробуйте позже.';
+        setErrors({ auth: message });
+        showNotification('error', message);
       }
     } finally {
       setIsLoading(false);
@@ -490,6 +793,16 @@ const AuthPage = () => {
   };
 
   const handleResendResetCode = async () => {
+    if (!formData.email) return;
+    
+    // Проверяем локальный лимит (дополнительная проверка на фронтенде)
+    const { canSend, remainingSeconds } = canResendPasswordResetCode(formData.email);
+    if (!canSend) {
+      setResendCooldown(remainingSeconds);
+      showNotification('error', `Повторную отправку кода можно сделать через ${remainingSeconds} сек`);
+      return;
+    }
+    
     setIsLoading(true);
     setErrors({});
     
@@ -498,13 +811,52 @@ const AuthPage = () => {
         email: formData.email
       });
       
+      // Сохраняем время отправки
+      savePasswordResetHistory(formData.email);
+      
       showNotification('success', 'Код подтверждения отправлен повторно');
     } catch (error) {
       const errorData = error.response?.data;
-      if (errorData) {
-        setErrors({ auth: errorData.detail || 'Ошибка отправки кода' });
+      if (error.response?.status === 429) {
+        // Лимит превышен на сервере
+        const message = extractErrorMessage(errorData?.detail) || 'Превышен лимит отправки кодов';
+        showNotification('error', message);
+        setErrors({ auth: message });
+        
+        // Извлекаем время из сообщения для установки таймера
+        let totalSeconds = 0;
+        
+        // Проверяем формат с минутами и секундами: "через X мин Y сек"
+        const minSecMatch = message.match(/через\s+(\d+)\s*мин\s+(\d+)\s*сек/);
+        if (minSecMatch) {
+          const minutes = parseInt(minSecMatch[1]) || 0;
+          const seconds = parseInt(minSecMatch[2]) || 0;
+          totalSeconds = minutes * 60 + seconds;
+        } else {
+          // Проверяем формат только с секундами: "через X секунд" или "через X сек"
+          const secMatch = message.match(/через\s+(\d+)\s*секунд/);
+          if (secMatch) {
+            totalSeconds = parseInt(secMatch[1]) || 0;
+          } else {
+            // Проверяем формат только с минутами: "через X мин"
+            const minMatch = message.match(/через\s+(\d+)\s*мин/);
+            if (minMatch) {
+              totalSeconds = parseInt(minMatch[1]) * 60 || 0;
+            }
+          }
+        }
+        
+        if (totalSeconds > 0) {
+          setResendCooldown(totalSeconds);
+        }
+      } else if (errorData) {
+        const message = extractErrorMessage(errorData.detail) || 'Ошибка отправки кода';
+        setErrors({ auth: message });
+        showNotification('error', message);
       } else {
-        setErrors({ auth: 'Произошла ошибка. Пожалуйста, попробуйте позже.' });
+        const message = 'Произошла ошибка. Пожалуйста, попробуйте позже.';
+        setErrors({ auth: message });
+        showNotification('error', message);
       }
     } finally {
       setIsLoading(false);
@@ -834,11 +1186,20 @@ const AuthPage = () => {
               <div className={styles.verificationActions}>
                 <button
                   type="button"
-                  onClick={handleResendCode}
+                  onClick={(e) => {
+                    if (isLoading || resendCooldown > 0) {
+                      e.preventDefault();
+                      return;
+                    }
+                    handleResendCode();
+                  }}
                   className={styles.resendButton}
-                  disabled={isLoading}
+                  disabled={isLoading || resendCooldown > 0}
                 >
-                  Отправить код повторно
+                  {resendCooldown > 0 
+                    ? `Повторная отправка через ${formatCooldownTime(resendCooldown)}`
+                    : 'Отправить код повторно'
+                  }
                 </button>
                 <button
                   type="button"
@@ -854,11 +1215,20 @@ const AuthPage = () => {
               <div className={styles.verificationActions}>
                 <button
                   type="button"
-                  onClick={handleResendResetCode}
+                  onClick={(e) => {
+                    if (isLoading || resendCooldown > 0) {
+                      e.preventDefault();
+                      return;
+                    }
+                    handleResendResetCode();
+                  }}
                   className={styles.resendButton}
-                  disabled={isLoading}
+                  disabled={isLoading || resendCooldown > 0}
                 >
-                  Отправить код повторно
+                  {resendCooldown > 0 
+                    ? `Повторная отправка через ${formatCooldownTime(resendCooldown)}`
+                    : 'Отправить код повторно'
+                  }
                 </button>
                 <button
                   type="button"
