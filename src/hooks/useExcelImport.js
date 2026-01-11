@@ -20,6 +20,7 @@ export const useExcelImport = () => {
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [importErrors, setImportErrors] = useState({});
 
   // Загружаем необходимые справочники
   useEffect(() => {
@@ -465,6 +466,7 @@ export const useExcelImport = () => {
     importing,
     error,
     success,
+    importErrors,
 
     // Методы
     handleFileSelect,
@@ -488,6 +490,7 @@ export const useExcelImport = () => {
       setParsedProducts([]);
       setError(null);
       setSuccess(null);
+      setImportErrors({});
     }
   };
 };

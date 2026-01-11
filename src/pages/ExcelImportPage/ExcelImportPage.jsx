@@ -46,7 +46,8 @@ const ExcelImportPage = () => {
     getLocationById,
     setError,
     setSuccess,
-    clearData
+    clearData,
+    importErrors
   } = useExcelImport();
 
   const handleFileInputChange = (e) => {
@@ -79,7 +80,13 @@ const ExcelImportPage = () => {
   };
 
   const handleCategorySelect = async (index, categoryId) => {
-    updateProductData(index, { category_id: categoryId || null, attributes: {} });
+    // Сбрасываем атрибуты только если меняется категория
+    const currentProduct = parsedProducts[index];
+    if (currentProduct?.category_id !== categoryId) {
+      updateProductData(index, { category_id: categoryId || null, attributes: {} });
+    } else {
+      updateProductData(index, { category_id: categoryId || null });
+    }
     setCategoryDropdowns(prev => ({ ...prev, [index]: false }));
     setCategorySearchTerms(prev => ({ ...prev, [index]: '' }));
     
@@ -127,6 +134,43 @@ const ExcelImportPage = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Автоматическая установка предустановленных значений атрибутов
+  useEffect(() => {
+    if (!parsedProducts.length || !categoryAttributes) return;
+
+    parsedProducts.forEach((product, index) => {
+      if (!product.category_id || !categoryAttributes[product.category_id]) return;
+
+      const attrs = categoryAttributes[product.category_id];
+      const currentAttributes = product.attributes || {};
+      let hasChanges = false;
+      const newAttributes = { ...currentAttributes };
+
+      attrs.forEach(attr => {
+        // Если у атрибута есть предустановленные значения и значение еще не установлено
+        if (attr.has_predefined_values && attr.values && attr.values.length > 0) {
+          const attrId = attr.id;
+          // Проверяем и как число, и как строку для совместимости
+          const currentValue = currentAttributes[attrId] || currentAttributes[String(attrId)];
+          
+          // Устанавливаем первое значение, если значение еще не установлено или пустое
+          if (!currentValue || currentValue === '' || currentValue === null || currentValue === undefined) {
+            const firstValue = attr.values[0];
+            if (firstValue) {
+              newAttributes[attrId] = String(firstValue.id);
+              hasChanges = true;
+            }
+          }
+        }
+      });
+
+      if (hasChanges) {
+        updateProductData(index, { attributes: newAttributes });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryAttributes, parsedProducts.length, updateProductData]); // Зависимости: categoryAttributes и длина массива товаров
 
   // Функции для фильтрации опций
   const getFilteredCategories = (index) => {
@@ -334,8 +378,36 @@ const ExcelImportPage = () => {
             </div>
             <div className={styles.sectionBody}>
               <div className={styles.productsList}>
-                {parsedProducts.map((product, index) => (
-                  <div key={index} className={styles.productCard}>
+                {parsedProducts.map((product, index) => {
+                  const productErrors = importErrors[index] || [];
+                  // Определяем, является ли единица измерения целочисленной
+                  const currentUnit = getUnitByCode(product.main_unit);
+                  const isIntegerUnit = currentUnit ? (() => {
+                    const unitCode = (currentUnit.code || '').toLowerCase();
+                    const integerUnitCodes = ['pcs', 'шт', 'кор', 'уп', 'box', 'pack'];
+                    if (integerUnitCodes.includes(unitCode)) {
+                      return true;
+                    }
+                    // Проверяем по названию
+                    const unitName = (currentUnit.name || '').toLowerCase();
+                    const integerKeywords = ['шт', 'штук', 'коробк', 'упаковк'];
+                    return integerKeywords.some(keyword => unitName.includes(keyword));
+                  })() : false;
+                  
+                  return (
+                  <div key={index} className={`${styles.productCard} ${productErrors.length > 0 ? styles.productCardError : ''}`}>
+                    {productErrors.length > 0 && (
+                      <div className={styles.productErrors}>
+                        <FaExclamationCircle />
+                        <div className={styles.productErrorsList}>
+                          {productErrors.map((errorMsg, errIndex) => (
+                            <div key={errIndex} className={styles.productErrorItem}>
+                              {errorMsg}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className={styles.productHeader}>
                       <h4>Товар {index + 1}</h4>
                       <button
@@ -366,6 +438,9 @@ const ExcelImportPage = () => {
                           value={product.article || ''}
                           onChange={(e) => updateProductData(index, { article: e.target.value })}
                           placeholder="Введите артикул (SKU)"
+                          disabled={parsedProducts.length > 0}
+                          style={parsedProducts.length > 0 ? { cursor: 'not-allowed', backgroundColor: '#f5f5f5' } : {}}
+                          title={parsedProducts.length > 0 ? 'Артикул нельзя изменить после парсинга' : ''}
                         />
                       </div>
 
@@ -543,8 +618,38 @@ const ExcelImportPage = () => {
                         <input
                           type="number"
                           value={product.main_quantity || ''}
-                          onChange={(e) => updateProductData(index, { main_quantity: parseFloat(e.target.value) || null })}
-                          step="0.001"
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '') {
+                              updateProductData(index, { main_quantity: null });
+                              return;
+                            }
+                            // Для целочисленных единиц разрешаем только целые числа
+                            if (isIntegerUnit) {
+                              // Разрешаем только целые числа (без точки и дробной части)
+                              if (/^\d+$/.test(value)) {
+                                updateProductData(index, { main_quantity: parseInt(value, 10) });
+                              }
+                            } else {
+                              // Для других единиц разрешаем дробные числа
+                              if (/^\d*\.?\d*$/.test(value)) {
+                                const numValue = parseFloat(value);
+                                updateProductData(index, { main_quantity: isNaN(numValue) ? null : numValue });
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || value === null) {
+                              updateProductData(index, { main_quantity: null });
+                            } else {
+                              const numValue = isIntegerUnit 
+                                ? Math.max(0, parseInt(value, 10) || 0)
+                                : Math.max(0, parseFloat(value) || 0);
+                              updateProductData(index, { main_quantity: numValue });
+                            }
+                          }}
+                          step={isIntegerUnit ? "1" : "0.001"}
                           min="0"
                           placeholder="0"
                         />
@@ -738,7 +843,8 @@ const ExcelImportPage = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
                       <div className={styles.actions}>

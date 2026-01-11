@@ -230,6 +230,41 @@
   border: 1px solid var(--gilded-shadow);
   border-radius: 0.5rem;
   padding: 1.5rem;
+  position: relative;
+}
+
+.productCardError {
+  border-color: rgba(220, 53, 69, 0.5);
+  background: rgba(220, 53, 69, 0.05);
+}
+
+.productErrors {
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.5);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: #ff6b7a;
+}
+
+.productErrors svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.productErrorsList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.productErrorItem {
+  font-size: 0.875rem;
+  line-height: 1.4;
 }
 
 .productHeader {
