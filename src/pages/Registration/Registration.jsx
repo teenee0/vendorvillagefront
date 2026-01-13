@@ -228,62 +228,7 @@ const AuthPage = () => {
     setTimeout(() => setNotification(null), 5000);
   };
 
-  // Редирект, если пользователь уже залогинен
-  useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      navigate(redirectUrl, { replace: true });
-    }
-  }, [isAuthenticated, authLoading, navigate, redirectUrl]);
-
-  useEffect(() => {
-    // Google Auth Script
-    const googleScript = document.createElement('script');
-    googleScript.src = "https://accounts.google.com/gsi/client";
-    googleScript.async = true;
-    googleScript.defer = true;
-    googleScript.onload = () => {
-      window.google.accounts.id.disableAutoSelect();
-      window.google.accounts.id.initialize({
-        client_id: "412031149331-89sgaqeamohaq76dnn5n97663frnfskg.apps.googleusercontent.com",
-        callback: handleGoogleLogin,
-        auto_select: false,
-        itp_support: true,
-      });
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignIn"),
-        {
-          
-        }
-      );
-    };
-    document.body.appendChild(googleScript);
-
-    // Telegram Auth
-    window.onTelegramAuth = handleTelegramAuth;
-    const telegramScript = document.createElement('script');
-    telegramScript.src = "https://telegram.org/js/telegram-widget.js?22";
-    telegramScript.setAttribute("data-telegram-login", "VendorVillageAuthBot");
-    telegramScript.setAttribute("data-size", "large");
-    telegramScript.setAttribute("data-userpic", "false");
-    telegramScript.setAttribute("data-request-access", "write");
-    telegramScript.setAttribute("data-onauth", "onTelegramAuth(user)");
-    telegramScript.async = true;
-    telegramScript.id = "telegram-login-script";
-
-    const tgContainer = document.getElementById("telegramSignIn");
-    if (tgContainer) {
-      tgContainer.appendChild(telegramScript);
-    }
-
-    return () => {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.cancel();
-      }
-      document.getElementById("telegram-login-script")?.remove();
-    };
-  }, []);
-
-  const handleGoogleLogin = async (response) => {
+  const handleGoogleLogin = useCallback(async (response) => {
     try {
       setIsLoading(true);
       const res = await axios.post('/accounts/api/auth/google/', {
@@ -295,9 +240,9 @@ const AuthPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate, redirectUrl]);
 
-  const handleTelegramAuth = async (user) => {
+  const handleTelegramAuth = useCallback(async (user) => {
     try {
       setIsLoading(true);
       const res = await axios.post('/accounts/api/auth/telegram/', user, {
@@ -309,7 +254,181 @@ const AuthPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate, redirectUrl]);
+
+  // Редирект, если пользователь уже залогинен
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate(redirectUrl, { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate, redirectUrl]);
+
+  useEffect(() => {
+    // Показываем кнопки только на шаге входа/регистрации (не на верификации и не на сбросе пароля)
+    if (registrationStep === 2 || passwordResetStep !== 0) {
+      return;
+    }
+
+    // Функция для инициализации Google Auth
+    const initGoogleAuth = () => {
+      const googleContainer = document.getElementById("googleSignIn");
+      if (!googleContainer) return;
+
+      // Очищаем контейнер перед повторной инициализацией
+      googleContainer.innerHTML = '';
+
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.renderButton(googleContainer, {});
+        } catch (error) {
+          console.error('Ошибка рендеринга Google кнопки:', error);
+        }
+      }
+    };
+
+    // Функция для инициализации Telegram Auth
+    const initTelegramAuth = () => {
+      const tgContainer = document.getElementById("telegramSignIn");
+      if (!tgContainer) {
+        // Если контейнер еще не готов, попробуем еще раз через небольшую задержку
+        setTimeout(() => {
+          initTelegramAuth();
+        }, 200);
+        return;
+      }
+
+      // Удаляем старый скрипт, если он существует
+      const oldScript = document.getElementById("telegram-login-script");
+      if (oldScript) {
+        oldScript.remove();
+      }
+
+      // Очищаем контейнер полностью
+      tgContainer.innerHTML = '';
+
+      // Убеждаемся, что глобальная функция установлена
+      window.onTelegramAuth = handleTelegramAuth;
+
+      // Создаем новый скрипт для Telegram виджета
+      const telegramScript = document.createElement('script');
+      telegramScript.src = "https://telegram.org/js/telegram-widget.js?22";
+      telegramScript.setAttribute("data-telegram-login", "VendorVillageAuthBot");
+      telegramScript.setAttribute("data-size", "large");
+      telegramScript.setAttribute("data-userpic", "false");
+      telegramScript.setAttribute("data-request-access", "write");
+      telegramScript.setAttribute("data-onauth", "onTelegramAuth(user)");
+      telegramScript.async = true;
+      telegramScript.id = "telegram-login-script";
+
+      // Добавляем обработчик ошибок
+      telegramScript.onerror = () => {
+        console.error('Ошибка загрузки Telegram виджета');
+      };
+
+      // Добавляем скрипт в контейнер
+      tgContainer.appendChild(telegramScript);
+    };
+
+    // Проверяем, загружен ли Google скрипт
+    const initGoogleAuthWithDelay = () => {
+      setTimeout(() => {
+        initGoogleAuth();
+      }, 100);
+    };
+
+    if (window.google?.accounts?.id) {
+      // Если уже загружен и инициализирован, обновляем callback и рендерим кнопку
+      try {
+        window.google.accounts.id.initialize({
+          client_id: "412031149331-89sgaqeamohaq76dnn5n97663frnfskg.apps.googleusercontent.com",
+          callback: handleGoogleLogin,
+          auto_select: false,
+          itp_support: true,
+        });
+        initGoogleAuthWithDelay();
+      } catch (error) {
+        console.error('Ошибка инициализации Google:', error);
+        initGoogleAuthWithDelay();
+      }
+    } else {
+      // Если не загружен, загружаем скрипт
+      const existingGoogleScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (!existingGoogleScript) {
+        const googleScript = document.createElement('script');
+        googleScript.src = "https://accounts.google.com/gsi/client";
+        googleScript.async = true;
+        googleScript.defer = true;
+        googleScript.onload = () => {
+          if (window.google?.accounts?.id) {
+            window.google.accounts.id.disableAutoSelect();
+            window.google.accounts.id.initialize({
+              client_id: "412031149331-89sgaqeamohaq76dnn5n97663frnfskg.apps.googleusercontent.com",
+              callback: handleGoogleLogin,
+              auto_select: false,
+              itp_support: true,
+            });
+            initGoogleAuthWithDelay();
+          }
+        };
+        document.body.appendChild(googleScript);
+      } else {
+        // Скрипт уже загружается, ждем его загрузки
+        if (existingGoogleScript.onload) {
+          const originalOnload = existingGoogleScript.onload;
+          existingGoogleScript.onload = () => {
+            originalOnload();
+            if (window.google?.accounts?.id) {
+              window.google.accounts.id.disableAutoSelect();
+              window.google.accounts.id.initialize({
+                client_id: "412031149331-89sgaqeamohaq76dnn5n97663frnfskg.apps.googleusercontent.com",
+                callback: handleGoogleLogin,
+                auto_select: false,
+                itp_support: true,
+              });
+              initGoogleAuthWithDelay();
+            }
+          };
+        } else {
+          existingGoogleScript.addEventListener('load', () => {
+            if (window.google?.accounts?.id) {
+              window.google.accounts.id.disableAutoSelect();
+              window.google.accounts.id.initialize({
+                client_id: "412031149331-89sgaqeamohaq76dnn5n97663frnfskg.apps.googleusercontent.com",
+                callback: handleGoogleLogin,
+                auto_select: false,
+                itp_support: true,
+              });
+              initGoogleAuthWithDelay();
+            }
+          });
+        }
+        // Проверяем, может скрипт уже загружен
+        if (window.google?.accounts?.id) {
+          window.google.accounts.id.disableAutoSelect();
+          window.google.accounts.id.initialize({
+            client_id: "412031149331-89sgaqeamohaq76dnn5n97663frnfskg.apps.googleusercontent.com",
+            callback: handleGoogleLogin,
+            auto_select: false,
+            itp_support: true,
+          });
+          initGoogleAuthWithDelay();
+        }
+      }
+    }
+
+    // Инициализируем Telegram с небольшой задержкой для гарантии готовности DOM
+    setTimeout(() => {
+      initTelegramAuth();
+    }, 100);
+
+    return () => {
+      // Очистка при размонтировании или изменении состояния
+      const tgScript = document.getElementById("telegram-login-script");
+      if (tgScript) {
+        tgScript.remove();
+      }
+    };
+  }, [registrationStep, passwordResetStep, isLoginView, handleGoogleLogin, handleTelegramAuth]);
 
   
 
