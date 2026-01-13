@@ -133,6 +133,24 @@ axios.interceptors.response.use(
       }
     }
 
+    // Если ошибка 429 (Too Many Requests), показываем модальное окно
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'] || 
+                        error.response.headers['Retry-After'] || 
+                        null;
+      
+      // Создаем функцию для повтора запроса
+      const retryRequest = () => {
+        // Создаем новый запрос с теми же параметрами
+        return axios(originalRequest);
+      };
+      
+      // Используем глобальный объект для вызова функции показа модального окна
+      if (window.showTooManyRequestsModal) {
+        window.showTooManyRequestsModal(retryAfter, retryRequest);
+      }
+    }
+
     return Promise.reject(error);
   }
 );

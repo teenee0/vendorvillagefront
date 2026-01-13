@@ -1,6 +1,8 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { TooManyRequestsProvider } from './contexts/TooManyRequestsContext';
+import TooManyRequestsModalManager from './components/TooManyRequestsModal/TooManyRequestsModalManager';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import BusinessHeader from './components/BusinessHeader/BusinessHeader.jsx';
@@ -102,6 +104,7 @@ function App() {
         {/* <EnvironmentIndicator /> */}
         <TokenRefreshManager />
         <SnowfallEffect />
+        <TooManyRequestsModalManager />
         <BusinessHeader />
         <div className="content-wrapper-business">
           <AnimatePresence mode='wait'>
@@ -280,6 +283,7 @@ function App() {
         {/* <EnvironmentIndicator /> */}
         <TokenRefreshManager />
         <SnowfallEffect />
+        <TooManyRequestsModalManager />
         <Header />
         <div className="content-wrapper">
           <CityRequiredWrapper>
