@@ -304,119 +304,6 @@ const AuthPage = () => {
     }
   }, [navigate, redirectUrl]);
 
-  const handleTelegramLoginClick = useCallback(() => {
-    setIsLoading(true);
-    
-    // Устанавливаем глобальную функцию для Telegram виджета
-    window.onTelegramAuth = handleTelegramAuth;
-    
-    const botName = "VendorVillageAuthBot";
-    const requestAccess = "write";
-    
-    // Создаем временную страницу с виджетом Telegram в popup окне
-    const width = 400;
-    const height = 500;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    
-    // Создаем HTML для popup окна
-    const popupHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Вход через Telegram</title>
-        <style>
-          body {
-            margin: 0;
-            padding: 20px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #f5f5f5;
-          }
-          #telegram-container {
-            text-align: center;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="telegram-container"></div>
-        <script src="https://telegram.org/js/telegram-widget.js?22"></script>
-        <script>
-          window.onTelegramAuth = function(user) {
-            window.opener.postMessage({ type: 'telegram-auth', user: user }, '*');
-            window.close();
-          };
-          
-          const script = document.createElement('script');
-          script.src = "https://telegram.org/js/telegram-widget.js?22";
-          script.setAttribute("data-telegram-login", "${botName}");
-          script.setAttribute("data-size", "large");
-          script.setAttribute("data-userpic", "false");
-          script.setAttribute("data-request-access", "${requestAccess}");
-          script.setAttribute("data-onauth", "onTelegramAuth(user)");
-          script.async = true;
-          document.getElementById('telegram-container').appendChild(script);
-        </script>
-      </body>
-      </html>
-    `;
-    
-    // Открываем popup окно
-    const popup = window.open('', 'Telegram Login', `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-    
-    if (popup) {
-      popup.document.write(popupHTML);
-      popup.document.close();
-      
-      // Слушаем сообщения от popup окна
-      const messageHandler = (event) => {
-        if (event.data && event.data.type === 'telegram-auth') {
-          window.removeEventListener('message', messageHandler);
-          handleTelegramAuth(event.data.user);
-        }
-      };
-      
-      window.addEventListener('message', messageHandler);
-      
-      // Если окно закрыто без авторизации
-      const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkClosed);
-          window.removeEventListener('message', messageHandler);
-          setIsLoading(false);
-        }
-      }, 500);
-    } else {
-      // Если popup заблокирован, используем встроенный виджет
-      const tgContainer = document.getElementById("telegramSignIn");
-      if (tgContainer) {
-        tgContainer.style.display = 'block';
-        const oldScript = document.getElementById("telegram-login-script");
-        if (oldScript) {
-          oldScript.remove();
-        }
-        tgContainer.innerHTML = '';
-        const telegramScript = document.createElement('script');
-        telegramScript.src = "https://telegram.org/js/telegram-widget.js?22";
-        telegramScript.setAttribute("data-telegram-login", botName);
-        telegramScript.setAttribute("data-size", "large");
-        telegramScript.setAttribute("data-userpic", "false");
-        telegramScript.setAttribute("data-request-access", requestAccess);
-        telegramScript.setAttribute("data-onauth", "onTelegramAuth(user)");
-        telegramScript.async = true;
-        telegramScript.id = "telegram-login-script";
-        tgContainer.appendChild(telegramScript);
-        setIsLoading(false);
-      } else {
-        setErrors({ auth: "Браузер заблокировал всплывающее окно. Разрешите всплывающие окна для этого сайта." });
-        setIsLoading(false);
-      }
-    }
-  }, [handleTelegramAuth]);
 
   // Редирект, если пользователь уже залогинен
   useEffect(() => {
@@ -461,6 +348,72 @@ const AuthPage = () => {
       });
     }
   }, [registrationStep, passwordResetStep, handleGoogleLogin]);
+
+  // Инициализация Telegram виджета
+  useEffect(() => {
+    // Показываем виджет только на шаге входа/регистрации (не на верификации и не на сбросе пароля)
+    if (registrationStep === 2 || passwordResetStep !== 0) {
+      return;
+    }
+
+    const initTelegramAuth = () => {
+      const tgContainer = document.getElementById("telegramSignIn");
+      if (!tgContainer) {
+        // Если контейнер еще не готов, попробуем еще раз через небольшую задержку
+        setTimeout(() => {
+          initTelegramAuth();
+        }, 200);
+        return;
+      }
+
+      // Удаляем старый скрипт, если он существует
+      const oldScript = document.getElementById("telegram-login-script");
+      if (oldScript) {
+        oldScript.remove();
+      }
+
+      // Очищаем контейнер
+      tgContainer.innerHTML = '';
+
+      // Устанавливаем глобальную функцию для Telegram виджета
+      window.onTelegramAuth = handleTelegramAuth;
+
+      const botName = "VendorVillageAuthBot";
+      const requestAccess = "write";
+
+      // Создаем новый скрипт для Telegram виджета
+      const telegramScript = document.createElement('script');
+      telegramScript.src = "https://telegram.org/js/telegram-widget.js?22";
+      telegramScript.setAttribute("data-telegram-login", botName);
+      telegramScript.setAttribute("data-size", "large");
+      telegramScript.setAttribute("data-userpic", "false");
+      telegramScript.setAttribute("data-request-access", requestAccess);
+      telegramScript.setAttribute("data-onauth", "onTelegramAuth(user)");
+      telegramScript.async = true;
+      telegramScript.id = "telegram-login-script";
+
+      // Добавляем обработчик ошибок
+      telegramScript.onerror = () => {
+        console.error('Ошибка загрузки Telegram виджета');
+      };
+
+      // Добавляем скрипт в контейнер
+      tgContainer.appendChild(telegramScript);
+    };
+
+    // Инициализируем Telegram с небольшой задержкой для гарантии готовности DOM
+    setTimeout(() => {
+      initTelegramAuth();
+    }, 100);
+
+    return () => {
+      // Очистка при размонтировании или изменении состояния
+      const tgScript = document.getElementById("telegram-login-script");
+      if (tgScript) {
+        tgScript.remove();
+      }
+    };
+  }, [registrationStep, passwordResetStep, handleTelegramAuth]);
 
   
 
@@ -1423,20 +1376,10 @@ const AuthPage = () => {
                     />
                     <span>Google</span>
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={handleTelegramLoginClick}
-                    className={styles.socialButton}
-                    disabled={isLoading}
-                  >
-                    <FaTelegram className={styles.socialIcon} />
-                    <span>Telegram</span>
-                  </button>
                 </div>
                 
-                {/* Резервный контейнер для Telegram виджета (если popup заблокирован) */}
-                <div id="telegramSignIn" style={{ display: 'none', marginTop: '10px' }}></div>
+                {/* Контейнер для Telegram виджета */}
+                <div id="telegramSignIn" style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}></div>
               </div>
 
               <div className={styles.switchAuth}>
