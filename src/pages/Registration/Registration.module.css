@@ -367,27 +367,61 @@
 
 .socialButtons {
   display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   margin-top: 10px;
-  /* margin-left: 22%; */
 }
 
-#googleSignIn,
-#telegramSignIn {
+.socialButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--light-gray);
+  gap: 8px;
+  background: transparent;
   border: 1px solid var(--gray);
   border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  max-width: 280px;
+  border-radius: 20px;
+}
 
-  min-width: 240px;        /* ✅ минимальная ширина для контента */
-  min-height: 44px;        /* ✅ минимальная высота */
-  flex-shrink: 0;          /* ✅ не сжимать */
-  padding: 0 16px;
-  overflow: visible;       /* на всякий случай */
+.socialButton:hover:not(:disabled) {
+  background: var(--light-gray);
+  border-color: var(--medium-gray);
+}
+
+.socialButton:active:not(:disabled) {
+  background: var(--gray);
+}
+
+.socialButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.socialIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.socialButton:first-child .socialIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.socialButton:last-child .socialIcon {
+  color: #0088cc;
 }
 
 .switchAuth {
