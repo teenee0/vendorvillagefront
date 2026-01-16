@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { FaArrowUp, FaArrowDown, FaCalendarAlt, FaTimes, FaFilePdf, FaUndo, FaExclamationTriangle, FaChartLine, FaReceipt, FaMoneyBillWave, FaShoppingCart, FaUndoAlt, FaTasks, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 import { FcLineChart } from "react-icons/fc";
 import { Chart } from 'chart.js/auto';
@@ -295,9 +295,15 @@ const BusinessMainPageMobile = () => {
     });
   };
 
-  const handleTransactionClick = async (transaction) => {
+  const handleTransactionClick = useCallback(async (transaction) => {
+    // Предотвращаем множественные вызовы
+    if (selectedTransaction?.id === transaction.id) {
+      return;
+    }
+    
     setSelectedTransaction(transaction);
     setModalLoading(true);
+    setTransactionDetails(null);
     
     try {
       const response = await axios.get(`/api/business/${business_slug}/receipts/${transaction.id}/`);
@@ -307,7 +313,7 @@ const BusinessMainPageMobile = () => {
     } finally {
       setModalLoading(false);
     }
-  };
+  }, [business_slug, selectedTransaction?.id]);
 
   const closeModal = () => {
     setSelectedTransaction(null);
@@ -401,26 +407,28 @@ const BusinessMainPageMobile = () => {
     );
   }
 
-  const TransactionModal = ({ transaction, details, onClose, loading }) => {
+  const TransactionModal = memo(({ transaction, details, onClose, loading }) => {
     if (!transaction) return null;
-
-    console.log('TransactionModal: Transaction details', details);
-    console.log('TransactionModal: Sales data', details?.sales);
 
     const totalDiscount = details?.sales?.reduce((sum, sale) => 
       sum + parseFloat(sale.discount_amount || 0), 0) || 0;
 
     return (
-      <div className={styles.modalOverlay} onClick={onClose}>
-        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+      <>
+        <div className={styles.modalOverlay} onClick={onClose}></div>
+        <div className={styles.transactionModal} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
-            <h3>Чек #{transaction.number}</h3>
-            <button className={styles.closeButton} onClick={onClose}>
-              <FaTimes />
+            <h2>Чек #{transaction.number}</h2>
+            <button
+              className={styles.cancelButton}
+              onClick={onClose}
+              aria-label="Отмена"
+            >
+              Отмена
             </button>
           </div>
           
-          <div className={styles.modalBody}>
+          <div className={styles.modalContent}>
             {loading ? (
               <div className={styles.modalLoading}>
                 <div className={styles.loadingSpinner}></div>
@@ -450,7 +458,6 @@ const BusinessMainPageMobile = () => {
                       <div key={index} className={styles.receiptItem}>
                         <div className={styles.itemHeader}>
                           <div className={styles.productImage}>
-                            {console.log('Product images for sale:', sale.variant.product_images)}
                             {sale.variant.product_images && sale.variant.product_images.length > 0 ? (
                               <img 
                                 src={getFileUrl(sale.variant.product_images[0].image)} 
@@ -460,7 +467,6 @@ const BusinessMainPageMobile = () => {
                                   console.error('Image load error:', e.target.src);
                                   e.target.style.display = 'none';
                                 }}
-                                onLoad={() => console.log('Image loaded successfully:', getFileUrl(sale.variant.product_images[0].image))}
                               />
                             ) : (
                               <div className={styles.noImagePlaceholder}>
@@ -580,21 +586,22 @@ const BusinessMainPageMobile = () => {
                   </div>
                 </div>
 
-                <div className={styles.modalActions}>
-                  <button 
-                    className={styles.printButton}
-                    onClick={printReceipt}
-                  >
-                    <FaFilePdf /> Печать чека
-                  </button>
-                </div>
               </>
             )}
           </div>
+
+          <div className={styles.modalActions}>
+            <button 
+              className={styles.closeModalButton}
+              onClick={printReceipt}
+            >
+              <FaFilePdf /> Печать чека
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
-  };
+  });
 
   return (
     <div className={styles.container}>
@@ -824,7 +831,7 @@ const BusinessMainPageMobile = () => {
               
               {data?.transactions?.slice(0, 10).map((transaction, index) => (
                 <TransactionCard
-                  key={index}
+                  key={transaction.id || index}
                   transaction={transaction}
                   onClick={() => handleTransactionClick(transaction)}
                   delay={index * 0.1}
@@ -844,14 +851,17 @@ const BusinessMainPageMobile = () => {
       </AnimatePresence>
 
       {/* Transaction Modal */}
-      <TransactionModal
-        transaction={selectedTransaction}
-        details={transactionDetails}
-        onClose={closeModal}
-        loading={modalLoading}
-      />
+      {selectedTransaction && (
+        <TransactionModal
+          transaction={selectedTransaction}
+          details={transactionDetails}
+          onClose={closeModal}
+          loading={modalLoading}
+        />
+      )}
     </div>
   );
 };
 
 export default BusinessMainPageMobile;
+

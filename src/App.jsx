@@ -7,6 +7,7 @@ import TooManyRequestsModalManager from './components/TooManyRequestsModal/TooMa
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import BottomNavigation from './components/BottomNavigation/BottomNavigation';
+import BusinessBottomNavigation from './components/BusinessBottomNavigation/BusinessBottomNavigation';
 import BusinessHeader from './components/BusinessHeader/BusinessHeader.jsx';
 import BusinessFooter from './components/BusinessFooter/BusinessFooter.jsx';
 import EnvironmentIndicator from './components/EnvironmentIndicator/EnvironmentIndicator';
@@ -281,6 +282,7 @@ function App() {
           </AnimatePresence>
         </div>
         <BusinessFooter />
+        {isMobile && <BusinessBottomNavigation />}
       </>
     );
   } else {

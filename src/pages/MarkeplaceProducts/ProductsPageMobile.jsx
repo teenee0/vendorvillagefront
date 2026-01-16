@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProductsPage } from './useProductsPage';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
@@ -44,6 +44,7 @@ const ProductsPageMobile = () => {
   } = useProductsPage();
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   const priceRanges = [
     { label: 'До 5 000 ₸', min: '', max: '5000' },
@@ -63,13 +64,21 @@ const ProductsPageMobile = () => {
   };
 
   const toggleFilters = () => {
-    setIsFiltersOpen(!isFiltersOpen);
+    const newState = !isFiltersOpen;
+    // Закрываем сортировку, если открываем фильтры
+    if (newState && isSortOpen) {
+      setIsSortOpen(false);
+    }
+    setIsFiltersOpen(newState);
   };
 
-  const [isSortOpen, setIsSortOpen] = useState(false);
-
   const toggleSort = () => {
-    setIsSortOpen(!isSortOpen);
+    const newState = !isSortOpen;
+    // Закрываем фильтры, если открываем сортировку
+    if (newState && isFiltersOpen) {
+      setIsFiltersOpen(false);
+    }
+    setIsSortOpen(newState);
   };
 
   const sortOptions = [

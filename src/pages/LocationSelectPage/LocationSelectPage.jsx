@@ -31,6 +31,9 @@ const LocationSelectPage = () => {
     // Сохраняем в localStorage
     localStorage.setItem(`business_${business_slug}_location`, locationId);
     
+    // Отправляем событие об изменении локации
+    window.dispatchEvent(new Event('locationChanged'));
+    
     // Перенаправляем на главную страницу бизнеса
     navigate(`/business/${business_slug}/main`);
   };

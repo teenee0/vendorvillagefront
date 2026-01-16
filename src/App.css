@@ -40,7 +40,8 @@ body.marketplace-theme {
 /* Адаптивные отступы для мобильных устройств */
 @media (max-width: 768px) {
   .content-wrapper-business {
-    padding-bottom: 160px; /* Больший отступ на мобильных для MobileDock */
+    margin-top: 100px; /* Высота header + полоса локации */
+    padding-bottom: 80px; /* Отступ для BottomNavigation */
   }
 }
 

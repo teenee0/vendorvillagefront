@@ -148,17 +148,9 @@ export const BusinessFooter = () => {
   const items = getNavigationItems();
 
   // Выбираем компонент в зависимости от устройства
+  // Для мобильной версии используем BottomNavigation (рендерится в App.jsx)
   if (isMobile) {
-    return (
-      <MobileDock 
-        items={items}
-        topBoxText={`📍 ${getLocationName()}\nНажмите чтобы выбрать локацию`}
-        onLocationClick={handleLocationClick}
-        panelHeight={68}
-        baseItemSize={50}
-        magnification={70}
-      />
-    );
+    return null;
   }
 
   return (

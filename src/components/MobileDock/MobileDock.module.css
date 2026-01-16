@@ -118,6 +118,15 @@
   border-radius: 15px 15px 0 0;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth;
+}
+
+.dock::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .dock::before {

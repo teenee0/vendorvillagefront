@@ -52,6 +52,11 @@ const MobileDock = ({
   const [activeRoute, setActiveRoute] = useState('/main');
   const [dockItems, setDockItems] = useState(items);
 
+  // Обновляем dockItems при изменении items
+  useEffect(() => {
+    setDockItems(items);
+  }, [items]);
+
   // Обновляем активный маршрут при изменении location
   useEffect(() => {
     const currentRoute = location.pathname;
@@ -61,7 +66,7 @@ const MobileDock = ({
     setDockItems(prevItems => 
       prevItems.map(item => ({
         ...item,
-        isActive: item.route === currentRoute
+        isActive: item.route === currentRoute || location.pathname.includes(item.route || '')
       }))
     );
   }, [location.pathname]);
