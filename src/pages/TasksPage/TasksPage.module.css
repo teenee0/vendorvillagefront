@@ -45,7 +45,6 @@
   margin-bottom: 32px;
   gap: 20px;
   position: relative;
-  z-index: 1;
   padding: 24px;
   background: var(--obsidian-elite);
   border-radius: var(--radius-lg);
@@ -96,7 +95,6 @@
 
 .content {
   position: relative;
-  z-index: 1;
 }
 
 .filters {
@@ -260,7 +258,6 @@
     flex-direction: column;
   gap: 16px;
   position: relative;
-  z-index: 1;
 }
 
 .taskCard {
