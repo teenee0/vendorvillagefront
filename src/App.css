@@ -67,6 +67,12 @@ body.marketplace-theme {
 
 /* Адаптивные отступы */
 @media (max-width: 768px) {
+  .content-wrapper {
+    margin-top: 120px; /* Высота header + полоса города */
+    min-height: calc(100vh - 120px);
+    padding-bottom: 80px; /* Отступ для bottom navigation */
+  }
+  
   .page-content {
     padding: 1.5rem;
   }

@@ -299,10 +299,7 @@
   appearance: none;
 }
 
-.searchInput:focus {
-  border-color: var(--royal-emerald);
-  box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
-}
+
 
 .searchInput::placeholder {
   color: var(--silver-whisper);

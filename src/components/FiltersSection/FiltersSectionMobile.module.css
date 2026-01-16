@@ -1,0 +1,124 @@
+/* FiltersSectionMobile.module.css */
+
+.filtersContainer {
+  width: 100%;
+}
+
+.filtersLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--royal-emerald);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.filterCategory {
+  margin-bottom: 2rem;
+}
+
+.filterCategory:last-child {
+  margin-bottom: 0;
+}
+
+.filterCategoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filterCategoryTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.resetCategoryButton {
+  background: transparent;
+  border: none;
+  color: var(--royal-emerald);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.resetCategoryButton:active {
+  opacity: 0.7;
+}
+
+.filterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.filterChip:active {
+  transform: scale(0.95);
+}
+
+.filterChipSelected {
+  background: rgba(45, 175, 159, 0.15);
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+  font-weight: 600;
+}
+
+.checkmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--royal-emerald);
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+}
+
+.checkmark svg {
+  width: 10px;
+  height: 10px;
+}
+
+

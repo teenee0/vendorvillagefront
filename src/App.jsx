@@ -1,10 +1,12 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
+import { useIsMobile } from './hooks/useIsMobile';
 import { TooManyRequestsProvider } from './contexts/TooManyRequestsContext';
 import TooManyRequestsModalManager from './components/TooManyRequestsModal/TooManyRequestsModalManager';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
+import BottomNavigation from './components/BottomNavigation/BottomNavigation';
 import BusinessHeader from './components/BusinessHeader/BusinessHeader.jsx';
 import BusinessFooter from './components/BusinessFooter/BusinessFooter.jsx';
 import EnvironmentIndicator from './components/EnvironmentIndicator/EnvironmentIndicator';
@@ -16,10 +18,14 @@ import MainMobile from './pages/Main/MainMobile';
 import Marketplace from './pages/Marketplace/Marketplace';
 
 import "./App.css";
-import BusinessCategories from './pages/BusinessCategories/BusinessCategories';
-import MarketplaceCategories from './pages/MarketplaceCategories/MarketplaceCategories';
-import ChildCategories from './pages/ChildCategories/ChildCategories';
-import ProductsPage from './pages/MarkeplaceProducts/ProductsPage';
+import BusinessCategoriesDesktop from './pages/BusinessCategories/BusinessCategoriesDesktop';
+import BusinessCategoriesMobile from './pages/BusinessCategories/BusinessCategoriesMobile';
+import MarketplaceCategoriesDesktop from './pages/MarketplaceCategories/MarketplaceCategoriesDesktop';
+import MarketplaceCategoriesMobile from './pages/MarketplaceCategories/MarketplaceCategoriesMobile';
+import ChildCategoriesDesktop from './pages/ChildCategories/ChildCategoriesDesktop';
+import ChildCategoriesMobile from './pages/ChildCategories/ChildCategoriesMobile';
+import ProductsPageDesktop from './pages/MarkeplaceProducts/ProductsPageDesktop';
+import ProductsPageMobile from './pages/MarkeplaceProducts/ProductsPageMobile';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
 import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
 import AccountPage from './pages/Account/AccoutPage';
@@ -70,6 +76,7 @@ import BonusHistoryMobile from './pages/BonusHistory/BonusHistoryMobile.jsx';
 
 function App() {
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Определяем бизнес-маршруты
   const isBusinessRoute = (
@@ -310,11 +317,43 @@ function App() {
                   <Route path="/registration-login" element={<AuthPage />} />
                   <Route path="/password-reset" element={<PasswordReset />} />
                   <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path='/marketplace/categories' element={<MarketplaceCategories />} />
-                  <Route path="/marketplace/categories/:pk" element={<ChildCategories />} />
-                  <Route path="/marketplace/categories/:pk/products" element={<ProductsPage />} />
+                  <Route 
+                    path='/marketplace/categories' 
+                    element={
+                      <ResponsiveRoute
+                        desktopComponent={MarketplaceCategoriesDesktop}
+                        mobileComponent={MarketplaceCategoriesMobile}
+                      />
+                    } 
+                  />
+                  <Route 
+                    path="/marketplace/categories/:pk" 
+                    element={
+                      <ResponsiveRoute
+                        desktopComponent={ChildCategoriesDesktop}
+                        mobileComponent={ChildCategoriesMobile}
+                      />
+                    } 
+                  />
+                  <Route 
+                    path="/marketplace/categories/:pk/products" 
+                    element={
+                      <ResponsiveRoute
+                        desktopComponent={ProductsPageDesktop}
+                        mobileComponent={ProductsPageMobile}
+                      />
+                    } 
+                  />
                   <Route path="/marketplace/products/:pk" element={<ProductDetail />} />
-                  <Route path='/business-categories' element={<BusinessCategories />} />
+                  <Route 
+                    path='/business-categories' 
+                    element={
+                      <ResponsiveRoute
+                        desktopComponent={BusinessCategoriesDesktop}
+                        mobileComponent={BusinessCategoriesMobile}
+                      />
+                    } 
+                  />
                   <Route path="/invite/employee/:token" element={<EmployeeInvite />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                 </Route>
@@ -335,6 +374,7 @@ function App() {
           </CityRequiredWrapper>
         </div>
         <Footer />
+        {isMobile && <BottomNavigation />}
         <CookieConsent />
       </>
     );

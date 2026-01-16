@@ -21,6 +21,10 @@ import {
 } from 'react-icons/ri';
 import { FaBuilding, FaStore, FaMapMarkerAlt, FaCoins, FaGift, FaChevronLeft, FaChevronRight, FaCopy, FaCheck, FaExpandAlt, FaSync, FaArrowUp, FaArrowDown, FaTimes } from 'react-icons/fa';
 import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
+import CitySelector from '../../components/CitySelector/CitySelector';
+import { useCity } from '../../hooks/useCity';
+import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
+import SnowfallToggle from '../../components/SnowfallToggle/SnowfallToggle';
 
 const AccountPageMobile = () => {
   const [userData, setUserData] = useState(null);
@@ -46,6 +50,7 @@ const AccountPageMobile = () => {
   const transactionsScrollRef = useRef(null);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { selectedCity, setSelectedCity } = useCity();
 
   useEffect(() => {
     const fetchAccountInfo = async () => {
@@ -726,11 +731,30 @@ const AccountPageMobile = () => {
                     </div>
                     <div className={styles.settingCard}>
                       <div className={styles.settingHeader}>
+                        <FiMapPin />
+                        <h4>Город</h4>
+                      </div>
+                      <div className={styles.settingContent}>
+                        <CitySelector selectedCity={selectedCity} onSelectCity={setSelectedCity} />
+                      </div>
+                    </div>
+                    <div className={styles.settingCard}>
+                      <div className={styles.settingHeader}>
                         <FiMoon />
                         <h4>Тема</h4>
                       </div>
-                      <p>Темная тема активна</p>
-                      <button className={styles.settingBtn}>Изменить</button>
+                      <div className={styles.settingContent}>
+                        <ThemeToggle />
+                      </div>
+                    </div>
+                    <div className={styles.settingCard}>
+                      <div className={styles.settingHeader}>
+                        <FiGlobe />
+                        <h4>Снег</h4>
+                      </div>
+                      <div className={styles.settingContent}>
+                        <SnowfallToggle />
+                      </div>
                     </div>
                     <div className={styles.settingCard}>
                       <div className={styles.settingHeader}>

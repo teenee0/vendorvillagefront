@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Header.module.css';
 import logoIcon from '../../assets/logo.svg';
 import { Link } from 'react-router-dom';
@@ -6,42 +6,70 @@ import CitySelector from '../CitySelector/CitySelector';
 import { useCity } from '../../hooks/useCity';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import SnowfallToggle from '../SnowfallToggle/SnowfallToggle';
-import { FaTimes } from 'react-icons/fa';
 
 function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const { selectedCity, setSelectedCity } = useCity();
+  const citySelectorRef = useRef(null);
 
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          setScrolled(currentScrollY > 10);
+          
+          // Скрываем header при скролле вниз, показываем при скролле вверх
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            setIsVisible(false);
+          } else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
+            setIsVisible(true);
+          }
+          
+          setLastScrollY(currentScrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isMobileMenuOpen]);
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
+      {/* Mobile city bar */}
+      <div className={`${styles.mobileCityBar} ${!isVisible ? styles.hidden : ''}`}>
+        <button 
+          className={styles.mobileCityButton}
+          onClick={() => {
+            // Открываем CitySelector при клике
+            // Ищем кнопку CitySelector внутри wrapper
+            const wrapper = citySelectorRef.current;
+            if (wrapper) {
+              // Ищем первый button внутри wrapper (это кнопка CitySelector)
+              const citySelectorButton = wrapper.querySelector('button');
+              if (citySelectorButton) {
+                citySelectorButton.click();
+              }
+            }
+          }}
+        >
+          <span className={styles.mobileCityText}>
+            {selectedCity ? selectedCity.name : 'Выберите город'}
+          </span>
+          <i className="fas fa-chevron-down"></i>
+        </button>
+        <div className={styles.mobileCitySelectorWrapper} ref={citySelectorRef}>
+          <CitySelector selectedCity={selectedCity} onSelectCity={setSelectedCity} />
+        </div>
+      </div>
       <nav className={styles.navbar}>
         <div className={styles.container}>
           {/* Desktop layout */}
@@ -51,7 +79,7 @@ function Header() {
               <span>xione</span>
             </Link>
 
-            <div className={`${styles.navbarCollapse} ${isMobileMenuOpen ? styles.open : ''}`}>
+            <div className={styles.navbarCollapse}>
               <ul className={styles.navbarNav}>
                 <li className={styles.navItem}>
                   <Link to="/business-categories" className={styles.navLink}>Категории</Link>
@@ -100,15 +128,12 @@ function Header() {
 
           {/* Mobile layout */}
           <div className={styles.mobileLayout}>
-            <button
-              className={`${styles.navbarToggler} ${isMobileMenuOpen ? styles.open : ''}`}
-              onClick={toggleMobileMenu}
-              aria-label="Toggle navigation"
-            >
-              <i className="fas fa-bars"></i>
-            </button>
+            <Link to="/" className={`${styles.mobileBrand} ${!isVisible ? styles.hidden : ''}`}>
+              <img src={logoIcon} alt="A" className={styles.logoIcon} />
+              <span>xione</span>
+            </Link>
 
-            <form className={styles.mobileSearchForm} role="search">
+            <form className={`${styles.mobileSearchForm} ${!isVisible ? styles.scrolled : ''}`} role="search">
               <input 
                 className={styles.mobileSearchInput} 
                 type="text"
@@ -119,67 +144,6 @@ function Header() {
                 <i className="fas fa-search"></i> 
               </button>
             </form>
-
-            <Link to="/" className={styles.mobileBrand}>
-              <img src={logoIcon} alt="A" className={styles.logoIcon} />
-              <span>xione</span>
-            </Link>
-          </div>
-
-          {/* Mobile overlay */}
-          {isMobileMenuOpen && (
-            <div className={styles.mobileOverlay} onClick={closeMobileMenu}></div>
-          )}
-
-          {/* Mobile dropdown menu */}
-          <div className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
-            <div className={styles.mobileMenuHeader}>
-              <h2 className={styles.mobileMenuTitle}>Меню</h2>
-              <button
-                className={styles.mobileMenuClose}
-                onClick={closeMobileMenu}
-                aria-label="Закрыть меню"
-              >
-                <FaTimes />
-              </button>
-            </div>
-            <ul className={styles.mobileNavList}>
-              <li className={styles.mobileNavItem}>
-                <Link to="/business-categories" className={styles.mobileNavLink} onClick={closeMobileMenu}>
-                  <i className="fas fa-th-large"></i> Категории
-                </Link>
-              </li>
-              <li className={styles.mobileNavItem}>
-                <Link to="/sites" className={styles.mobileNavLink} onClick={closeMobileMenu}>
-                  <i className="fas fa-store"></i> Магазины
-                </Link>
-              </li>
-              <li className={styles.mobileNavItem}>
-                <Link to="/cart" className={styles.mobileNavLink} onClick={closeMobileMenu}>
-                  <i className="fas fa-shopping-cart"></i> Корзина
-                </Link>
-              </li>
-              <li className={styles.mobileNavItem}>
-                <Link to="/account" className={styles.mobileNavLink} onClick={closeMobileMenu}>
-                  <i className="fas fa-user"></i> Аккаунт
-                </Link>
-              </li>
-              <li className={styles.mobileNavItem}>
-                <div className={styles.mobileNavLink}>
-                  <CitySelector selectedCity={selectedCity} onSelectCity={setSelectedCity} />
-                </div>
-              </li>
-              <li className={styles.mobileNavItem}>
-                <div className={styles.mobileNavLink}>
-                  <ThemeToggle />
-                </div>
-              </li>
-              <li className={styles.mobileNavItem}>
-                <div className={styles.mobileNavLink}>
-                  <SnowfallToggle />
-                </div>
-              </li>
-            </ul>
           </div>
         </div>
       </nav>

@@ -2685,7 +2685,6 @@ button, a, input, select, textarea, label {
 
 /* Улучшенная доступность для фокуса */
 button:focus-visible,
-input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
     outline: 3px solid var(--royal-emerald);
