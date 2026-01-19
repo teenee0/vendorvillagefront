@@ -826,7 +826,7 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 1.1rem;
-  transition: all 0.3s;
+  transition: background 0.3s, transform 0.3s;
   border: none;
   display: flex;
   align-items: center;
@@ -839,6 +839,7 @@
 .businessLink:hover {
   background: #2563eb;
   transform: translateY(-2px);
+  color: white;
 }
 
 /* Табы */

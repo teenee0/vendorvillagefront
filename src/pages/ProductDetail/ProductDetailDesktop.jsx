@@ -514,9 +514,9 @@ const ProductDetailDesktop = () => {
               <FaStore /> Все товары магазина
             </Link>
           )}
-          {product.business_slug && (
+          {product.business_website && (
             <a 
-              href={`/business/${product.business_slug}/site`}
+              href={product.business_website}
               className={styles.businessLink}
               target="_blank"
               rel="noopener noreferrer"
