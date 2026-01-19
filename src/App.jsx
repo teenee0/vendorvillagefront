@@ -28,6 +28,7 @@ import ChildCategoriesMobile from './pages/ChildCategories/ChildCategoriesMobile
 import ProductsPageDesktop from './pages/MarkeplaceProducts/ProductsPageDesktop';
 import ProductsPageMobile from './pages/MarkeplaceProducts/ProductsPageMobile';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
+import ProductDetailDesktop from './pages/ProductDetail/ProductDetailDesktop';
 import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
 import AccountPage from './pages/Account/AccoutPage';
 import AccountPageMobile from './pages/Account/AccountPageMobile';
@@ -346,7 +347,15 @@ function App() {
                       />
                     } 
                   />
-                  <Route path="/marketplace/products/:pk" element={<ProductDetail />} />
+                  <Route 
+                    path="/marketplace/products/:pk" 
+                    element={
+                      <ResponsiveRoute
+                        desktopComponent={ProductDetailDesktop}
+                        mobileComponent={ProductDetail}
+                      />
+                    } 
+                  />
                   <Route 
                     path='/business-categories' 
                     element={

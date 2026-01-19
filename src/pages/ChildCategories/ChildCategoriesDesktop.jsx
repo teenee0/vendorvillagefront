@@ -37,8 +37,8 @@ const ChildCategoriesDesktop = () => {
     );
   }
 
-  // Специальная логика для категории 25 (одежда)
-  if (parseInt(pk, 10) === 25 && children.length === 2) {
+  // Специальная логика для категорий с 2 подкатегориями - вертикальные карточки
+  if (children.length === 2) {
     return (
       <div className={styles.specialCategoryContainerWrapper}>
         <div className={styles.specialCategoryHeader}>
