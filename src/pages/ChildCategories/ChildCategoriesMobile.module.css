@@ -9,7 +9,6 @@
 }
 
 .headerSection {
-  display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 1.25rem;
@@ -226,6 +225,7 @@
   align-items: center;
   padding: 1.5rem 1.25rem;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .specialCategoryTitle {
@@ -238,6 +238,47 @@
   background-clip: text;
   flex: 1;
   letter-spacing: -0.02em;
+  min-width: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.showAllProductsButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.showAllProductsButton:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+}
+
+.showAllIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .specialCategoryContainer {
@@ -386,5 +427,103 @@
     font-size: 1.4rem;
     bottom: 20px;
   }
+}
+
+/* Мобильная версия для категорий с подкатегориями */
+.mobileCategoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem 2rem;
+}
+
+.mobileCategoryGroup {
+  animation: slideInLeft 0.5s ease-out backwards;
+}
+
+.mobileCategoryGroupTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: var(--text-main, #333);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1.4;
+  padding: 0.5rem 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.mobileCategoryGroupTitle:active {
+  color: var(--royal-emerald, #2daf9f);
+  transform: scale(0.98);
+}
+
+.mobileSubcategoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 1rem;
+}
+
+.mobileSubcategoryItem {
+  font-size: 0.95rem;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mobileSubcategoryItem:active {
+  color: var(--royal-emerald, #2daf9f);
+  transform: translateX(4px);
+  padding-left: 0.5rem;
+}
+
+.mobileExpandButton {
+  margin-top: 0.5rem;
+  padding: 0;
+}
+
+.mobileExpandToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--royal-emerald, #2daf9f);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.75rem 0;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.mobileExpandToggle:active {
+  color: var(--luminous-sapphire, #3a5da8);
+  transform: scale(0.98);
+}
+
+.mobileExpandIcon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobileExpandIcon.expanded {
+  transform: rotate(180deg);
 }
 

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useProductsPage } from './useProductsPage';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
-import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
 import FiltersSectionMobile from '/src/components/FiltersSection/FiltersSectionMobile.jsx';
 import Loader from '../../components/Loader';
 import { FaFilter, FaTimes } from 'react-icons/fa';
@@ -38,6 +37,10 @@ const ProductsPageMobile = () => {
     resetFilters,
     resetFilterCategory,
     generatePaginationItems,
+    allProducts,
+    hasMore,
+    loadingMore,
+    loadMoreProducts,
     pk,
     navigate,
     location
@@ -45,6 +48,8 @@ const ProductsPageMobile = () => {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
+  const observerTarget = useRef(null);
 
   const priceRanges = [
     { label: 'До 5 000 ₸', min: '', max: '5000' },
@@ -93,6 +98,29 @@ const ProductsPageMobile = () => {
     handleSortChange({ target: { value } });
     setIsSortOpen(false);
   };
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMoreProducts();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loadingMore, loading, loadMoreProducts]);
 
   if (loading) {
     return (
@@ -154,22 +182,6 @@ const ProductsPageMobile = () => {
           <h1 className={styles.pageTitle}>{data.category.name}</h1>
         </div>
 
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <div className={styles.searchWrapper}>
-            <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" />
-              <path d="M21 21L16.65 16.65" />
-            </svg>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Поиск товаров..."
-              className={styles.searchInput}
-            />
-          </div>
-        </form>
-
         <div className={styles.headerActions}>
           <button
             className={styles.filterButton}
@@ -193,12 +205,30 @@ const ProductsPageMobile = () => {
 
       {/* Контент с отступом для фиксированного хедера */}
       <div className={styles.content}>
-        <Breadcrumbs breadcrumbs={data?.breadcrumbs} />
       </div>
 
       {data.subcategories && data.subcategories.length > 0 && (
         <div className={styles.subcategoriesSection}>
           <div className={styles.subcategoriesChips}>
+            <button
+              className={styles.categoriesModalButton}
+              onClick={() => setIsCategoriesModalOpen(true)}
+              aria-label="Все категории"
+            >
+              <svg 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                className={styles.categoriesModalIcon}
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
             {data.subcategories.map(subcat => (
               <button
                 key={subcat.id}
@@ -215,12 +245,12 @@ const ProductsPageMobile = () => {
       )}
 
       <div className={styles.productsContent}>
-        {data.products.length > 0 ? (
+        {allProducts.length > 0 ? (
           <>
             <div className={styles.productGrid}>
-              {data.products.map((product, index) => (
+              {allProducts.map((product, index) => (
                 <div
-                  key={product.id}
+                  key={`${product.id}-${index}`}
                   className={styles.productCardWrapper}
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
@@ -229,44 +259,15 @@ const ProductsPageMobile = () => {
               ))}
             </div>
 
-            {data.pagination && data.pagination.total_pages > 1 && (
-              <div className={styles.pagination}>
-                {data.pagination.has_previous && (
-                  <button
-                    className={styles.paginationButton}
-                    onClick={() => handlePageChange(data.pagination.current_page - 1)}
-                  >
-                    ← Назад
-                  </button>
-                )}
-
-                <div className={styles.pageNumbers}>
-                  {generatePaginationItems(data.pagination.current_page, data.pagination.total_pages).map((item, index) => {
-                    if (item === '...') {
-                      return <span key={`ellipsis-${index}`} className={styles.paginationEllipsis}>...</span>;
-                    }
-                    return (
-                      <button
-                        key={item}
-                        className={`${styles.paginationNumber} ${item === data.pagination.current_page ? styles.active : ''}`}
-                        onClick={() => handlePageChange(item)}
-                      >
-                        {item}
-                      </button>
-                    );
-                  })}
+            {/* Элемент для отслеживания скролла */}
+            <div ref={observerTarget} className={styles.infiniteScrollTrigger}>
+              {loadingMore && (
+                <div className={styles.loadingMore}>
+                  <Loader size="small" />
+                  <p>Загрузка товаров...</p>
                 </div>
-
-                {data.pagination.has_next && (
-                  <button
-                    className={styles.paginationButton}
-                    onClick={() => handlePageChange(data.pagination.current_page + 1)}
-                  >
-                    Вперед →
-                  </button>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </>
         ) : (
           <div className={styles.noProducts}>
@@ -423,6 +424,64 @@ const ProductsPageMobile = () => {
                   )}
                 </button>
               ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Модальное окно категорий снизу */}
+      {isCategoriesModalOpen && (
+        <>
+          <div 
+            className={styles.modalOverlay} 
+            onClick={() => setIsCategoriesModalOpen(false)}
+          ></div>
+          <div 
+            className={styles.categoriesBottomModal} 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.bottomModalHandle}></div>
+            <div className={styles.bottomModalHeader}>
+              <h2>Подкатегории</h2>
+              <button
+                className={styles.closeButton}
+                onClick={() => setIsCategoriesModalOpen(false)}
+                aria-label="Закрыть"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className={styles.bottomModalContent}>
+              {data.subcategories && data.subcategories.length > 0 ? (
+                <div className={styles.categoriesModalList}>
+                  {data.subcategories.map(subcat => (
+                    <button
+                      key={subcat.id}
+                      className={`${styles.categoriesModalItem} ${location.pathname.includes(`/categories/${subcat.id}`) ? styles.categoriesModalItemActive : ''}`}
+                      onClick={() => {
+                        navigate(`/marketplace/categories/${subcat.id}/products/`);
+                        setIsCategoriesModalOpen(false);
+                      }}
+                    >
+                      <span>{subcat.name}</span>
+                      {location.pathname.includes(`/categories/${subcat.id}`) && (
+                        <svg 
+                          width="20" 
+                          height="20" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2"
+                        >
+                          <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.noCategoriesText}>Нет подкатегорий</p>
+              )}
             </div>
           </div>
         </>

@@ -106,6 +106,11 @@ function App() {
     };
   }, [isBusinessRoute, isMarketplaceRoute]);
 
+  // Сброс прокрутки при изменении маршрута
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   if (isBusinessRoute) {
     // Рендеринг для бизнес-страниц
     return (

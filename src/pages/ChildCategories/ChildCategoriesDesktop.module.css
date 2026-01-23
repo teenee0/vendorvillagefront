@@ -158,6 +158,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
 }
 
 .specialCategoryHeader h1 {
@@ -168,6 +169,47 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.showAllProductsButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
+}
+
+.showAllProductsButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(45, 175, 159, 0.4);
+  background: linear-gradient(135deg, var(--luminous-sapphire) 0%, var(--royal-emerald) 100%);
+}
+
+.showAllProductsButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+}
+
+.showAllIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .specialCategoryContainer {
@@ -201,10 +243,110 @@
   z-index: 1;
 }
 
+/* Трехколоночный layout для категорий с подкатегориями */
+.threeColumnLayout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.categoryGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryGroupTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  color: var(--text-main, #333);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  line-height: 1.4;
+}
+
+.categoryGroupTitle:hover {
+  color: var(--royal-emerald, #2daf9f);
+}
+
+.subcategoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subcategoryItem {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+  line-height: 1.4;
+}
+
+.subcategoryItem:hover {
+  color: var(--royal-emerald, #2daf9f);
+}
+
+.expandButton {
+  margin-top: 0.5rem;
+  padding: 0;
+}
+
+.expandToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--royal-emerald, #2daf9f);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.expandToggle:hover {
+  color: var(--luminous-sapphire, #3a5da8);
+}
+
+.expandIcon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.expandIcon.expanded {
+  transform: rotate(180deg);
+}
+
 /* Адаптивность для десктопа */
 @media (max-width: 992px) {
   .categoriesGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .threeColumnLayout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .threeColumnLayout {
+    grid-template-columns: 1fr;
   }
 }
 

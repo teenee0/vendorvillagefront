@@ -5,6 +5,7 @@
   min-height: 100vh;
   padding-bottom: 2rem;
   overflow-x: hidden;
+  overflow-y: visible;
   box-sizing: border-box;
 }
 
@@ -208,6 +209,7 @@
   max-width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* Подкатегории */
@@ -239,6 +241,7 @@
   -ms-overflow-style: none; /* IE and Edge */
   scroll-behavior: smooth;
   padding: 0rem 1rem;
+  align-items: center;
 }
 
 .subcategoriesChips::-webkit-scrollbar {
@@ -273,6 +276,170 @@
   border-color: var(--royal-emerald);
   color: var(--royal-emerald);
   font-weight: 600;
+}
+
+/* Кнопка открытия модального окна категорий */
+.categoriesModalButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.categoriesModalButton:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+}
+
+.categoriesModalIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Модальное окно категорий снизу */
+.categoriesBottomModal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100vw;
+  max-height: 80vh;
+  background: var(--obsidian-elite);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.5);
+  animation: slideInUp 0.3s ease;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  box-sizing: border-box;
+}
+
+.bottomModalHandle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin: 12px auto 8px;
+}
+
+.bottomModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--obsidian-elite);
+  flex-shrink: 0;
+}
+
+.bottomModalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  flex: 1;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--royal-emerald);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.closeButton:active {
+  opacity: 0.7;
+}
+
+.bottomModalContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.categoriesModalList {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.categoriesModalItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  box-sizing: border-box;
+}
+
+.categoriesModalItem:last-child {
+  border-bottom: none;
+}
+
+.categoriesModalItem:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.categoriesModalItemActive {
+  color: var(--royal-emerald);
+  font-weight: 600;
+  background: rgba(45, 175, 159, 0.08);
+}
+
+.categoriesModalItem svg {
+  flex-shrink: 0;
+  color: var(--royal-emerald);
+  width: 24px;
+  height: 24px;
+}
+
+.noCategoriesText {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
 }
 
 .productGrid {
@@ -400,6 +567,31 @@
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.6);
   margin: 0 0 1.5rem;
+}
+
+/* Infinite scroll */
+.infiniteScrollTrigger {
+  width: 100%;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.loadingMore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.loadingMore p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 /* Модальное окно фильтров */

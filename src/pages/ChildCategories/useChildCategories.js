@@ -7,6 +7,7 @@ export const useChildCategories = () => {
   const navigate = useNavigate();
   const [category, setCategory] = useState(null);
   const [children, setChildren] = useState([]);
+  const [hasAllDescendants, setHasAllDescendants] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,6 +24,7 @@ export const useChildCategories = () => {
         if (response.data && response.data.category) {
           setCategory(response.data.category);
           setChildren(response.data.children || []);
+          setHasAllDescendants(response.data.has_all_descendants || false);
         } else {
           throw new Error('Неверная структура ответа от сервера');
         }
@@ -41,6 +43,7 @@ export const useChildCategories = () => {
   return {
     category,
     children,
+    hasAllDescendants,
     loading,
     error,
     pk

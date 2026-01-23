@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from "../../api/axiosDefault.js";
 
@@ -19,6 +19,10 @@ export const useProductsPage = () => {
   const [tempFilters, setTempFilters] = useState({});
   const [visibleFiltersCount, setVisibleFiltersCount] = useState(2);
   const [showAllSubcategories, setShowAllSubcategories] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Инициализация параметров из URL
   useEffect(() => {
@@ -43,17 +47,28 @@ export const useProductsPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setAllProducts([]);
+        setCurrentPage(1);
         const queryParams = new URLSearchParams(location.search);
   
         if (!queryParams.has('sort')) {
           queryParams.set('sort', '-id');
         }
+        queryParams.set('page', '1');
   
         const response = await axios.get(
           `marketplace/api/categories/${pk}/products/?${queryParams.toString()}`
         );
   
-        setData(response.data.oldData);
+        const responseData = response.data.oldData;
+        setData(responseData);
+        
+        // Устанавливаем все продукты и информацию о пагинации
+        if (responseData.products) {
+          setAllProducts(responseData.products);
+          setCurrentPage(1);
+          setHasMore(responseData.pagination?.has_next || false);
+        }
         
         const filtersData = Array.isArray(response.data.filters?.filters) 
           ? response.data.filters.filters 
@@ -191,6 +206,35 @@ export const useProductsPage = () => {
     return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
   };
 
+  // Функция загрузки следующей страницы для infinite scroll
+  const loadMoreProducts = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const queryParams = new URLSearchParams(location.search);
+      const nextPage = currentPage + 1;
+      queryParams.set('page', nextPage.toString());
+
+      const response = await axios.get(
+        `marketplace/api/categories/${pk}/products/?${queryParams.toString()}`
+      );
+
+      const responseData = response.data.oldData;
+      if (responseData.products && responseData.products.length > 0) {
+        setAllProducts(prev => [...prev, ...responseData.products]);
+        setCurrentPage(nextPage);
+        setHasMore(responseData.pagination?.has_next || false);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки дополнительных товаров:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, currentPage, location.search, pk]);
+
   return {
     data,
     filters,
@@ -221,6 +265,10 @@ export const useProductsPage = () => {
     resetFilters,
     resetFilterCategory,
     generatePaginationItems,
+    allProducts,
+    hasMore,
+    loadingMore,
+    loadMoreProducts,
     pk,
     navigate,
     location
