@@ -8,11 +8,13 @@ const config = {
     LOG_LEVEL: 'debug'
   },
   production: {
-    API_BASE_URL: 'https://api.vendorvillage.store',
-    MEDIA_BASE_URL: 'https://api.vendorvillage.store', 
-    APP_NAME: 'Axione',
-    DEBUG: false,
-    LOG_LEVEL: 'error'
+    // Для production берем значения из .env.production файла
+    // Если переменные не заданы, используем значения по умолчанию
+    API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.vendorvillage.store',
+    MEDIA_BASE_URL: import.meta.env.VITE_MEDIA_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://api.vendorvillage.store', 
+    APP_NAME: import.meta.env.VITE_APP_NAME || 'Axione',
+    DEBUG: import.meta.env.VITE_DEBUG === 'true' || false,
+    LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || 'error'
   }
 };
 
