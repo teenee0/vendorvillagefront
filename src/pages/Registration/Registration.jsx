@@ -5,7 +5,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import styles from './Registration.module.css';
 import Loader from '../../components/Loader';
 import { useAuth } from '../../hooks/useAuth';
-import { validatePassword } from '../../utils/passwordValidator.js';
+import { validatePassword } from '../../utils/passwordValidator';
 
 const AuthPage = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();

@@ -4,7 +4,7 @@ import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
 import styles from './PasswordReset.module.css';
 import Loader from '../../components/Loader';
-import { validatePassword } from '../../utils/passwordValidator.js';
+import { validatePassword } from '../../utils/passwordValidator';
 
 const PasswordReset = () => {
   const [step, setStep] = useState(1); // 1 - ввод email, 2 - ввод кода и нового пароля
