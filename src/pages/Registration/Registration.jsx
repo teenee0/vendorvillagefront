@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaTelegram, FaEnvelope, FaLock, FaUser, FaExclamationCircle, FaCheckCircle, FaInfoCircle } from 'react-icons/fa';
+import { FaTelegram, FaEnvelope, FaLock, FaUser, FaExclamationCircle, FaCheckCircle, FaInfoCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from "../../api/axiosDefault.js";
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import styles from './Registration.module.css';
 import Loader from '../../components/Loader';
 import { useAuth } from '../../hooks/useAuth';
+import { validatePassword } from '../../utils/passwordValidator';
 
 const AuthPage = () => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -28,6 +29,11 @@ const AuthPage = () => {
   const [pendingUser, setPendingUser] = useState(null);
   const [notification, setNotification] = useState(null);
   const [resendCooldown, setResendCooldown] = useState(0); // Оставшееся время в секундах
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword1, setShowPassword1] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
+  const [showNewPassword1, setShowNewPassword1] = useState(false);
+  const [showNewPassword2, setShowNewPassword2] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -378,7 +384,7 @@ const AuthPage = () => {
       // Устанавливаем глобальную функцию для Telegram виджета
       window.onTelegramAuth = handleTelegramAuth;
 
-      const botName = "VendorVillageAuthBot";
+      const botName = "AxioneAuthBot";
       const requestAccess = "write";
 
       // Создаем новый скрипт для Telegram виджета
@@ -450,16 +456,22 @@ const AuthPage = () => {
       case 'password1':
         if (!value && !isLoginView) {
           newErrors.password1 = 'Пароль обязателен';
-        } else if (value && value.length < 8) {
-          newErrors.password1 = 'Пароль должен быть не менее 8 символов';
+        } else if (value) {
+          // Проверка пароля с помощью валидатора
+          const passwordError = validatePassword(value);
+          if (passwordError) {
+            newErrors.password1 = passwordError;
+          } else {
+            delete newErrors.password1;
+            // Проверяем совпадение паролей, если изменено поле password1
+            if (formData.password2 && value !== formData.password2) {
+              newErrors.password2 = 'Пароли не совпадают';
+            } else {
+              delete newErrors.password2;
+            }
+          }
         } else {
           delete newErrors.password1;
-          // Проверяем совпадение паролей, если изменено поле password1
-          if (formData.password2 && value !== formData.password2) {
-            newErrors.password2 = 'Пароли не совпадают';
-          } else {
-            delete newErrors.password2;
-          }
         }
         break;
         
@@ -496,16 +508,22 @@ const AuthPage = () => {
       case 'newPassword1':
         if (!value && passwordResetStep === 2) {
           newErrors.newPassword1 = 'Новый пароль обязателен';
-        } else if (value && value.length < 8) {
-          newErrors.newPassword1 = 'Пароль должен быть не менее 8 символов';
+        } else if (value) {
+          // Проверка пароля с помощью валидатора
+          const passwordError = validatePassword(value);
+          if (passwordError) {
+            newErrors.newPassword1 = passwordError;
+          } else {
+            delete newErrors.newPassword1;
+            // Проверяем совпадение паролей
+            if (formData.newPassword2 && value !== formData.newPassword2) {
+              newErrors.newPassword2 = 'Пароли не совпадают';
+            } else {
+              delete newErrors.newPassword2;
+            }
+          }
         } else {
           delete newErrors.newPassword1;
-          // Проверяем совпадение паролей
-          if (formData.newPassword2 && value !== formData.newPassword2) {
-            newErrors.newPassword2 = 'Пароли не совпадают';
-          } else {
-            delete newErrors.newPassword2;
-          }
         }
         break;
         
@@ -584,8 +602,12 @@ const AuthPage = () => {
 
       if (!formData.newPassword1) {
         newErrors.newPassword1 = 'Новый пароль обязателен';
-      } else if (formData.newPassword1.length < 8) {
-        newErrors.newPassword1 = 'Пароль должен быть не менее 8 символов';
+      } else {
+        // Используем валидатор пароля
+        const passwordError = validatePassword(formData.newPassword1);
+        if (passwordError) {
+          newErrors.newPassword1 = passwordError;
+        }
       }
 
       if (!formData.newPassword2) {
@@ -784,6 +806,17 @@ const AuthPage = () => {
           } else if (key === 'detail' && errorMessageStr.includes('истекла')) {
             showNotification('error', 'Ссылка для подтверждения истекла');
             setErrors({ auth: 'Ссылка для подтверждения истекла' });
+            hasGeneralError = true;
+          } else if (key === 'detail' && (errorMessageStr.includes('пароль') || errorMessageStr.includes('требованиям'))) {
+            // Ошибка валидации пароля - показываем в поле пароля
+            const message = String(errorMessage);
+            if (passwordResetStep === 2) {
+              serverErrors.newPassword1 = message;
+              showNotification('error', message);
+            } else {
+              showNotification('error', message);
+              setErrors({ auth: message });
+            }
             hasGeneralError = true;
           } else if (key === 'detail' && errorMessageStr.includes('успешно изменен')) {
             showNotification('success', 'Пароль успешно изменен!');
@@ -1086,13 +1119,21 @@ const AuthPage = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword1 ? "text" : "password"}
                     name="password1"
                     placeholder="Пароль"
                     value={formData.password1}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.password1 ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowPassword1(!showPassword1)}
+                    aria-label={showPassword1 ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showPassword1 ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.password1 && <span className={styles.error}>{errors.password1}</span>}
 
@@ -1101,13 +1142,21 @@ const AuthPage = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword2 ? "text" : "password"}
                     name="password2"
                     placeholder="Подтвердите пароль"
                     value={formData.password2}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.password2 ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowPassword2(!showPassword2)}
+                    aria-label={showPassword2 ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showPassword2 ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.password2 && <span className={styles.error}>{errors.password2}</span>}
 
@@ -1161,13 +1210,21 @@ const AuthPage = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     placeholder="Пароль"
                     value={formData.password}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.password ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.password && <span className={styles.error}>{errors.password}</span>}
               </>
@@ -1231,13 +1288,21 @@ const AuthPage = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showNewPassword1 ? "text" : "password"}
                     name="newPassword1"
                     placeholder="Новый пароль"
                     value={formData.newPassword1}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.newPassword1 ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowNewPassword1(!showNewPassword1)}
+                    aria-label={showNewPassword1 ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showNewPassword1 ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.newPassword1 && <span className={styles.error}>{errors.newPassword1}</span>}
 
@@ -1246,13 +1311,21 @@ const AuthPage = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showNewPassword2 ? "text" : "password"}
                     name="newPassword2"
                     placeholder="Подтвердите новый пароль"
                     value={formData.newPassword2}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.newPassword2 ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowNewPassword2(!showNewPassword2)}
+                    aria-label={showNewPassword2 ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showNewPassword2 ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.newPassword2 && <span className={styles.error}>{errors.newPassword2}</span>}
               </>
@@ -1270,7 +1343,7 @@ const AuthPage = () => {
             <button
               type="submit"
               className={styles.submitButton}
-              disabled={isLoading}
+              disabled={isLoading || (passwordResetStep === 2 && (errors.newPassword1 || errors.newPassword2 || errors.resetCode))}
             >
               {isLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

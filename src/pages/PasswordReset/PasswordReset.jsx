@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from "../../api/axiosDefault.js";
 import { Link } from 'react-router-dom';
 import styles from './PasswordReset.module.css';
 import Loader from '../../components/Loader';
+import { validatePassword } from '../../utils/passwordValidator';
 
 const PasswordReset = () => {
   const [step, setStep] = useState(1); // 1 - ввод email, 2 - ввод кода и нового пароля
@@ -15,6 +16,8 @@ const PasswordReset = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showNewPassword1, setShowNewPassword1] = useState(false);
+  const [showNewPassword2, setShowNewPassword2] = useState(false);
 
   const validateField = useCallback((name, value) => {
     const newErrors = { ...errors };
@@ -43,16 +46,22 @@ const PasswordReset = () => {
       case 'new_password1':
         if (!value && step === 2) {
           newErrors.new_password1 = 'Новый пароль обязателен';
-        } else if (value && value.length < 8) {
-          newErrors.new_password1 = 'Пароль должен быть не менее 8 символов';
+        } else if (value) {
+          // Проверка пароля с помощью валидатора
+          const passwordError = validatePassword(value);
+          if (passwordError) {
+            newErrors.new_password1 = passwordError;
+          } else {
+            delete newErrors.new_password1;
+            // Проверяем совпадение паролей
+            if (formData.new_password2 && value !== formData.new_password2) {
+              newErrors.new_password2 = 'Пароли не совпадают';
+            } else {
+              delete newErrors.new_password2;
+            }
+          }
         } else {
           delete newErrors.new_password1;
-          // Проверяем совпадение паролей
-          if (formData.new_password2 && value !== formData.new_password2) {
-            newErrors.new_password2 = 'Пароли не совпадают';
-          } else {
-            delete newErrors.new_password2;
-          }
         }
         break;
         
@@ -97,8 +106,12 @@ const PasswordReset = () => {
 
       if (!formData.new_password1) {
         newErrors.new_password1 = 'Новый пароль обязателен';
-      } else if (formData.new_password1.length < 8) {
-        newErrors.new_password1 = 'Пароль должен быть не менее 8 символов';
+      } else {
+        // Используем валидатор пароля
+        const passwordError = validatePassword(formData.new_password1);
+        if (passwordError) {
+          newErrors.new_password1 = passwordError;
+        }
       }
 
       if (!formData.new_password2) {
@@ -145,6 +158,11 @@ const PasswordReset = () => {
         const serverErrors = {};
         for (const key in errorData) {
           serverErrors[key] = Array.isArray(errorData[key]) ? errorData[key][0] : errorData[key];
+        }
+        // Если есть detail (ошибка валидации пароля), показываем её как ошибку для поля пароля
+        if (errorData.detail && step === 2) {
+          serverErrors.new_password1 = errorData.detail;
+          serverErrors.general = errorData.detail;
         }
         setErrors(serverErrors);
       } else {
@@ -248,13 +266,21 @@ const PasswordReset = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showNewPassword1 ? "text" : "password"}
                     name="new_password1"
                     placeholder="Новый пароль"
                     value={formData.new_password1}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.new_password1 ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowNewPassword1(!showNewPassword1)}
+                    aria-label={showNewPassword1 ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showNewPassword1 ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.new_password1 && <span className={styles.error}>{errors.new_password1}</span>}
 
@@ -263,13 +289,21 @@ const PasswordReset = () => {
                     <FaLock />
                   </div>
                   <input
-                    type="password"
+                    type={showNewPassword2 ? "text" : "password"}
                     name="new_password2"
                     placeholder="Подтвердите новый пароль"
                     value={formData.new_password2}
                     onChange={handleChange}
                     className={`${styles.input} ${errors.new_password2 ? styles.errorInput : ''}`}
                   />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowNewPassword2(!showNewPassword2)}
+                    aria-label={showNewPassword2 ? "Скрыть пароль" : "Показать пароль"}
+                  >
+                    {showNewPassword2 ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
                 {errors.new_password2 && <span className={styles.error}>{errors.new_password2}</span>}
               </>
@@ -278,7 +312,7 @@ const PasswordReset = () => {
             <button
               type="submit"
               className={styles.submitButton}
-              disabled={isLoading}
+              disabled={isLoading || (step === 2 && (errors.new_password1 || errors.new_password2 || errors.code))}
             >
               {isLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
