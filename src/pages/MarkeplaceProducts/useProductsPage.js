@@ -54,7 +54,9 @@ export const useProductsPage = () => {
         if (!queryParams.has('sort')) {
           queryParams.set('sort', '-id');
         }
-        queryParams.set('page', '1');
+        if (!queryParams.has('page')) {
+          queryParams.set('page', '1');
+        }
   
         const response = await axios.get(
           `marketplace/api/categories/${pk}/products/?${queryParams.toString()}`
@@ -63,10 +65,12 @@ export const useProductsPage = () => {
         const responseData = response.data.oldData;
         setData(responseData);
         
+        const pageNum = parseInt(queryParams.get('page') || '1', 10);
+        setCurrentPage(pageNum);
+        
         // Устанавливаем все продукты и информацию о пагинации
         if (responseData.products) {
           setAllProducts(responseData.products);
-          setCurrentPage(1);
           setHasMore(responseData.pagination?.has_next || false);
         }
         
@@ -93,30 +97,32 @@ export const useProductsPage = () => {
     fetchData();
   }, [pk, location.search]);
 
-  // Обработчик выбора атрибута
+  // Обработчик выбора атрибута: сразу применяет фильтр (navigate)
   const handleAttributeSelect = (filterId, value) => {
-    setTempFilters(prev => {
-      const newFilters = { ...prev };
-      const attrKey = `attr_${filterId}`;
+    const attrKey = `attr_${filterId}`;
+    const valueStr = value.toString();
 
-      if (!newFilters[attrKey]) {
-        newFilters[attrKey] = [];
-      }
+    const newFilters = { ...tempFilters };
+    if (!newFilters[attrKey]) newFilters[attrKey] = [];
+    const idx = newFilters[attrKey].indexOf(valueStr);
+    if (idx === -1) {
+      newFilters[attrKey] = [...newFilters[attrKey], valueStr];
+    } else {
+      newFilters[attrKey] = newFilters[attrKey].filter(v => v !== valueStr);
+      if (newFilters[attrKey].length === 0) delete newFilters[attrKey];
+    }
 
-      const valueStr = value.toString();
-      const index = newFilters[attrKey].indexOf(valueStr);
-
-      if (index === -1) {
-        newFilters[attrKey] = [...newFilters[attrKey], valueStr];
-      } else {
-        newFilters[attrKey] = newFilters[attrKey].filter(v => v !== valueStr);
-        if (newFilters[attrKey].length === 0) {
-          delete newFilters[attrKey];
-        }
-      }
-
-      return newFilters;
+    // Немедленно применяем через navigate
+    const queryParams = new URLSearchParams();
+    if (searchQuery) queryParams.set('search', searchQuery);
+    if (priceMin) queryParams.set('price_min', priceMin);
+    if (priceMax) queryParams.set('price_max', priceMax);
+    queryParams.set('sort', sortOption);
+    queryParams.set('page', '1');
+    Object.entries(newFilters).forEach(([key, values]) => {
+      values.forEach(v => queryParams.append(key, v));
     });
+    navigate(`?${queryParams.toString()}`);
   };
 
   // Функция проверки, выбран ли атрибут

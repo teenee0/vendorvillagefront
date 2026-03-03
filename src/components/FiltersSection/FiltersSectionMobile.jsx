@@ -44,14 +44,20 @@ const FiltersSectionMobile = ({
               {filter.values.map(value => {
                 const filterValue = value.id ? value.id : `val_${value.value}`;
                 const isSelected = isAttributeSelected(filter.id, filterValue);
-                
+                const hasCount = value.count !== undefined && value.count !== null;
+                const isDisabled = hasCount && !isSelected && value.count === 0;
+
                 return (
                   <button
                     key={`${filter.id}-${filterValue}`}
-                    className={`${styles.filterChip} ${isSelected ? styles.filterChipSelected : ''}`}
-                    onClick={() => handleAttributeSelect(filter.id, filterValue)}
+                    disabled={isDisabled}
+                    className={`${styles.filterChip} ${isSelected ? styles.filterChipSelected : ''} ${isDisabled ? styles.filterChipDisabled : ''}`}
+                    onClick={() => !isDisabled && handleAttributeSelect(filter.id, filterValue)}
                   >
                     {value.value}
+                    {hasCount && (
+                      <span className={styles.valueCount}>{value.count}</span>
+                    )}
                     {isSelected && (
                       <span className={styles.checkmark}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

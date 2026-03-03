@@ -23,6 +23,7 @@ const ProductDetailDesktop = () => {
   const [activeTab, setActiveTab] = useState('specs');
   const [slideDirection, setSlideDirection] = useState(null);
   const [previousImageIndex, setPreviousImageIndex] = useState(null);
+  const [showAllStores, setShowAllStores] = useState(false);
   const thumbnailGalleryRef = useRef(null);
 
   useEffect(() => {
@@ -45,9 +46,10 @@ const ProductDetailDesktop = () => {
             setSelectedSize(sizeAttribute.display_value);
           }
           
-          // Устанавливаем первую доступную локацию
+          // Устанавливаем первую локацию с наличием
           if (defaultVariant.locations && defaultVariant.locations.length > 0) {
-            setSelectedLocation(defaultVariant.locations[0]);
+            const firstInStock = defaultVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+            setSelectedLocation(firstInStock || null);
           }
         }
       } catch (err) {
@@ -130,15 +132,20 @@ const ProductDetailDesktop = () => {
     setSelectedSize(sizeData.size);
     setSelectedVariant(sizeData.variant);
     
-    // Устанавливаем первую доступную локацию для выбранного размера
+    // Устанавливаем первую локацию с наличием для выбранного размера
     if (sizeData.locations && sizeData.locations.length > 0) {
-      setSelectedLocation(sizeData.locations[0]);
+      const firstInStock = sizeData.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+      setSelectedLocation(firstInStock || null);
     } else {
       setSelectedLocation(null);
     }
   };
 
+  const hasStockAtLocation = (loc) =>
+    loc != null && loc.quantity != null && Number(loc.quantity) > 0;
+
   const handleLocationSelect = (location) => {
+    if (!hasStockAtLocation(location)) return;
     setSelectedLocation(location);
   };
 
@@ -243,6 +250,13 @@ const ProductDetailDesktop = () => {
   const currentVariant = selectedVariant || product.default_variant;
   const currentLocations = currentVariant?.locations || [];
   const currentImage = product.images[selectedImageIndex] || product.images[0];
+
+  // Получаем название атрибута размера из available_attributes
+  const sizeAttributeName = product.available_attributes && Object.keys(product.available_attributes).length > 0
+    ? Object.keys(product.available_attributes).find(key => 
+        key.toLowerCase().includes('размер') || key.toLowerCase().includes('size')
+      ) || 'Размер'
+    : 'Размер';
 
   return (
     <div className={styles.container}>
@@ -363,7 +377,7 @@ const ProductDetailDesktop = () => {
           {availableSizes.length > 0 && (
             <div className={styles.sizesSection}>
               <h2 className={styles.sectionTitle}>
-                <i className="fas fa-ruler"></i> Выберите размер
+                <i className="fas fa-ruler"></i> {sizeAttributeName}
               </h2>
               <div className={styles.sizeOptions}>
                 {availableSizes.map((sizeData) => (
@@ -398,11 +412,13 @@ const ProductDetailDesktop = () => {
                 <i className="fas fa-store"></i> Наличие в магазинах
               </h2>
               <div className={styles.storeList}>
-                {currentLocations.map((location) => (
+                {(showAllStores ? currentLocations : currentLocations.slice(0, 2)).map((location) => {
+                  const inStock = hasStockAtLocation(location);
+                  return (
                   <div
                     key={location.id}
-                    className={`${styles.storeItem} ${selectedLocation?.id === location.id ? styles.storeItemActive : ''}`}
-                    onClick={() => handleLocationSelect(location)}
+                    className={`${styles.storeItem} ${selectedLocation?.id === location.id ? styles.storeItemActive : ''} ${!inStock ? styles.storeItemDisabled : ''}`}
+                    onClick={() => inStock && handleLocationSelect(location)}
                   >
                     <div className={styles.storeInfo}>
                       <div className={styles.storeIcon}>
@@ -418,6 +434,15 @@ const ProductDetailDesktop = () => {
                       </div>
                       <div className={styles.storeDetails}>
                         <h4>{location.name}</h4>
+                        {inStock ? (
+                          <p className={styles.storeQuantity}>
+                            В наличии: {location.quantity} {location.unit_display || 'шт.'}
+                          </p>
+                        ) : (
+                          <p className={styles.storeQuantityUnavailable}>
+                            В данное время на этой локации нет товара
+                          </p>
+                        )}
                         <p>
                           <FaMapMarkerAlt className={styles.storeIconSmall} />
                           {location.address}
@@ -436,17 +461,27 @@ const ProductDetailDesktop = () => {
                       </div>
                       <button 
                         className={`${styles.selectStoreBtn} ${selectedLocation?.id === location.id ? styles.selectStoreBtnActive : ''}`}
+                        disabled={!inStock}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleLocationSelect(location);
+                          if (inStock) handleLocationSelect(location);
                         }}
                       >
-                        {selectedLocation?.id === location.id ? '✓ Выбран' : 'Выбрать'}
+                        {selectedLocation?.id === location.id ? '✓ Выбран' : inStock ? 'Выбрать' : 'Нет в наличии'}
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+                })}
               </div>
+              {currentLocations.length > 2 && (
+                <button 
+                  className={styles.showMoreStoresBtn}
+                  onClick={() => setShowAllStores(!showAllStores)}
+                >
+                  {showAllStores ? 'Свернуть' : 'Показать больше'}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -554,12 +589,20 @@ const ProductDetailDesktop = () => {
           {currentVariant && currentVariant.attributes.length > 0 ? (
             <table className={styles.specsTable}>
               <tbody>
-                {currentVariant.attributes.map((attr) => (
-                  <tr key={attr.id}>
-                    <td>{attr.attribute_name}</td>
-                    <td>{attr.display_value}</td>
-                  </tr>
-                ))}
+                {(() => {
+                  const grouped = (currentVariant.attributes || []).reduce((acc, attr) => {
+                    const key = attr.attribute_id;
+                    if (!acc[key]) acc[key] = { attribute_name: attr.attribute_name, values: [] };
+                    acc[key].values.push(attr.display_value);
+                    return acc;
+                  }, {});
+                  return Object.entries(grouped).map(([id, { attribute_name, values }]) => (
+                    <tr key={id}>
+                      <td>{attribute_name}</td>
+                      <td>{values.join(', ')}</td>
+                    </tr>
+                  ));
+                })()}
               </tbody>
             </table>
           ) : (

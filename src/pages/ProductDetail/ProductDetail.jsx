@@ -1,33 +1,45 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from "../../api/axiosDefault.js";
 import { FiShoppingCart, FiHeart, FiShare2, FiChevronLeft } from 'react-icons/fi';
-import { FaRegStar, FaStar } from 'react-icons/fa';
-import './ProductDetail.css';
+import { FaRegStar, FaStar, FaMapMarkerAlt, FaPhone, FaTags, FaStore, FaExternalLinkAlt } from 'react-icons/fa';
+import { useFileUtils } from '../../hooks/useFileUtils';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import Breadcrumbs from '/src/components/Breadcrumbs/Breadcrumbs.jsx';
-import GlareHover from '../../components/GlareHover/GlareHover.jsx';
 import Loader from '../../components/Loader';
-
-
-
+import styles from './ProductDetailMobile.module.css';
 
 const ProductDetail = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
+  const { getFileUrl } = useFileUtils();
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState('specs');
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
-  const mainSlider = useRef(null);
-  const thumbsSlider = useRef(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showAllStores, setShowAllStores] = useState(false);
+
+  useEffect(() => {
+    // Убираем padding у .page-content для этой страницы
+    const pageContent = document.querySelector('.page-content');
+    if (pageContent) {
+      pageContent.classList.add('product-detail-page');
+    }
+    
+    return () => {
+      // Восстанавливаем при размонтировании
+      if (pageContent) {
+        pageContent.classList.remove('product-detail-page');
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -36,12 +48,20 @@ const ProductDetail = () => {
         const response = await axios.get(`marketplace/api/products/${pk}/`);
         setProductData(response.data);
         if (response.data.product.default_variant) {
-          setSelectedVariant(response.data.product.default_variant.id);
+          const defaultVariant = response.data.product.default_variant;
+          setSelectedVariant(defaultVariant.id);
           const defaultAttrs = {};
-          response.data.product.default_variant.attributes.forEach(attr => {
-            defaultAttrs[attr.attribute_id] = attr.display_value;
+          defaultVariant.attributes.forEach(attr => {
+            if (defaultAttrs[attr.attribute_id] === undefined) {
+              defaultAttrs[attr.attribute_id] = attr.display_value;
+            }
           });
           setSelectedAttributes(defaultAttrs);
+          // Устанавливаем первую локацию с наличием по умолчанию
+          if (defaultVariant.locations && defaultVariant.locations.length > 0) {
+            const firstInStock = defaultVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+            setSelectedLocation(firstInStock || null);
+          }
         }
       } catch (err) {
         setError(err.message || 'Произошла ошибка при загрузке товара');
@@ -60,10 +80,17 @@ const ProductDetail = () => {
     return productData.product.default_variant;
   };
 
+  const hasStockAtLocation = (loc) =>
+    loc != null && loc.quantity != null && Number(loc.quantity) > 0;
+
+  const handleLocationSelect = (location) => {
+    if (!hasStockAtLocation(location)) return;
+    setSelectedLocation(location);
+  };
+
   const handleAttributeSelect = (attributeId, value) => {
     setSelectedAttributes(prev => {
       const newAttributes = { ...prev, [attributeId]: value };
-      // Находим вариант, который содержит выбранное значение атрибута
       const matchingVariant = productData.product.variants.find(variant =>
         variant.attributes.some(a =>
           a.attribute_id === Number(attributeId) && a.display_value === value
@@ -71,10 +98,20 @@ const ProductDetail = () => {
       );
       if (matchingVariant) {
         setSelectedVariant(matchingVariant.id);
-        // Обновляем selectedAttributes с атрибутами выбранного варианта
+        // Устанавливаем первую локацию с наличием при выборе варианта
+        if (matchingVariant.locations && matchingVariant.locations.length > 0) {
+          const firstInStock = matchingVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+          setSelectedLocation(firstInStock || null);
+        } else {
+          setSelectedLocation(null);
+        }
+        // Сбрасываем показ всех магазинов при смене варианта
+        setShowAllStores(false);
         const updatedAttrs = {};
         matchingVariant.attributes.forEach(attr => {
-          updatedAttrs[attr.attribute_id] = attr.display_value;
+          if (updatedAttrs[attr.attribute_id] === undefined) {
+            updatedAttrs[attr.attribute_id] = attr.display_value;
+          }
         });
         return updatedAttrs;
       }
@@ -86,35 +123,42 @@ const ProductDetail = () => {
     if (!productData || !productData.product || !productData.product.variants) {
       return false;
     }
-    const isAvailable = productData.product.variants.some(variant =>
+    return productData.product.variants.some(variant =>
       variant.attributes.some(a =>
         a.attribute_id === Number(attributeId) && a.display_value === value
       )
     );
-    return isAvailable;
   };
 
   const handleAddToCart = () => {
     const variant = getCurrentVariant();
-    if (!variant) return;
+    if (!variant || !selectedLocation) return;
     console.log('Добавлено в корзину:', {
       productId: productData.product.id,
       variantId: variant.id,
-      quantity: quantity,
-      price: variant.current_price
+      locationId: selectedLocation.id,
+      price: selectedLocation.price
     });
   };
 
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('ru-RU').format(price);
+  };
+
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+    <div className={styles.loadingContainer}>
       <Loader size="large" />
     </div>
   );
-  if (error) return <div className="product-error">{error}</div>;
-  if (!productData) return <div className="product-not-found">Товар не найден</div>;
+  
+  if (error) return <div className={styles.errorContainer}>{error}</div>;
+  if (!productData) return <div className={styles.errorContainer}>Товар не найден</div>;
 
   const { product, same_products } = productData;
   const currentVariant = getCurrentVariant();
+  const currentImage = product.images && product.images.length > 0 
+    ? (product.images[selectedImageIndex] || product.images[0])
+    : null;
 
   const availableAttributes = {};
   if (product.available_attributes) {
@@ -127,282 +171,440 @@ const ProductDetail = () => {
     });
   }
 
-  const sliderSettings = {
+  // Получаем размеры для отображения
+  const sizeAttribute = Object.entries(availableAttributes).find(([_, attr]) => 
+    attr.name.toLowerCase().includes('размер') || attr.name.toLowerCase().includes('size')
+  );
+
+  // Получаем цвета для отображения
+  const colorAttribute = Object.entries(availableAttributes).find(([_, attr]) => 
+    attr.name.toLowerCase().includes('цвет') || attr.name.toLowerCase().includes('color')
+  );
+
+  const imageSliderSettings = {
     dots: true,
-    infinite: same_products.length > 4,
-    speed: 500,
-    slidesToShow: 4,
+    infinite: product.images.length > 1,
+    speed: 300,
+    slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: false,
+    swipe: true,
+    touchMove: true,
+    beforeChange: (_, next) => setSelectedImageIndex(next),
+  };
+
+  const similarProductsSettings = {
+    dots: false,
+    infinite: same_products && same_products.length > 3,
+    speed: 500,
+    slidesToShow: 2,
+    slidesToScroll: 1,
+    arrows: false,
+    swipe: true,
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-        }
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1
-        }
-      },
       {
         breakpoint: 480,
         settings: {
-          slidesToShow: 1,
+          slidesToShow: 1.5,
           slidesToScroll: 1
         }
       }
     ]
   };
 
-  const mainSliderSettings = {
-    asNavFor: thumbsSlider.current,
-    ref: mainSlider,
-    arrows: true,
-    fade: true,
-    beforeChange: (_, next) => setSelectedImage(next),
-  };
-
-  const thumbsSliderSettings = {
-    asNavFor: mainSlider.current,
-    ref: thumbsSlider,
-    slidesToShow: Math.min(product.images.length, 5),
-    swipeToSlide: true,
-    focusOnSelect: true,
-    arrows: false,
-    centerMode: false,
-    centerPadding: '0', // Убирает отступы по краям
-    infinite: false,
-    variableWidth: true, // Позволяет слайдам быть разной ширины
-  };
   return (
-    <div className="product-detail">
-      <Breadcrumbs
-        breadcrumbs={productData.breadcrumbs}
-        currentPage={product.name}
-      />
-      <div className="product-main">
-        <div className="product-gallery">
-          <Slider {...mainSliderSettings} className="main-slider">
-            {product.images.map((img, index) => (
-              <div key={index} className="slide">
-                <div className="main-image">
-                  <div
-                    className="blurred-bg"
-                    style={{ backgroundImage: `url(${img.image})` }}
-                  />
-                  <img
-                    src={img.image}
-                    alt={`Product ${index}`}
-                    className="contained-image"
-                  />
-                </div>
-              </div>
-            ))}
-          </Slider>
-
-          <Slider {...thumbsSliderSettings} className="thumbs-slider">
-            {product.images.map((img, index) => (
-              <div key={index} className={`thumbnail-slide ${selectedImage === index ? 'active' : ''}`}>
-                <div
-                  className="thumbnail"
-                  style={{ backgroundImage: `url(${img.image})` }}
-                  onClick={() => setSelectedImage(index)}
+    <div className={styles.container}>
+      {/* Галерея изображений */}
+      <div className={styles.imageSection}>
+        <button 
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+          aria-label="Назад"
+        >
+          <FiChevronLeft />
+        </button>
+        
+        <Slider {...imageSliderSettings} className={styles.imageSlider}>
+          {product.images && product.images.length > 0 ? (
+            product.images.map((img, index) => (
+              <div key={img.id || index} className={styles.imageSlide}>
+                <img 
+                  src={getFileUrl(img.image)} 
+                  alt={img.alt_text || `${product.name} ${index + 1}`}
+                  className={styles.productImage}
                 />
               </div>
-            ))}
-          </Slider>
-        </div>
-
-        <div className="product-info">
-          <h1 className="product-title">{product.name}</h1>
-          <div className="product-meta">
-            <span className="product-id">Артикул: {currentVariant?.sku || product.id}</span>
-            <span className={`stock ${currentVariant?.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
-              {currentVariant?.stock_quantity > 0 ? 'В наличии' : 'Нет в наличии'}
-            </span>
-          </div>
-          <div className="product-rating">
-            {[...Array(5)].map((_, i) => (
-              i < 4 ? <FaStar key={i} className="star filled" /> : <FaRegStar key={i} className="star" />
-            ))}
-            <span className="rating-text">({Math.floor(Math.random() * 50) + 1} отзывов)</span>
-          </div>
-          {currentVariant && (
-            <div className="product-price">
-              <span className="current">
-                {parseFloat(currentVariant.current_price).toLocaleString('ru-RU')} ₸
-              </span>
-              {currentVariant.discount > 0 && (
-                <>
-                  <span className="old">
-                    {parseFloat(currentVariant.price).toLocaleString('ru-RU')} ₸
-                  </span>
-                  <span className="discount">
-                    -{currentVariant.discount}%
-                  </span>
-                </>
-              )}
+            ))
+          ) : (
+            <div className={styles.imageSlide}>
+              <div className={styles.noImagePlaceholder}>Нет изображения</div>
             </div>
           )}
-          {Object.entries(availableAttributes).map(([attrId, attr]) => (
-            <div key={attrId} className="attribute-selector">
-              <h4>{attr.name}:</h4>
-              <div className="attribute-values">
-                {attr.values.map(value => (
-                  <button
-                    key={value}
-                    className={`attribute-value ${selectedAttributes[attrId] === value ? 'selected' : ''
-                      }`}
-                    onClick={() => handleAttributeSelect(Number(attrId), value)}
-                    disabled={!isAttributeValueAvailable(Number(attrId), value)}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-          <div className="coming-soon-overlay">
-            <GlareHover
-              width="100%"
-              height="auto"
-              background="transparent"
-              borderRadius="8px"
-              borderColor="rgba(255, 255, 255, 0.1)"
-              glareColor="#ffffff"
-              glareOpacity={1}
-              glareAngle={-30}
-              glareSize={300}
-              transitionDuration={1250}
-              playOnce={false}
-              style={{ padding: '20px' }}
-            >
-              <div className="disabled-content">
-                <div className="product-actions">
-                  <div className="quantity-control">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={!currentVariant || currentVariant.stock_quantity <= 0}
-                    >
-                      −
-                    </button>
-                    <span>{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      disabled={!currentVariant || currentVariant.stock_quantity <= 0}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    className="add-to-cart"
-                    onClick={handleAddToCart}
-                    disabled={!currentVariant || currentVariant.stock_quantity <= 0}
-                  >
-                    <FiShoppingCart />
-                    {currentVariant?.stock_quantity > 0 ? 'Добавить в корзину' : 'Нет в наличии'}
-                  </button>
-                </div>
-                <div className="delivery-info">
-                  <div className="delivery-item">
-                    <div className="icon">🚚</div>
-                    <div>
-                      <h4>Быстрая доставка</h4>
-                      <p>1-3 дня</p>
-                    </div>
-                  </div>
-                  <div className="delivery-item">
-                    <div className="icon">🔄</div>
-                    <div>
-                      <h4>Легкий возврат</h4>
-                      <p>14 дней на возврат</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="coming-soon-text">Скоро...</div>
-            </GlareHover>
+        </Slider>
+
+        <button 
+          className={styles.favoriteButton}
+          onClick={() => setIsFavorite(!isFavorite)}
+          aria-label="Добавить в избранное"
+        >
+          <FiHeart className={isFavorite ? styles.favoriteActive : ''} />
+        </button>
+      </div>
+
+      {/* Информация о товаре */}
+      <div className={styles.productInfo}>
+        {/* Рейтинг */}
+        <div className={styles.ratingSection}>
+          <div className={styles.stars}>
+            {[...Array(5)].map((_, i) => (
+              <FaStar 
+                key={i} 
+                className={`${styles.star} ${i < 4 ? styles.starFilled : ''}`} 
+              />
+            ))}
           </div>
+          <span className={styles.reviewsCount}>16 отзывов</span>
         </div>
-      </div>
-      <div className="product-tabs">
-        <button
-          className={`tab ${activeTab === 'description' ? 'active' : ''}`}
-          onClick={() => setActiveTab('description')}
-        >
-          Описание
-        </button>
-        <button
-          className={`tab ${activeTab === 'specs' ? 'active' : ''}`}
-          onClick={() => setActiveTab('specs')}
-        >
-          Характеристики
-        </button>
-        {/* <button 
-          className={`tab ${activeTab === 'reviews' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reviews')}
-        >
-          Отзывы
-        </button> */}
-      </div>
-      <div className="tab-content">
-        {activeTab === 'description' && (
-          <div className="description">
-            <p>{product.description || 'Описание отсутствует.'}</p>
-          </div>
-        )}
-        {activeTab === 'specs' && (
-          <div className="specifications">
-            <table>
-              <tbody>
-                {currentVariant?.attributes.map(attr => (
-                  <tr key={attr.id}>
-                    <td>{attr.attribute_name}</td>
-                    <td>{attr.display_value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {activeTab === 'reviews' && (
-          <div className="reviews">
-            <div className="review">
-              <div className="review-header">
-                <span className="author">Алексей П.</span>
-                <div className="rating">
-                  <FaStar className="filled" />
-                  <FaStar className="filled" />
-                  <FaStar className="filled" />
-                  <FaStar className="filled" />
-                  <FaStar />
-                </div>
-              </div>
-              <p className="text">Отличный товар, соответствует описанию. Доставили быстро.</p>
-              <span className="date">15.01.2023</span>
+
+        {/* Бренд и название */}
+        <div className={styles.brandName}>{product.business_name || 'Бренд'}</div>
+        <h1 className={styles.productTitle}>{product.name}</h1>
+
+        {/* Выбор размера */}
+        {sizeAttribute && (
+          <div className={styles.sizeSection}>
+            <div className={styles.sizeHeader}>
+              <span className={styles.sizeLabel}>{sizeAttribute[1].name}</span>
+            </div>
+            <div className={styles.sizeOptions}>
+              {sizeAttribute[1].values.map(size => {
+                const isAvailable = isAttributeValueAvailable(Number(sizeAttribute[0]), size);
+                const isSelected = selectedAttributes[Number(sizeAttribute[0])] === size;
+                // Находим вариант для этого размера и получаем цену
+                const sizeVariant = product.variants?.find(v => 
+                  v.attributes?.some(a => 
+                    a.attribute_id === Number(sizeAttribute[0]) && 
+                    a.display_value === size
+                  )
+                );
+                let sizePrice = null;
+                if (sizeVariant?.locations && sizeVariant.locations.length > 0) {
+                  const prices = sizeVariant.locations.map(loc => parseFloat(loc.price));
+                  const minPrice = Math.min(...prices);
+                  const maxPrice = Math.max(...prices);
+                  sizePrice = minPrice === maxPrice ? minPrice : { min: minPrice, max: maxPrice };
+                }
+                return (
+                  <button
+                    key={size}
+                    className={`${styles.sizeButton} ${isSelected ? styles.sizeButtonSelected : ''} ${!isAvailable ? styles.sizeButtonDisabled : ''}`}
+                    onClick={() => isAvailable && handleAttributeSelect(Number(sizeAttribute[0]), size)}
+                    disabled={!isAvailable}
+                  >
+                    {size}
+                    {isAvailable && sizePrice && (
+                      <span className={styles.sizePrice}>
+                        {typeof sizePrice === 'object' 
+                          ? `${formatPrice(sizePrice.min)} - ${formatPrice(sizePrice.max)} ₸`
+                          : `${formatPrice(sizePrice)} ₸`
+                        }
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
-      </div>
-      {productData.same_products && productData.same_products.length > 0 && (
-        <div className="similar-products-section">
-          <h2 className="section-title">Похожие товары</h2>
-          <div className="slider-container">
-            <Slider {...sliderSettings}>
-              {productData.same_products.map((product) => (
-                <div key={`product-${product.id}`} className="slide-item">
-                  <ProductCard product={product} />
+
+        {/* Наличие в магазинах */}
+        {currentVariant && currentVariant.locations && currentVariant.locations.length > 0 && (
+          <div className={styles.storesSection}>
+            <h3 className={styles.storesTitle}>Наличие в магазинах</h3>
+            <div className={styles.storeList}>
+              {(showAllStores ? currentVariant.locations : currentVariant.locations.slice(0, 3)).map((location) => {
+                const inStock = hasStockAtLocation(location);
+                return (
+                <div
+                  key={location.id}
+                  className={`${styles.storeItem} ${selectedLocation?.id === location.id ? styles.storeItemActive : ''} ${!inStock ? styles.storeItemDisabled : ''}`}
+                  onClick={() => inStock && handleLocationSelect(location)}
+                >
+                  <div className={styles.storeInfo}>
+                    <div className={styles.storeIcon}>
+                      {product.business_logo ? (
+                        <img 
+                          src={getFileUrl(product.business_logo)} 
+                          alt={product.business_name}
+                          className={styles.storeIconImg}
+                        />
+                      ) : (
+                        <span className={styles.storeIconText}>{location.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div className={styles.storeDetails}>
+                      <h4 className={styles.storeName}>{location.name}</h4>
+                      {inStock ? (
+                        <p className={styles.storeQuantity}>
+                          В наличии: {location.quantity} {location.unit_display || 'шт.'}
+                        </p>
+                      ) : (
+                        <p className={styles.storeQuantityUnavailable}>
+                          В данное время на этой локации нет товара
+                        </p>
+                      )}
+                      {location.address && (
+                        <p className={styles.storeAddress}>
+                          <FaMapMarkerAlt className={styles.storeIconSmall} />
+                          {location.address}
+                        </p>
+                      )}
+                      {location.contact_phone && (
+                        <p className={styles.storePhone}>
+                          <FaPhone className={styles.storeIconSmall} />
+                          {location.contact_phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.storeActions}>
+                    <div className={styles.storePrice}>
+                      {formatPrice(location.price)} ₸
+                    </div>
+                    <button 
+                      className={`${styles.selectStoreBtn} ${selectedLocation?.id === location.id ? styles.selectStoreBtnActive : ''}`}
+                      disabled={!inStock}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (inStock) handleLocationSelect(location);
+                      }}
+                    >
+                      {selectedLocation?.id === location.id ? '✓ Выбран' : inStock ? 'Выбрать' : 'Нет в наличии'}
+                    </button>
+                  </div>
                 </div>
+              );
+              })}
+            </div>
+            {currentVariant.locations.length > 3 && (
+              <button 
+                className={styles.showMoreStoresBtn}
+                onClick={() => setShowAllStores(!showAllStores)}
+              >
+                {showAllStores ? 'Свернуть' : 'Показать больше'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Кнопка добавления в корзину */}
+        <button
+          className={styles.addToCartButton}
+          onClick={handleAddToCart}
+          disabled={!currentVariant || !selectedLocation || currentVariant.stock_quantity <= 0}
+        >
+          <FiShoppingCart />
+          Добавить в корзину
+        </button>
+
+        {/* Действия */}
+        <div className={styles.actionButtons}>
+          <button className={styles.actionButton}>
+            <FiHeart />
+            <span>В избранное</span>
+          </button>
+          <button className={styles.actionButton}>
+            <FiShare2 />
+            <span>Поделиться</span>
+          </button>
+        </div>
+
+        {/* Другие цвета */}
+        {colorAttribute && colorAttribute[1].values.length > 1 && (
+          <div className={styles.colorsSection}>
+            <h3 className={styles.colorsTitle}>В другом цвете</h3>
+            <div className={styles.colorsGrid}>
+              {colorAttribute[1].values.slice(0, 4).map((color, index) => {
+                const colorVariant = product.variants?.find(v => 
+                  v.attributes?.some(a => 
+                    a.attribute_id === Number(colorAttribute[0]) && 
+                    a.display_value === color
+                  )
+                );
+                const colorImage = colorVariant?.images?.[0] || (product.images && product.images[0]);
+                const isSelected = selectedAttributes[Number(colorAttribute[0])] === color;
+                const imageUrl = colorImage?.image || (product.images && product.images[0]?.image);
+                return (
+                  <div 
+                    key={color}
+                    className={`${styles.colorItem} ${isSelected ? styles.colorItemSelected : ''}`}
+                    onClick={() => handleAttributeSelect(Number(colorAttribute[0]), color)}
+                  >
+                    {imageUrl ? (
+                      <img 
+                        src={getFileUrl(imageUrl)} 
+                        alt={color}
+                        className={styles.colorImage}
+                      />
+                    ) : (
+                      <div className={styles.colorImagePlaceholder}>{color}</div>
+                    )}
+                    <span className={styles.colorName}>{color}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Отзывы и вопросы */}
+        <div className={styles.reviewsSection}>
+          <div className={styles.reviewsHeader}>
+            <h3 className={styles.reviewsTitle}>Отзывы</h3>
+            <div className={styles.reviewsRating}>
+              {[...Array(5)].map((_, i) => (
+                <FaStar 
+                  key={i} 
+                  className={`${styles.star} ${styles.starFilled}`} 
+                />
               ))}
-            </Slider>
+              <span className={styles.reviewsNumber}>16</span>
+            </div>
+          </div>
+          <div className={styles.photoReviews}>
+            <h4 className={styles.photoReviewsTitle}>Фотоотзывы</h4>
+            <div className={styles.photoReviewsGrid}>
+              {/* Здесь можно добавить фотоотзывы */}
+            </div>
+          </div>
+          <button className={styles.askQuestionButton}>Задать вопрос</button>
+        </div>
+
+        {/* Табы */}
+        <div className={styles.tabsSection}>
+          <div className={styles.tabsHeader}>
+            <button
+              className={`${styles.tab} ${activeTab === 'specs' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('specs')}
+            >
+              Характеристики
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'about' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('about')}
+            >
+              О товаре
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'delivery' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('delivery')}
+            >
+              Доставка
+            </button>
+          </div>
+
+          <div className={styles.tabContent}>
+            {activeTab === 'about' && (
+              <div className={styles.descriptionContent}>
+                <p>{product.description || 'Описание отсутствует.'}</p>
+              </div>
+            )}
+            {activeTab === 'specs' && (
+              <div className={styles.specsContent}>
+                {currentVariant && currentVariant.attributes.length > 0 ? (
+                  <div className={styles.specsList}>
+                    {(() => {
+                      const grouped = (currentVariant.attributes || []).reduce((acc, attr) => {
+                        const key = attr.attribute_id;
+                        if (!acc[key]) acc[key] = { attribute_name: attr.attribute_name, values: [] };
+                        acc[key].values.push(attr.display_value);
+                        return acc;
+                      }, {});
+                      return Object.entries(grouped).map(([id, { attribute_name, values }]) => (
+                        <div key={id} className={styles.specItem}>
+                          <span className={styles.specLabel}>{attribute_name}:</span>
+                          <span className={styles.specValue}>{values.join(', ')}</span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                ) : (
+                  <p>Характеристики не указаны</p>
+                )}
+              </div>
+            )}
+            {activeTab === 'delivery' && (
+              <div className={styles.deliveryContent}>
+                <p><strong>Доставка:</strong> Доставка осуществляется в течение 1-3 рабочих дней. Бесплатная доставка при заказе от 5000 ₸.</p>
+                <p><strong>Самовывоз:</strong> Доступен из пунктов выдачи по всему городу.</p>
+                <p><strong>Возврат:</strong> Возврат в течение 14 дней при сохранении товарного вида и упаковки.</p>
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Секция магазина */}
+        <div className={styles.businessSection}>
+          <div className={styles.businessHeader}>
+            {product.business_logo && (
+              <img 
+                src={getFileUrl(product.business_logo)} 
+                alt={product.business_name}
+                className={styles.businessLogo}
+              />
+            )}
+            <div className={styles.businessInfo}>
+              <h3 className={styles.businessName}>{product.business_name}</h3>
+              {product.business_description && (
+                <p className={styles.businessDescription}>{product.business_description}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className={styles.businessLinks}>
+            <Link 
+              to={`/marketplace/categories/${product.category}/products?business=${product.business}`}
+              className={styles.businessLink}
+            >
+              <FaTags /> Товары в этой категории
+            </Link>
+            {product.business_slug && (
+              <Link 
+                to={`/business/${product.business_slug}`}
+                className={styles.businessLink}
+              >
+                <FaStore /> Все товары магазина
+              </Link>
+            )}
+            {product.business_website && (
+              <a 
+                href={product.business_website}
+                className={styles.businessLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaExternalLinkAlt /> Сайт магазина
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Похожие товары */}
+        {same_products && same_products.length > 0 && (
+          <div className={styles.similarSection}>
+            <h2 className={styles.similarTitle}>Похожие</h2>
+            <div className={styles.similarProducts}>
+              <Slider {...similarProductsSettings}>
+                {same_products.map((similarProduct) => (
+                  <div key={similarProduct.id} className={styles.similarProductItem}>
+                    <ProductCard product={similarProduct} />
+                  </div>
+                ))}
+              </Slider>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -40,17 +40,24 @@ const FiltersSection = ({
                 <div className={styles.attributeValues}>
                   {filter.values.map(value => {
                     const filterValue = value.id ? value.id : `val_${value.value}`;
-                    
+                    const isSelected = isAttributeSelected(filter.id, filterValue);
+                    const hasCount = value.count !== undefined && value.count !== null;
+                    const isDisabled = hasCount && !isSelected && value.count === 0;
+
                     return (
                       <button
                         key={`${filter.id}-${filterValue}`}
+                        disabled={isDisabled}
                         className={`${styles.attributeValueButton} ${
-                          isAttributeSelected(filter.id, filterValue) ? styles.selected : ''
-                        }`}
-                        onClick={() => handleAttributeSelect(filter.id, filterValue)}
+                          isSelected ? styles.selected : ''
+                        } ${isDisabled ? styles.disabled : ''}`}
+                        onClick={() => !isDisabled && handleAttributeSelect(filter.id, filterValue)}
                       >
                         {value.value}
-                        {isAttributeSelected(filter.id, filterValue) && (
+                        {hasCount && (
+                          <span className={styles.valueCount}>{value.count}</span>
+                        )}
+                        {isSelected && (
                           <span className={styles.checkmark}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

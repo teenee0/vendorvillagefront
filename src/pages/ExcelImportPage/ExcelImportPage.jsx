@@ -6,6 +6,7 @@ import { FaFileExcel, FaUpload, FaCheckCircle, FaExclamationCircle, FaSpinner, F
 import styles from './ExcelImportPage.module.css';
 import Loader from '../../components/Loader';
 import ImageCropper from '../../components/ImageCropper/ImageCropper';
+import { AttributeValueSelect } from '../ProductAddPage/ProductAddPage.jsx';
 
 const ExcelImportPage = () => {
   const navigate = useNavigate();
@@ -667,22 +668,15 @@ const ExcelImportPage = () => {
                                   {attr.required && <span className={styles.requiredStar}>*</span>}
                                 </label>
                                 {attr.has_predefined_values ? (
-                                  <select
-                                    className={styles.formControl}
-                                    value={product.attributes?.[attr.id] || ''}
-                                    onChange={(e) => {
-                                      const newAttributes = { ...(product.attributes || {}), [attr.id]: e.target.value };
+                                  <AttributeValueSelect
+                                    attr={attr}
+                                    value={product.attributes?.[attr.id] ?? ''}
+                                    onChange={(val) => {
+                                      const newAttributes = { ...(product.attributes || {}), [attr.id]: val };
                                       updateProductData(index, { attributes: newAttributes });
                                     }}
                                     required={attr.required}
-                                  >
-                                    {!attr.required && <option value="">Не выбрано</option>}
-                                    {attr.values.map(value => (
-                                      <option key={value.id} value={String(value.id)}>
-                                        {value.value}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  />
                                 ) : (
                                   <input
                                     type="text"

@@ -29,6 +29,8 @@ import ProductsPageDesktop from './pages/MarkeplaceProducts/ProductsPageDesktop'
 import ProductsPageMobile from './pages/MarkeplaceProducts/ProductsPageMobile';
 import ProductDetail from './pages/ProductDetail/ProductDetail';
 import ProductDetailDesktop from './pages/ProductDetail/ProductDetailDesktop';
+import SearchResultsPage from './pages/SearchResults/SearchResultsPage';
+import SearchResultsPageMobile from './pages/SearchResults/SearchResultsPageMobile';
 import PrivateRoute from './pages/PrivateRoute/PrivateRoute';
 import AccountPage from './pages/Account/AccoutPage';
 import AccountPageMobile from './pages/Account/AccountPageMobile';
@@ -361,6 +363,12 @@ function App() {
                       />
                     } 
                   />
+                  <Route path="/marketplace/search" element={
+                        <ResponsiveRoute
+                          desktopComponent={SearchResultsPage}
+                          mobileComponent={SearchResultsPageMobile}
+                        />
+                      } />
                   <Route 
                     path='/business-categories' 
                     element={

@@ -210,6 +210,18 @@
   animation: checkmarkAppear 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+.valueCount {
+  font-size: 0.78rem;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.attributeValueButton.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 @keyframes checkmarkAppear {
   0% {
     opacity: 0;

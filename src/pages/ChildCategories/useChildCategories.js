@@ -16,8 +16,9 @@ export const useChildCategories = () => {
       try {
         const response = await axios.get(`marketplace/api/categories/${pk}/`);
   
+        // Проверяем, нужно ли сделать редирект
         if (response.data.should_redirect) {
-          navigate(response.data.redirect_to);
+          navigate(response.data.redirect_to, { replace: true });
           return;
         }
   

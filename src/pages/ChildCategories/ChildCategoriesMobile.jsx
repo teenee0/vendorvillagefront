@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useChildCategories } from './useChildCategories';
 import { useFileUtils } from '../../hooks/useFileUtils';
 import Loader from '../../components/Loader';
+import { FaArrowLeft } from 'react-icons/fa';
 import styles from './ChildCategoriesMobile.module.css';
 
 const ChildCategoriesMobile = () => {
@@ -41,44 +42,55 @@ const ChildCategoriesMobile = () => {
   if (parseInt(pk, 10) === 25 && children.length === 2) {
     return (
       <div className={styles.specialCategoryContainerWrapper}>
-        <div className={styles.specialCategoryHeader}>
-          <h1 className={styles.specialCategoryTitle}>{category.name}</h1>
-          <div className={styles.headerActions}>
-            <button
-              onClick={() => navigate(`/marketplace/categories/${pk}/products/`)}
-              className={styles.showAllProductsButton}
-              aria-label="Показать все товары"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className={styles.showAllIcon}
-              >
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
-              <span>Все товары</span>
-            </button>
-            <button onClick={() => navigate(-1)} className={styles.backButton}>
-              &larr; Назад
-            </button>
+        {/* Кнопка назад и фиксированный хедер */}
+        <div className={styles.headerContainer}>
+          <button
+            className={styles.backButton}
+            onClick={() => navigate(-1)}
+            aria-label="Назад"
+          >
+            <FaArrowLeft />
+          </button>
+          <div className={styles.fixedHeader}>
+            <div className={styles.headerTop}>
+              <h1 className={styles.specialCategoryTitle}>{category.name}</h1>
+            </div>
           </div>
+        </div>
+
+        {/* Кнопка "Все товары" */}
+        <div className={styles.allProductsSection}>
+          <button
+            onClick={() => navigate(`/marketplace/categories/${pk}/products/`)}
+            className={styles.showAllProductsButton}
+            aria-label="Показать все товары"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={styles.showAllIcon}
+            >
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+            <span>Все товары</span>
+          </button>
         </div>
         <div className={styles.specialCategoryContainer}>
           {children.map((child, index) => (
             <div
               key={child.id}
-              className={styles.categoryCard}
+              className={`${styles.categoryCard} ${!child.big_image ? styles.categoryCardNoImage : ''}`}
               onClick={() => navigate(`/marketplace/categories/${child.id}`)}
               style={{
                 backgroundImage: child.big_image
                   ? getBackgroundImageUrl(child.big_image)
-                  : 'linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%)',
+                  : 'none',
                 animationDelay: `${index * 0.1}s`
               }}
             >
@@ -95,33 +107,44 @@ const ChildCategoriesMobile = () => {
   if (hasAllDescendants && children.length > 6) {
     return (
       <div className={styles.marketplaceContainer}>
-        <div className={styles.headerSection}>
-          <h1 className={styles.categoryTitle}>{category.name}</h1>
-          <div className={styles.headerActions}>
-            <button
-              onClick={() => navigate(`/marketplace/categories/${pk}/products/`)}
-              className={styles.showAllProductsButton}
-              aria-label="Показать все товары"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className={styles.showAllIcon}
-              >
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
-              <span>Все товары</span>
-            </button>
-            <button onClick={() => navigate(-1)} className={styles.backButton}>
-              &larr; Назад
-            </button>
+        {/* Кнопка назад и фиксированный хедер */}
+        <div className={styles.headerContainer}>
+          <button
+            className={styles.backButton}
+            onClick={() => navigate(-1)}
+            aria-label="Назад"
+          >
+            <FaArrowLeft />
+          </button>
+          <div className={styles.fixedHeader}>
+            <div className={styles.headerTop}>
+              <h1 className={styles.categoryTitle}>{category.name}</h1>
+            </div>
           </div>
+        </div>
+
+        {/* Кнопка "Все товары" */}
+        <div className={styles.allProductsSection}>
+          <button
+            onClick={() => navigate(`/marketplace/categories/${pk}/products/`)}
+            className={styles.showAllProductsButton}
+            aria-label="Показать все товары"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={styles.showAllIcon}
+            >
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+            <span>Все товары</span>
+          </button>
         </div>
 
         <div className={styles.mobileCategoryList}>
@@ -204,10 +227,43 @@ const ChildCategoriesMobile = () => {
 
   return (
     <div className={styles.marketplaceContainer}>
-      <div className={styles.headerSection}>
-        <h1 className={styles.categoryTitle}>{category.name}</h1>
-        <button onClick={() => navigate(-1)} className={styles.backButton}>
-          &larr; Назад
+      {/* Кнопка назад и фиксированный хедер */}
+      <div className={styles.headerContainer}>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+          aria-label="Назад"
+        >
+          <FaArrowLeft />
+        </button>
+        <div className={styles.fixedHeader}>
+          <div className={styles.headerTop}>
+            <h1 className={styles.categoryTitle}>{category.name}</h1>
+          </div>
+        </div>
+      </div>
+
+      {/* Кнопка "Все товары" */}
+      <div className={styles.allProductsSection}>
+        <button
+          onClick={() => navigate(`/marketplace/categories/${pk}/products/`)}
+          className={styles.showAllProductsButton}
+          aria-label="Показать все товары"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className={styles.showAllIcon}
+          >
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+          <span>Все товары</span>
         </button>
       </div>
 
@@ -217,11 +273,11 @@ const ChildCategoriesMobile = () => {
             <div
               key={child.id}
               onClick={() => navigate(`/marketplace/categories/${child.id}`)}
-              className={styles.categoryItem}
+              className={`${styles.categoryItem} ${!child.big_image ? styles.categoryItemNoImage : ''}`}
               style={{
                 backgroundImage: child.big_image
                   ? getBackgroundImageUrl(child.big_image)
-                  : 'linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%)',
+                  : 'none',
                 animationDelay: `${index * 0.05}s`
               }}
             >

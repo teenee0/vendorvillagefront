@@ -215,7 +215,8 @@ export const useExcelImport = () => {
       const formattedAttributes = response.data.map(attr => ({
         ...attr,
         values: attr.values || [],
-        has_predefined_values: attr.has_predefined_values || false
+        has_predefined_values: attr.has_predefined_values || false,
+        values_total_count: attr.values_total_count ?? (attr.values?.length ?? 0)
       }));
       
       setCategoryAttributes(prev => ({

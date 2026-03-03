@@ -38,7 +38,7 @@ const BusinessBottomNavigation = () => {
       // Если данные еще не загружены, возвращаем базовый набор
       return [
         {
-          path: `/business/${business_slug}/main`,
+          path: '/business/' + business_slug + '/main',
           icon: 'fas fa-home',
           label: 'Главная'
         },
@@ -62,7 +62,7 @@ const BusinessBottomNavigation = () => {
     if (businessTypeName === 'Рестораны') {
       return [
         {
-          path: `/business/${business_slug}/main`,
+          path: '/business/' + business_slug + '/main',
           icon: 'fas fa-home',
           label: 'Главная'
         },
@@ -99,7 +99,7 @@ const BusinessBottomNavigation = () => {
     if (importType === 'accounting_system') {
       return [
         {
-          path: `/business/${business_slug}/main`,
+          path: '/business/' + business_slug + '/main',
           icon: 'fas fa-home',
           label: 'Главная'
         },
@@ -141,10 +141,10 @@ const BusinessBottomNavigation = () => {
       ];
     }
 
-    // Если используется своя система (own_system)
+    // Если используется своя система (own_system), показываем Импорт Excel
     return [
       {
-        path: `/business/${business_slug}/main`,
+        path: '/business/' + business_slug + '/main',
         icon: 'fas fa-home',
         label: 'Главная'
       },
@@ -154,12 +154,17 @@ const BusinessBottomNavigation = () => {
         label: 'Товары'
       },
       {
-        path: `/business/${business_slug}/batches`,
+        path: `/business/${business_slug}/products/excel-import`,
+        icon: 'fas fa-file-excel',
+        label: 'Импорт Excel'
+      },
+      {
+        path: '/business/' + business_slug + '/batches',
         icon: 'fas fa-layer-group',
         label: 'Партии'
       },
       {
-        path: `/business/${business_slug}/settings`,
+        path: '/business/' + business_slug + '/settings',
         icon: 'fas fa-cog',
         label: 'Настройки'
       }

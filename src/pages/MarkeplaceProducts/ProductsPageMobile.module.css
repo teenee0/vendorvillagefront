@@ -9,15 +9,66 @@
   box-sizing: border-box;
 }
 
-/* Фиксированный хедер */
-.fixedHeader {
+/* Контейнер для кнопки назад и хедера */
+.headerContainer {
   position: sticky;
   top: 0;
   z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Кнопка назад */
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  margin-top: 0;
+}
+
+.backButton:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+}
+
+.backButton svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Фиксированный хедер */
+.fixedHeader {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  min-height: 44px;
   background: linear-gradient(180deg, var(--obsidian-elite) 0%, rgba(26, 26, 26, 0.98) 100%);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1rem 1rem 0.75rem;
+  padding: 0 1rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border-radius: 20px;
   width: 100%;
@@ -30,7 +81,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
   gap: 1rem;
   width: 100%;
   max-width: 100%;
@@ -38,7 +88,7 @@
 }
 
 .pageTitle {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin: 0;
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 50%, var(--imperial-gold) 100%);
@@ -48,6 +98,9 @@
   flex: 1;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .filterButton {
@@ -90,6 +143,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(45, 175, 159, 0.4);
+  z-index: 1;
 }
 
 /* Поиск */
@@ -234,6 +288,7 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  padding: 0 1rem;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -280,6 +335,7 @@
 
 /* Кнопка открытия модального окна категорий */
 .categoriesModalButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,6 +358,13 @@
   background: rgba(255, 255, 255, 0.12);
   border-color: var(--royal-emerald);
   color: var(--royal-emerald);
+}
+
+.categoriesModalButton svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
 }
 
 .categoriesModalIcon {

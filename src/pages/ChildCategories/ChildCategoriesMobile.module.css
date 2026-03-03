@@ -8,15 +8,86 @@
   min-height: calc(100vh - 80px);
 }
 
-.headerSection {
+/* Контейнер для кнопки назад и хедера */
+.headerContainer {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Кнопка назад */
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  margin-top: 0;
+}
+
+.backButton:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--royal-emerald);
+  color: var(--royal-emerald);
+}
+
+.backButton svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Фиксированный хедер */
+.fixedHeader {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  min-height: 44px;
+  background: linear-gradient(180deg, var(--obsidian-elite) 0%, rgba(26, 26, 26, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.headerTop {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.25rem;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .categoryTitle {
-  font-size: 1.75rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin: 0;
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 50%, var(--imperial-gold) 100%);
@@ -25,25 +96,27 @@
   background-clip: text;
   flex: 1;
   letter-spacing: -0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.backButton {
-  background: transparent;
-  border: 1.5px solid var(--border-light, rgba(255, 255, 255, 0.2));
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: var(--text-main, white);
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+/* Секция кнопки "Все товары" */
+.allProductsSection {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.backButton:active {
-  transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.1);
+.headerSection {
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.25rem;
+  gap: 1rem;
 }
 
 .categoriesList {
@@ -72,6 +145,32 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 30px;
   margin-bottom: 10px;
+}
+
+.categoryItemNoImage {
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.categoryItemNoImage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    var(--royal-emerald) 0%, 
+    var(--luminous-sapphire) 100%);
+  opacity: 0.6;
+}
+
+.categoryItemNoImage .categoryContent {
+  padding: 0.75rem 1.25rem;
 }
 
 .categoryItem::before {
@@ -124,6 +223,10 @@
   z-index: 1;
 }
 
+.categoryItemNoImage .imageOverlay {
+  background: transparent;
+}
+
 .categoryContent {
   position: relative;
   z-index: 2;
@@ -146,6 +249,22 @@
   transition: transform 0.3s ease;
   word-wrap: break-word;
   flex: 1;
+}
+
+.categoryItemNoImage .categoryName {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  text-shadow: none;
+  letter-spacing: -0.01em;
+}
+
+.categoryItemNoImage:active {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.categoryItemNoImage:active::before {
+  opacity: 1;
 }
 
 .categoryArrow {
@@ -229,7 +348,7 @@
 }
 
 .specialCategoryTitle {
-  font-size: 1.75rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin: 0;
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 50%, var(--imperial-gold) 100%);
@@ -238,7 +357,10 @@
   background-clip: text;
   flex: 1;
   letter-spacing: -0.02em;
-  min-width: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .headerActions {
@@ -255,7 +377,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  flex: 1;
+  width: 100%;
   padding: 0.875rem 1rem;
   background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 100%);
   border: none;
@@ -304,6 +426,28 @@
   background-repeat: no-repeat;
 }
 
+.specialCategoryContainer .categoryCardNoImage {
+  height: 140px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.specialCategoryContainer .categoryCardNoImage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    var(--royal-emerald) 0%, 
+    var(--luminous-sapphire) 100%);
+  opacity: 0.6;
+}
+
 .specialCategoryContainer .categoryCard:active {
   transform: scale(0.98);
 }
@@ -312,6 +456,26 @@
   background: linear-gradient(to bottom,
     rgba(0, 0, 0, 0.2) 0%,
     rgba(0, 0, 0, 0.5) 100%);
+}
+
+.specialCategoryContainer .categoryCardNoImage .imageOverlay {
+  background: transparent;
+}
+
+.specialCategoryContainer .categoryCardNoImage:active {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.specialCategoryContainer .categoryCardNoImage:active::before {
+  opacity: 1;
+}
+
+.specialCategoryContainer .categoryCardNoImage .label {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  text-shadow: none;
+  letter-spacing: -0.01em;
 }
 
 .specialCategoryContainer .label {
@@ -364,6 +528,14 @@
 
   .categoryItem {
     min-height: 140px;
+  }
+
+  .categoryItemNoImage {
+    min-height: 60px;
+  }
+
+  .categoryItemNoImage .categoryContent {
+    padding: 0.75rem 1rem;
   }
 
   .categoryContent {

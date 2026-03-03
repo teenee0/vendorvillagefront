@@ -1,3 +1,15 @@
+/* ─── Мобильная шторка поиска (portal в document.body) ──────────────────── */
+
+/* Затемнение под шторкой */
+.mobileSearchBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  pointer-events: auto;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 /* Base styles */
 .header {
   position: fixed;
@@ -5,10 +17,25 @@
   left: 0;
   width: 100%;
   z-index: 1000;
-  transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, border-bottom 0.3s ease;
+  /* CSS-переменная используется в SearchDropdown для позиционирования
+     мобильного полноэкранного дропдауна строго под шапкой */
+  --header-height: 110px;
+  transition:
+    transform      0.3s ease,
+    background     0.3s ease,
+    box-shadow     0.3s ease,
+    border-bottom  0.3s ease,
+    border-radius  0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Когда поиск активен — закруглённые нижние углы шапки */
+.header.mobileSearchActive {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  border-bottom-color: transparent;
 }
 
 .header.hidden {
@@ -220,13 +247,21 @@
   background: linear-gradient(90deg, var(--royal-emerald), var(--luminous-sapphire));
 }
 
-.searchForm {
+/* Обёртка для поисковой формы + выпадающего дропдауна */
+.searchWrapper {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   flex-grow: 1;
   max-width: 600px;
   margin: 0 1.5rem;
   position: relative;
+}
+
+.searchForm {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
 }
 
 .searchInput {
@@ -249,6 +284,37 @@
 .searchInput:focus {
   border-color: var(--royal-emerald);
   box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+/* Кнопка очистки × — появляется когда поле не пустое */
+.clearButton {
+  position: absolute;
+  right: 60px;
+  background: none;
+  border: none;
+  color: var(--palladium-mist);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.2s ease;
+  z-index: 1;
+}
+
+.clearButton:hover {
+  color: var(--platinum-gleam);
+}
+
+:global(:root.light-theme) .clearButton {
+  color: var(--palladium-mist);
+}
+
+:global(:root.light-theme) .clearButton:hover {
+  color: #212529;
 }
 
 .searchButton {
@@ -513,12 +579,30 @@
     width: 100%;
   }
 
-  .mobileSearchForm {
+  /* Мобильная обёртка для формы + дропдауна */
+  .searchWrapper {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     flex-grow: 1;
     position: relative;
     min-width: 0;
+    margin: 0;
+  }
+
+  /* Отдельная обёртка для мобильной поисковой формы */
+  .mobileSearchWrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    position: relative;
+    min-width: 0;
+  }
+
+  .mobileSearchForm {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
   }
 
   .mobileSearchInput {
@@ -549,6 +633,12 @@
   .mobileSearchInput:focus {
     border-color: var(--royal-emerald);
     box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+  }
+
+  /* Кнопка очистки на мобильном */
+  .clearButton {
+    right: 48px;
+    font-size: 1.1rem;
   }
 
   .mobileSearchButton {
@@ -594,31 +684,126 @@
     border-color: rgba(0, 0, 0, 0.1);
   }
 
+  /* ─── Мобильный логотип ─────────────────────────────────────────────────── */
+
+  .mobileBrand {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.25rem 0;
+    overflow: hidden;
+    /* max-width для плавного схлопывания при открытии поиска */
+    max-width: 140px;
+    opacity: 1;
+    transform-origin: left center;
+    transition:
+      max-width 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity   0.28s cubic-bezier(0.4, 0, 0.2, 1),
+      padding   0.38s cubic-bezier(0.4, 0, 0.2, 1),
+      margin    0.38s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.3s  cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Скрытие при прокрутке вверх */
+  .mobileBrand.hidden {
+    opacity: 0;
+    max-width: 0;
+    padding: 0;
+    pointer-events: none;
+    transform: scale(0.85) translateX(-10px);
+    overflow: hidden;
+  }
+
+  /* Скрываем логотип когда поиск активен */
+  .mobileSearchActive .mobileBrand {
+    max-width: 0;
+    opacity: 0;
+    padding: 0;
+    pointer-events: none;
+    transform: scale(0.85) translateX(-10px);
+  }
+
   .mobileBrand:hover {
     transform: scale(1.02);
   }
+
+  /* ─── Кнопка «← Назад»: плавно появляется при активном поиске ──────────── */
+
+  .mobileBackButton {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    /* Начальное состояние: скрыта, нулевая ширина */
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+    pointer-events: none;
+    transition:
+      max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity   0.25s cubic-bezier(0.4, 0, 0.2, 1),
+      padding   0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      color     0.2s ease;
+  }
+
+  /* Показываем кнопку когда поиск активен */
+  .mobileSearchActive .mobileBackButton {
+    max-width: 44px;
+    opacity: 1;
+    padding: 0.5rem 0.5rem 0.5rem 0;
+    pointer-events: auto;
+  }
+
+  .mobileBackButton:hover {
+    color: var(--royal-emerald);
+  }
+
+  :global(:root.light-theme) .mobileBackButton {
+    color: #212529;
+  }
+
+  :global(:root.light-theme) .mobileBackButton:hover {
+    color: var(--royal-emerald);
+  }
+
+  /* ─── Мобильный поиск активен ─────────────────────────────────────────── */
+
+  .mobileSearchActive {
+    gap: 0.5rem;
+  }
+
 
   .mobileBrand span {
     color: white !important;
     transition: none !important;
     display: inline-block;
     font-weight: 700;
-    filter: drop-shadow(0 2px 8px rgba(45, 175, 159, 0.3));
   }
 
   .mobileBrand:hover span {
     color: white !important;
-    filter: drop-shadow(0 4px 12px rgba(45, 175, 159, 0.5));
   }
 
   :global(:root.light-theme) .mobileBrand span {
     color: #212529 !important;
-    filter: drop-shadow(0 2px 8px rgba(45, 175, 159, 0.2));
   }
 
   :global(:root.light-theme) .mobileBrand:hover span {
     color: #212529 !important;
-    filter: drop-shadow(0 4px 12px rgba(45, 175, 159, 0.4));
   }
 
   .navbar {
@@ -649,36 +834,6 @@
     margin: 0;
   }
 
-  .mobileBrand {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    font-size: 1.3rem;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding: 0.25rem 0;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                width 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                margin 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                padding 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                scale 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: auto;
-    transform-origin: left center;
-  }
-
-  .mobileBrand.hidden {
-    opacity: 0;
-    pointer-events: none;
-    width: 0;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    transform: scale(0.8) translateX(-20px);
-  }
 
   .mobileCityButton {
     display: flex;

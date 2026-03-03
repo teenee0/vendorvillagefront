@@ -1,0 +1,1189 @@
+/* Убираем padding у .page-content для этой страницы */
+:global(.page-content.product-detail-page) {
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  :global(.page-content.product-detail-page) {
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :global(.page-content.product-detail-page) {
+    padding: 0 !important;
+  }
+}
+
+/* Базовые стили контейнера */
+.container {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Загрузка и ошибки */
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+.errorContainer {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Секция с изображениями */
+.imageSection {
+  position: relative;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.imageSlider {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.imageSlider :global(.slick-list) {
+  margin: 0;
+  padding: 0;
+}
+
+.imageSlider :global(.slick-track) {
+  margin: 0;
+  padding: 0;
+}
+
+.imageSlide {
+  width: 100%;
+  height: 0;
+  padding-bottom: 140%; /* Соотношение 5:7 (7/5 = 1.4 = 140%) */
+  position: relative;
+  overflow: hidden;
+}
+
+.productImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.noImagePlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.backButton {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background-color 0.2s;
+  overflow: visible;
+  padding: 0;
+  margin: 0;
+}
+
+
+.backButton svg {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px;
+  min-height: 24px;
+  color: white !important;
+  fill: none !important;
+  stroke: white !important;
+  stroke-width: 2.5;
+  pointer-events: none;
+  display: block;
+  flex-shrink: 0;
+}
+
+.favoriteButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background-color 0.2s;
+  overflow: visible;
+  padding: 0;
+  margin: 0;
+}
+
+
+.favoriteButton svg {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px;
+  min-height: 24px;
+  color: white !important;
+  fill: none !important;
+  stroke: white !important;
+  stroke-width: 2.5;
+  pointer-events: none;
+  display: block;
+  flex-shrink: 0;
+  transition: fill 0.2s, stroke 0.2s;
+}
+
+.favoriteButton svg.favoriteActive {
+  fill: #ef4444 !important;
+  stroke: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+/* Информация о товаре */
+.productInfo {
+  padding: 16px;
+  background-color: var(--bg-primary);
+}
+
+/* Рейтинг */
+.ratingSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  width: 16px;
+  height: 16px;
+  color: #d1d5db;
+}
+
+:root.dark-theme .star {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+:root.light-theme .star {
+  color: #d1d5db;
+}
+
+.starFilled {
+  color: #fbbf24;
+}
+
+:root.dark-theme .starFilled {
+  color: #fbbf24;
+}
+
+:root.light-theme .starFilled {
+  color: #f59e0b;
+}
+
+.reviewsCount {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+:root.dark-theme .reviewsCount {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+:root.light-theme .reviewsCount {
+  color: #6b7280;
+}
+
+/* Бренд и название */
+.brandName {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+:root.dark-theme .brandName {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+:root.light-theme .brandName {
+  color: #6b7280;
+}
+
+.productTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+:root.dark-theme .productTitle {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .productTitle {
+  color: #111827;
+}
+
+/* Секция магазинов */
+.storesSection {
+  margin-bottom: 20px;
+}
+
+.storesTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.storeList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.showMoreStoresBtn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:root.dark-theme .showMoreStoresBtn {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .showMoreStoresBtn {
+  border-color: #e5e7eb;
+  color: #111827;
+}
+
+
+.storeItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:root.dark-theme .storeItem {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+:root.light-theme .storeItem {
+  border-color: #e5e7eb;
+  background-color: #ffffff;
+}
+
+
+.storeItemActive {
+  border-color: var(--accent-color);
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.storeItemDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.storeQuantityUnavailable {
+  font-size: 14px;
+  color: var(--text-muted) !important;
+  margin: 0 0 4px 0;
+  font-style: italic;
+}
+
+:root.dark-theme .storeItemActive {
+  background-color: rgba(100, 108, 255, 0.15);
+}
+
+:root.light-theme .storeItemActive {
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.storeInfo {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.storeIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+:root.dark-theme .storeIcon {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.light-theme .storeIcon {
+  background-color: #f3f4f6;
+}
+
+.storeIconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storeIconText {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.storeDetails {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.storeName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.storeDetails .storeQuantity {
+  font-size: 14px;
+  font-weight: 500;
+  color: #22c55e !important;
+  margin: 0 0 4px 0;
+  display: block;
+}
+
+:root.dark-theme .storeDetails .storeQuantity {
+  color: #22c55e !important;
+}
+
+:root.light-theme .storeDetails .storeQuantity {
+  color: #16a34a !important;
+}
+
+.storeAddress,
+.storePhone {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+:root.dark-theme .storeAddress,
+:root.dark-theme .storePhone {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+:root.light-theme .storeAddress,
+:root.light-theme .storePhone {
+  color: #6b7280;
+}
+
+.storeIconSmall {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.storeActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.storePrice {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.selectStoreBtn {
+  padding: 6px 12px;
+  border: 1px solid var(--accent-color);
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--accent-color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+
+.selectStoreBtnActive {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+/* Выбор размера */
+.sizeSection {
+  margin-bottom: 20px;
+}
+
+.sizeHeader {
+  margin-bottom: 12px;
+}
+
+.sizeLabel {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.sizeOptions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sizeButton {
+  position: relative;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:root.dark-theme .sizeButton {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .sizeButton {
+  border-color: #e5e7eb;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+
+.sizeButtonSelected {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: white;
+}
+
+:root.dark-theme .sizeButtonSelected {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: white;
+}
+
+:root.light-theme .sizeButtonSelected {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.sizeButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.sizePrice {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+:root.dark-theme .sizePrice {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .sizePrice {
+  color: #111827;
+}
+
+/* Кнопка добавления в корзину */
+.addToCartButton {
+  width: 100%;
+  height: 52px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  transition: background-color 0.2s;
+}
+
+:root.dark-theme .addToCartButton {
+  background-color: #000000;
+}
+
+:root.light-theme .addToCartButton {
+  background-color: #111827;
+}
+
+
+.addToCartButton:disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.addToCartButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Действия */
+.actionButtons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.actionButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:root.dark-theme .actionButton {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .actionButton {
+  border-color: #e5e7eb;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+
+.actionButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* Другие цвета */
+.colorsSection {
+  margin-bottom: 24px;
+}
+
+.colorsTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.colorsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.colorItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+
+.colorItemSelected {
+  border-color: var(--accent-color);
+}
+
+.colorImage {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.colorImagePlaceholder {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.colorName {
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* Отзывы */
+.reviewsSection {
+  margin-bottom: 24px;
+}
+
+.reviewsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviewsTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reviewsRating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reviewsNumber {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.photoReviews {
+  margin-bottom: 16px;
+}
+
+.photoReviewsTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.photoReviewsGrid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.askQuestionButton {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:root.dark-theme .askQuestionButton {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+:root.light-theme .askQuestionButton {
+  border-color: #e5e7eb;
+  background-color: #ffffff;
+}
+
+
+/* Табы */
+.tabsSection {
+  margin-bottom: 24px;
+}
+
+.tabsHeader {
+  display: flex;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 16px;
+}
+
+:root.dark-theme .tabsHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.light-theme .tabsHeader {
+  border-bottom-color: #e5e7eb;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:root.dark-theme .tab {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+:root.light-theme .tab {
+  color: #6b7280;
+}
+
+
+.tabActive {
+  color: var(--text-primary);
+  border-bottom-color: white;
+  border-radius: 0;
+}
+
+:root.dark-theme .tabActive {
+  color: rgba(255, 255, 255, 0.87);
+  border-bottom-color: white;
+}
+
+:root.light-theme .tabActive {
+  color: #111827;
+  border-bottom-color: white;
+}
+
+.tabContent {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.descriptionContent p {
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.specsContent {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.specsContent p {
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.specsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.specItem {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+:root.dark-theme .specItem {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.light-theme .specItem {
+  border-bottom-color: #e5e7eb;
+}
+
+.specLabel {
+  color: var(--text-muted);
+}
+
+.specValue {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.warrantyInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  color: var(--text-primary);
+}
+
+.expandButton {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.deliveryContent {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.deliveryContent p {
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.deliveryContent p:last-child {
+  margin-bottom: 0;
+}
+
+.deliveryContent strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Секция магазина */
+.businessSection {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+}
+
+:root.dark-theme .businessSection {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+:root.light-theme .businessSection {
+  background-color: #f9fafb;
+}
+
+.businessHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.businessLogo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background-color: var(--bg-primary);
+}
+
+:root.dark-theme .businessLogo {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.light-theme .businessLogo {
+  background-color: #f3f4f6;
+}
+
+.businessInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.businessName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+:root.dark-theme .businessName {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .businessName {
+  color: #111827;
+}
+
+.businessDescription {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+:root.dark-theme .businessDescription {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+:root.light-theme .businessDescription {
+  color: #6b7280;
+}
+
+.businessLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+:root.dark-theme .businessLinks {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.light-theme .businessLinks {
+  border-top-color: #e5e7eb;
+}
+
+.businessLink {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: var(--accent-color);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+
+.businessLink svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Похожие товары */
+.similarSection {
+  margin-bottom: 24px;
+}
+
+.similarTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.similarFilters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  padding: 8px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+:root.dark-theme .filterButton {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.87);
+}
+
+:root.light-theme .filterButton {
+  border-color: #e5e7eb;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+
+.filterButtonActive {
+  background-color: #000000;
+  color: white;
+  border-color: #000000;
+}
+
+:root.dark-theme .filterButtonActive {
+  background-color: #000000;
+  color: white;
+}
+
+:root.light-theme .filterButtonActive {
+  background-color: #111827;
+  color: white;
+}
+
+.similarProducts {
+  width: 100%;
+  overflow: hidden;
+}
+
+.similarProductItem {
+  padding: 0 8px;
+}
+
+/* Стили для slick slider */
+.imageSlider :global(.slick-dots) {
+  bottom: 16px;
+}
+
+.imageSlider :global(.slick-dots li button:before) {
+  color: white;
+  opacity: 0.5;
+  font-size: 8px;
+}
+
+.imageSlider :global(.slick-dots li.slick-active button:before) {
+  opacity: 1;
+  color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+  .productInfo {
+    padding: 12px;
+  }
+
+  .productTitle {
+    font-size: 18px;
+  }
+
+  .currentPrice {
+    font-size: 22px;
+  }
+
+  .sizeButton {
+    min-width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .colorsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Убеждаемся что нет горизонтального скролла */
+.container,
+.imageSection,
+.productInfo {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}

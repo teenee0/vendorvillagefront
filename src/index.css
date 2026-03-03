@@ -193,9 +193,7 @@ button {
   color: var(--text-primary);
 }
 
-button:hover {
-  border-color: var(--accent-color);
-}
+
 
 button:active {
   transform: scale(0.98);

@@ -11,6 +11,19 @@ const axios = axios_base.create({
   baseURL: API_URL,
   withCredentials: true,
   timeout: 20000,
+  // Сериализуем массивы без скобок: attr_11=54&attr_11=58 (не attr_11[]=54)
+  // чтобы Django QueryDict.getlist('attr_11') корректно их читал
+  paramsSerializer: (params) => {
+    const sp = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => sp.append(key, v));
+      } else if (value !== null && value !== undefined && value !== '') {
+        sp.append(key, value);
+      }
+    });
+    return sp.toString();
+  },
 });
 
 // Флаг для предотвращения множественных запросов обновления токена

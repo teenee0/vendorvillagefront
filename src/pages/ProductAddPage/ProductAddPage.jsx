@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './ProductAddPage.module.css';
 import { FaPlusCircle, FaImages, FaInfoCircle, FaListUl, FaCloudUploadAlt, FaStar, FaTimes, FaTrash, FaPlus, FaCopy, FaSave } from 'react-icons/fa';
 import axios from "../../api/axiosDefault.js";
@@ -7,6 +7,291 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams, useNavigate } from 'react-router-dom';
 import ImageCropper from '../../components/ImageCropper/ImageCropper.jsx';
+
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 300;
+
+/** Нормализует value к массиву id (строки) */
+const toIdArray = (value) => {
+  if (value == null || value === '') return [];
+  if (Array.isArray(value)) return value.map((v) => String(v)).filter(Boolean);
+  return [String(value)];
+};
+
+/** Селектор значений атрибута: один выбор или мультивыбор (по allow_multiple); при >20 значений подгружает через API */
+const AttributeValueSelect = ({
+  attr,
+  value,
+  onChange,
+  required,
+  disabled,
+  multiple = false
+}) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [highlight, setHighlight] = useState(0);
+  const [options, setOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rootRef = useRef(null);
+  const listRef = useRef(null);
+  const debounceRef = useRef(null);
+
+  const totalCountFromAttr = attr.values_total_count ?? attr.values?.length ?? 0;
+  const isAsync = totalCountFromAttr > PAGE_SIZE;
+  const selectedIds = multiple ? toIdArray(value) : (value != null && value !== '' ? [String(value)] : []);
+  const singleValue = selectedIds[0] ?? '';
+  const hasMore = isAsync && totalCount != null && options.length < totalCount;
+
+  const fetchOptions = useCallback(async (search = '', page = 1, selectedIdsParam = [], append = false) => {
+    if (!attr.attribute_id) return;
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const params = { page, page_size: PAGE_SIZE };
+      if (search) params.search = search;
+      if (selectedIdsParam.length) params.selected_ids = selectedIdsParam.join(',');
+      const res = await axios.get(`/api/attributes/${attr.attribute_id}/values/`, { params });
+      const newResults = res.data.results || [];
+      if (res.data.count != null) setTotalCount(res.data.count);
+      setOptions(prev => append ? [...prev, ...newResults] : newResults);
+      setCurrentPage(page);
+    } catch (err) {
+      console.error('Ошибка загрузки значений атрибута:', err);
+      if (!append) setOptions([]);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [attr.attribute_id]);
+
+  useEffect(() => {
+    if (!isAsync && attr.values?.length) {
+      setOptions(attr.values);
+    }
+  }, [isAsync, attr.values]);
+
+  useEffect(() => {
+    if (!isAsync || selectedIds.length === 0) return;
+    const missing = selectedIds.filter((idStr) => !options.some((o) => String(o.id) === idStr));
+    if (missing.length === 0) return;
+    fetchOptions('', 1, selectedIds);
+  }, [isAsync, selectedIds.join(','), fetchOptions]);
+
+  const currentPageRef = useRef(1);
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
+
+  useEffect(() => {
+    if (!open || !isAsync) return;
+    if (query.trim() === '') {
+      fetchOptions('', 1, selectedIds);
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchOptions(query.trim(), 1, selectedIds);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [open, query, isAsync, selectedIds.join(','), fetchOptions]);
+
+  const handleListScroll = useCallback(() => {
+    if (!isAsync || loadingMore || !hasMore) return;
+    const el = listRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    if (scrollTop + clientHeight < scrollHeight - 80) return;
+    const nextPage = currentPageRef.current + 1;
+    fetchOptions(query.trim(), nextPage, [], true);
+  }, [isAsync, loadingMore, hasMore, query, fetchOptions]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) setHighlight(0);
+  }, [open, query]);
+
+  const filtered = !isAsync && query.trim()
+    ? options.filter((opt) => (opt.value || '').toLowerCase().includes(query.trim().toLowerCase()))
+    : options;
+
+  const handleKeyDown = (e) => {
+    if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+      setOpen(true);
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setOpen(false);
+      return;
+    }
+    if (!open) return;
+    if (multiple) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlight((h) => Math.min(h + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlight((h) => Math.max(h - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const pick = filtered[highlight];
+      if (pick) {
+        onChange(String(pick.id));
+        setQuery('');
+        setOpen(false);
+      }
+    }
+  };
+
+  const pickSingle = (opt) => {
+    onChange(String(opt.id));
+    setQuery('');
+    setOpen(false);
+  };
+
+  const toggleOption = (opt) => {
+    const idStr = String(opt.id);
+    const next = selectedIds.includes(idStr)
+      ? selectedIds.filter((id) => id !== idStr)
+      : [...selectedIds, idStr];
+    onChange(next);
+  };
+
+  const removeChip = (e, idStr) => {
+    e.stopPropagation();
+    onChange(selectedIds.filter((id) => id !== idStr));
+  };
+
+  const selectedLabels = selectedIds.map((idStr) => {
+    const opt = options.find((o) => String(o.id) === idStr);
+    return opt ? opt.value : idStr;
+  });
+
+  const selectedSingle = options.find((o) => String(o.id) === singleValue) || null;
+
+  return (
+    <div className={styles.attrSelectWrap} ref={rootRef}>
+      <div
+        className={styles.catPickerControl}
+        onClick={() => !disabled && setOpen((o) => !o)}
+        onKeyDown={handleKeyDown}
+        tabIndex={disabled ? -1 : 0}
+      >
+        <div className={styles.catPickerValue}>
+          {multiple ? (
+            selectedIds.length > 0 ? (
+              <div className={styles.attrChips}>
+                {selectedIds.map((idStr, i) => (
+                  <span key={idStr} className={styles.attrChip}>
+                    <span className={styles.attrChipLabel}>{selectedLabels[i] ?? idStr}</span>
+                    {!disabled && (
+                      <button
+                        type="button"
+                        className={styles.attrChipRemove}
+                        onClick={(e) => removeChip(e, idStr)}
+                        aria-label="Удалить"
+                      >
+                        <FaTimes />
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.catPlaceholder}>
+                {required ? 'Выберите одно или несколько...' : 'Не выбрано'}
+              </div>
+            )
+          ) : selectedSingle ? (
+            <div className={styles.catName}>{selectedSingle.value}</div>
+          ) : (
+            <div className={styles.catPlaceholder}>
+              {singleValue ? 'Выбрано' : (required ? 'Выберите...' : 'Не выбрано')}
+            </div>
+          )}
+        </div>
+        <div className={styles.catCaret} />
+      </div>
+      {open && (
+        <div className={styles.catDropdown} onKeyDown={handleKeyDown}>
+          <input
+            autoFocus
+            className={styles.catSearch}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Поиск..."
+          />
+          <div
+            ref={listRef}
+            className={styles.catList}
+            role="listbox"
+            tabIndex={0}
+            onScroll={handleListScroll}
+          >
+            {loading ? (
+              <div className={styles.catEmpty}>Загрузка...</div>
+            ) : filtered.length === 0 ? (
+              <div className={styles.catEmpty}>Ничего не найдено</div>
+            ) : multiple ? (
+              <>
+                {filtered.map((opt) => {
+                  const idStr = String(opt.id);
+                  const checked = selectedIds.includes(idStr);
+                  return (
+                    <label
+                      key={opt.id}
+                      className={`${styles.catItem} ${styles.catItemCheckbox} ${checked ? styles.catItemChecked : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleOption(opt)}
+                      />
+                      <span className={styles.catItemName}>{opt.value}</span>
+                    </label>
+                  );
+                })}
+                {loadingMore && <div className={styles.catEmpty}>Загрузка...</div>}
+              </>
+            ) : (
+              <>
+                {filtered.map((opt, idx) => (
+                  <div
+                    key={opt.id}
+                    role="option"
+                    aria-selected={String(opt.id) === singleValue}
+                    className={`${styles.catItem} ${idx === highlight ? styles.catItemActive : ''}`}
+                    onMouseEnter={() => setHighlight(idx)}
+                    onClick={() => pickSingle(opt)}
+                  >
+                    <div className={styles.catItemName}>{opt.value}</div>
+                  </div>
+                ))}
+                {loadingMore && <div className={styles.catEmpty}>Загрузка...</div>}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const CategoryPicker = ({
   categories = [],
@@ -217,7 +502,8 @@ const ProductAddPage = () => {
       const formattedAttributes = response.data.map(attr => ({
         ...attr,
         values: attr.values || [],
-        has_predefined_values: attr.has_predefined_values || false
+        has_predefined_values: attr.has_predefined_values || false,
+        allow_multiple: !!attr.allow_multiple
       }));
       setCategoryAttributes(formattedAttributes);
       setVariants([]);
@@ -242,13 +528,14 @@ const ProductAddPage = () => {
     }
   };
 
-  // Добавление нового варианта
+  // Добавление нового варианта (атрибуты с предустановленными: мульти — массив id, одиночный — строка)
   const handleAddVariant = () => {
     const newVariant = {
       id: variantCounter,
       attributes: categoryAttributes.reduce((acc, attr) => {
-        acc[String(attr.id)] = attr.values.length > 0 ?
-          (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
+        acc[String(attr.id)] = attr.has_predefined_values
+          ? (attr.allow_multiple ? [] : '')
+          : '';
         return acc;
       }, {})
     };
@@ -257,16 +544,17 @@ const ProductAddPage = () => {
     setVariantCounter(variantCounter + 1);
   };
 
-  // Изменение варианта
+  // Изменение варианта (value для атрибута с предустановленными значениями — массив id)
   const handleVariantChange = (id, field, value, attributeId = null) => {
     setVariants(variants.map(variant => {
       if (variant.id === id) {
         if (attributeId !== null) {
+          const normalized = Array.isArray(value) ? value : (typeof value === 'number' ? String(value) : value);
           return {
             ...variant,
             attributes: {
               ...variant.attributes,
-              [String(attributeId)]: typeof value === 'number' ? String(value) : value
+              [String(attributeId)]: normalized
             }
           };
         } else {
@@ -277,14 +565,14 @@ const ProductAddPage = () => {
     }));
   };
 
-  // Копирование последнего варианта
+  // Копирование последнего варианта (атрибуты — массивы или строки как есть)
   const handleCopyLastVariant = () => {
     if (variants.length === 0) return;
 
     const lastVariant = variants[variants.length - 1];
     const copiedAttributes = {};
-    Object.entries(lastVariant.attributes || {}).forEach(([key, value]) => {
-      copiedAttributes[String(key)] = typeof value === 'number' ? String(value) : value;
+    Object.entries(lastVariant.attributes || {}).forEach(([key, val]) => {
+      copiedAttributes[String(key)] = Array.isArray(val) ? [...val] : (typeof val === 'number' ? String(val) : val);
     });
 
     const newVariant = {
@@ -436,7 +724,10 @@ const ProductAddPage = () => {
       for (let attr of categoryAttributes) {
         if (attr.required) {
           const val = variant.attributes[attr.id];
-          if (val === undefined || val === null || val === '') {
+          const isEmpty = attr.has_predefined_values
+            ? (attr.allow_multiple ? (!Array.isArray(val) || val.length === 0) : (val === undefined || val === null || val === ''))
+            : (val === undefined || val === null || val === '');
+          if (isEmpty) {
             return {
               valid: false,
               message: `Вариант ${index + 1}: заполните обязательный атрибут "${attr.name}".`
@@ -465,10 +756,26 @@ const ProductAddPage = () => {
         barcode: variant.barcode || '',
         attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
           const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
+          const isPredefined = attribute?.has_predefined_values;
+          if (isPredefined) {
+            const ids = Array.isArray(value) ? value : (value !== '' && value != null ? [value] : []);
+            return attribute?.allow_multiple
+              ? {
+                  category_attribute: Number(attrId),
+                  predefined_value: null,
+                  predefined_values: ids.map(Number),
+                  custom_value: ''
+                }
+              : {
+                  category_attribute: Number(attrId),
+                  predefined_value: ids[0] != null ? Number(ids[0]) : null,
+                  custom_value: ''
+                };
+          }
           return {
             category_attribute: Number(attrId),
-            predefined_value: attribute?.has_predefined_values ? Number(value) : null,
-            custom_value: attribute?.has_predefined_values ? '' : String(value)
+            predefined_value: null,
+            custom_value: String(value ?? '')
           };
         })
       }))
@@ -626,21 +933,28 @@ const ProductAddPage = () => {
                   </div>
                   <div className={styles.formGroup}>
                     <label htmlFor="product-category" className={styles.formLabel}>Категория *</label>
-                    <CategoryPicker
-                      categories={categories}
-                      value={categoryId}
-                      onChange={(newId) => {
-                        // сохраняем и подтягиваем атрибуты
-                        setCategoryId(newId);
-                        if (newId) {
-                          fetchCategoryAttributes(newId);
-                        } else {
-                          setCategoryAttributes([]);
-                          setVariants([]);
-                        }
-                      }}
-                      disabled={isLoadingCategories || !!error}
-                    />
+                    {isLoadingCategories ? (
+                      <div className={styles.categoriesLoadingWrap}>
+                        <div className={styles.categoriesLoadingSkeleton} />
+                        <div className={styles.categoriesLoadingSpinner} aria-hidden="true" />
+                        <span className={styles.categoriesLoadingText}>Загрузка категорий...</span>
+                      </div>
+                    ) : (
+                      <CategoryPicker
+                        categories={categories}
+                        value={categoryId}
+                        onChange={(newId) => {
+                          setCategoryId(newId);
+                          if (newId) {
+                            fetchCategoryAttributes(newId);
+                          } else {
+                            setCategoryAttributes([]);
+                            setVariants([]);
+                          }
+                        }}
+                        disabled={!!error}
+                      />
+                    )}
                   </div>
                   <div className={styles.formGroup}>
                     <label htmlFor="product-unit" className={styles.formLabel}>Единица измерения</label>
@@ -729,104 +1043,87 @@ const ProductAddPage = () => {
                     <div className={styles.errorAlert}>Ошибка загрузки атрибутов: {attributesError}</div>
                   ) : (
                     <>
-                      <div className={styles.tableWrapper}>
-                        <div className={styles.horizontalScroll}>
-                          <table className={styles.variantTable}>
-                            <thead>
-                              <tr>
-                                <th className={styles.stickyColumn}>№</th>
+                      <div className={styles.variantList}>
+                        {variants.length === 0 ? (
+                          <div className={styles.noVariants}>
+                            Нет вариантов. Нажмите «Добавить вариант», чтобы создать первый.
+                          </div>
+                        ) : (
+                          variants.map((variant, index) => (
+                            <div key={variant.id} className={styles.variantCard}>
+                              <div className={styles.variantCardHeader}>
+                                <span className={styles.variantCardTitle}>Вариант {index + 1}</span>
+                                <button
+                                  type="button"
+                                  className={styles.variantButton}
+                                  onClick={() => handleRemoveVariant(variant.id)}
+                                  title="Удалить вариант"
+                                >
+                                  <FaTrash /> Удалить
+                                </button>
+                              </div>
+                              <div className={styles.variantCardBody}>
                                 {categoryAttributes.map(attr => (
-                                  <th key={attr.id}>
-                                    {attr.name}
-                                    {attr.required && <span className={styles.requiredStar}>*</span>}
-                                  </th>
-                                ))}
-                                <th className={styles.stickyColumn}>Штрих-код (опционально)</th>
-                                <th className={styles.stickyColumn}>Действия</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {variants.length === 0 ? (
-                                <tr>
-                                  <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
-                                    Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
-                                  </td>
-                                </tr>
-                              ) : (
-                                variants.map((variant, index) => (
-                                  <tr key={variant.id}>
-                                    <td className={styles.stickyColumn}>{index + 1}</td>
-                                    {categoryAttributes.map(attr => (
-                                      <td key={attr.id}>
-                                        {attr.has_predefined_values ? (
-                                          <select
-                                            className={styles.formSelect}
-                                            value={variant.attributes[attr.id] || ''}
-                                            onChange={(e) => handleVariantChange(
-                                              variant.id,
-                                              null,
-                                              e.target.value,
-                                              attr.id
-                                            )}
-                                            required={attr.required}
-                                          >
-                                            {!attr.required && <option value="">Не выбрано</option>}
-                                            {attr.values.map(value => (
-                                              <option key={value.id} value={String(value.id)}>
-                                                {value.value}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        ) : (
-                                          <input
-                                            type="text"
-                                            className={styles.formControltd}
-                                            value={variant.attributes[attr.id] || ''}
-                                            onChange={(e) => handleVariantChange(
-                                              variant.id,
-                                              null,
-                                              e.target.value,
-                                              attr.id
-                                            )}
-                                            placeholder={`Введите ${attr.name}`}
-                                            required={attr.required}
-                                          />
+                                  <div key={attr.id} className={styles.variantField}>
+                                    <label className={styles.variantFieldLabel}>
+                                      {attr.name}
+                                      {attr.required && <span className={styles.requiredStar}> *</span>}
+                                    </label>
+                                    {attr.has_predefined_values ? (
+                                      <AttributeValueSelect
+                                        attr={attr}
+                                        multiple={!!attr.allow_multiple}
+                                        value={attr.allow_multiple
+                                          ? (Array.isArray(variant.attributes[attr.id]) ? variant.attributes[attr.id] : (variant.attributes[attr.id] ?? []))
+                                          : (variant.attributes[attr.id] ?? '')}
+                                        onChange={(val) => handleVariantChange(
+                                          variant.id,
+                                          null,
+                                          val,
+                                          attr.id
                                         )}
-                                      </td>
-                                    ))}
-                                    <td className={styles.stickyColumn}>
+                                        required={attr.required}
+                                      />
+                                    ) : (
                                       <input
                                         type="text"
                                         className={styles.formControltd}
-                                        value={variant.barcode || ''}
+                                        value={variant.attributes[attr.id] || ''}
                                         onChange={(e) => handleVariantChange(
                                           variant.id,
-                                          'barcode',
-                                          e.target.value
+                                          null,
+                                          e.target.value,
+                                          attr.id
                                         )}
-                                        placeholder="EAN-13 (13 цифр)"
-                                        maxLength={13}
-                                        pattern="[0-9]{13}"
-                                        title="Введите 13-значный EAN-13 штрих-код"
+                                        placeholder={`Введите ${attr.name}`}
+                                        required={attr.required}
                                       />
-                                    </td>
-                                    <td className={`${styles.stickyColumn} ${styles.variantActions}`}>
-                                      <button
-                                        type="button"
-                                        className={styles.variantButton}
-                                        onClick={() => handleRemoveVariant(variant.id)}
-                                        title="Удалить вариант"
-                                      >
-                                        <FaTrash />
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                        <div className={styles.variantControls}>
+                                    )}
+                                  </div>
+                                ))}
+                                <div className={styles.variantField}>
+                                  <label className={styles.variantFieldLabel}>Штрих-код (опционально)</label>
+                                  <input
+                                    type="text"
+                                    className={styles.formControltd}
+                                    value={variant.barcode || ''}
+                                    onChange={(e) => handleVariantChange(
+                                      variant.id,
+                                      'barcode',
+                                      e.target.value
+                                    )}
+                                    placeholder="EAN-13 (13 цифр)"
+                                    maxLength={13}
+                                    pattern="[0-9]{13}"
+                                    title="Введите 13-значный EAN-13 штрих-код"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className={styles.variantControls}>
                           <div>
                             <button
                               type="button"
@@ -846,7 +1143,6 @@ const ProductAddPage = () => {
                             </button>
                           </div>
                         </div>
-                      </div>
                     </>
                   )}
                 </div>
@@ -886,3 +1182,4 @@ const ProductAddPage = () => {
 };
 
 export default ProductAddPage;
+export { AttributeValueSelect, PAGE_SIZE };

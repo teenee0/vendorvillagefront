@@ -12,9 +12,13 @@ const Breadcrumbs = ({ breadcrumbs, productName }) => {
       </button>
       
       {breadcrumbs?.map((category, index) => (
-        <React.Fragment key={category.id}>
+        <React.Fragment key={category.id ?? index}>
           <span className="separator">/</span>
-          <button onClick={() => navigate(`/marketplace/categories/${category.id}`)}>
+          <button
+            onClick={() =>
+              navigate(category.path ?? `/marketplace/categories/${category.id}`)
+            }
+          >
             {category.name}
           </button>
         </React.Fragment>

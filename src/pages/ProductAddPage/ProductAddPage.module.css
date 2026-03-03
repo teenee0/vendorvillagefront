@@ -293,6 +293,66 @@ textarea.formControl {
   position: relative;
 }
 
+/* Варианты товара — вертикальная раскладка (карточки) */
+.variantList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.noVariants {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--silver-whisper);
+  background: var(--phantom-noir);
+  border: 1px dashed var(--gilded-shadow);
+  border-radius: 0.5rem;
+}
+
+.variantCard {
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.variantCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--gilded-shadow);
+}
+
+.variantCardTitle {
+  font-weight: 600;
+  color: var(--platinum-gleam);
+}
+
+.variantCardBody {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.variantField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.variantFieldLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--silver-whisper);
+}
+
+.variantFieldLabel .requiredStar {
+  color: var(--velvet-ruby);
+}
+
 .variantTable {
   width: 100%;
   border-collapse: collapse;
@@ -544,8 +604,64 @@ textarea.formControl {
   overflow: hidden;
 }
 
+/* Анимация загрузки категорий */
+.categoriesLoadingWrap {
+  position: relative;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 10px;
+  background: var(--obsidian-elite);
+}
+
+.categoriesLoadingSkeleton {
+  flex: 1;
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--phantom-noir) 0%,
+    rgba(45, 175, 159, 0.15) 50%,
+    var(--phantom-noir) 100%
+  );
+  background-size: 200% 100%;
+  animation: categoriesSkeletonPulse 1.5s ease-in-out infinite;
+}
+
+.categoriesLoadingSpinner {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--gilded-shadow);
+  border-top-color: var(--royal-emerald);
+  border-radius: 50%;
+  animation: categoriesSpinner 0.8s linear infinite;
+}
+
+.categoriesLoadingText {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--silver-whisper);
+}
+
+@keyframes categoriesSkeletonPulse {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+@keyframes categoriesSpinner {
+  to { transform: rotate(360deg); }
+}
 
 /* === CategoryPicker base === */
+.attrSelectWrap {
+  position: relative;
+  min-width: 0;
+}
+
 .catPicker {
   position: relative;
 }
@@ -611,7 +727,6 @@ textarea.formControl {
 
 /* === Dropdown === */
 .catDropdown {
-  position: absolute;
   z-index: 30;
   left: 0;
   right: 0;
@@ -676,6 +791,72 @@ textarea.formControl {
   color: var(--silver-whisper);
   font-size: 12px;
   line-height: 1.2;
+}
+
+/* Мультиселект: чипы выбранных значений */
+.attrChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 24px;
+}
+
+.attrChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  color: var(--platinum-gleam);
+  font-size: 13px;
+}
+
+.attrChipLabel {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attrChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--silver-whisper);
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.attrChipRemove:hover {
+  color: var(--platinum-gleam);
+  background: rgba(255,255,255,0.1);
+}
+
+/* Пункт списка с чекбоксом */
+.catItemCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.catItemCheckbox input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--royal-emerald);
+}
+
+.catItemChecked {
+  background: rgba(45, 175, 159, 0.12);
 }
 
 /* Адаптив */

@@ -3,7 +3,7 @@ import { useProductsPage } from './useProductsPage';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import FiltersSectionMobile from '/src/components/FiltersSection/FiltersSectionMobile.jsx';
 import Loader from '../../components/Loader';
-import { FaFilter, FaTimes } from 'react-icons/fa';
+import { FaFilter, FaTimes, FaSortAmountDown, FaArrowLeft } from 'react-icons/fa';
 import styles from './ProductsPageMobile.module.css';
 
 const ProductsPageMobile = () => {
@@ -176,15 +176,31 @@ const ProductsPageMobile = () => {
 
   return (
     <div className={styles.productsPage}>
-      {/* Фиксированный хедер */}
-      <div className={styles.fixedHeader}>
-        <div className={styles.headerTop}>
-          <h1 className={styles.pageTitle}>{data.category.name}</h1>
+      {/* Кнопка назад и фиксированный хедер */}
+      <div className={styles.headerContainer}>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+          aria-label="Назад"
+        >
+          <FaArrowLeft />
+        </button>
+        <div className={styles.fixedHeader}>
+          <div className={styles.headerTop}>
+            <h1 className={styles.pageTitle}>{data.category.name}</h1>
+          </div>
         </div>
+      </div>
 
-        <div className={styles.headerActions}>
+      {/* Контент с отступом для фиксированного хедера */}
+      <div className={styles.content}>
+      </div>
+
+      {/* Кнопки сортировки и фильтров — всегда видны */}
+      <div className={styles.subcategoriesSection}>
+        <div className={styles.subcategoriesChips}>
           <button
-            className={styles.filterButton}
+            className={styles.categoriesModalButton}
             onClick={toggleFilters}
             aria-label="Фильтры"
           >
@@ -194,55 +210,48 @@ const ProductsPageMobile = () => {
             )}
           </button>
           <button
-            className={styles.sortButton}
+            className={styles.categoriesModalButton}
             onClick={toggleSort}
             aria-label="Сортировка"
           >
-            {sortOptions.find(opt => opt.value === sortOption)?.label || 'Сортировка'}
+            <FaSortAmountDown />
           </button>
-        </div>
-      </div>
-
-      {/* Контент с отступом для фиксированного хедера */}
-      <div className={styles.content}>
-      </div>
-
-      {data.subcategories && data.subcategories.length > 0 && (
-        <div className={styles.subcategoriesSection}>
-          <div className={styles.subcategoriesChips}>
-            <button
-              className={styles.categoriesModalButton}
-              onClick={() => setIsCategoriesModalOpen(true)}
-              aria-label="Все категории"
-            >
-              <svg 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-                className={styles.categoriesModalIcon}
-              >
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
-            {data.subcategories.map(subcat => (
+          {data.subcategories && data.subcategories.length > 0 && (
+            <>
               <button
-                key={subcat.id}
-                className={`${styles.subcategoryChip} ${location.pathname.includes(`/categories/${subcat.id}`) ? styles.subcategoryChipActive : ''}`}
-                onClick={() => {
-                  navigate(`/marketplace/categories/${subcat.id}/products/`);
-                }}
+                className={styles.categoriesModalButton}
+                onClick={() => setIsCategoriesModalOpen(true)}
+                aria-label="Все категории"
               >
-                {subcat.name}
+                <svg 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                  className={styles.categoriesModalIcon}
+                >
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
               </button>
-            ))}
-          </div>
+              {data.subcategories.map(subcat => (
+                <button
+                  key={subcat.id}
+                  className={`${styles.subcategoryChip} ${location.pathname.includes(`/categories/${subcat.id}`) ? styles.subcategoryChipActive : ''}`}
+                  onClick={() => {
+                    navigate(`/marketplace/categories/${subcat.id}/products/`);
+                  }}
+                >
+                  {subcat.name}
+                </button>
+              ))}
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       <div className={styles.productsContent}>
         {allProducts.length > 0 ? (

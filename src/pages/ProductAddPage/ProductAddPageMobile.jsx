@@ -7,6 +7,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useParams, useNavigate } from 'react-router-dom';
 import ImageCropper from '../../components/ImageCropper/ImageCropper.jsx';
+import { AttributeValueSelect, PAGE_SIZE } from './ProductAddPage.jsx';
 
 const CategoryPicker = ({
   categories = [],
@@ -217,7 +218,8 @@ const ProductAddPageMobile = () => {
       const formattedAttributes = response.data.map(attr => ({
         ...attr,
         values: attr.values || [],
-        has_predefined_values: attr.has_predefined_values || false
+        has_predefined_values: attr.has_predefined_values || false,
+        allow_multiple: !!attr.allow_multiple
       }));
       setCategoryAttributes(formattedAttributes);
       setVariants([]);
@@ -242,13 +244,14 @@ const ProductAddPageMobile = () => {
     }
   };
 
-  // Добавление нового варианта
+  // Добавление нового варианта (атрибуты с предустановленными: мульти — массив id, одиночный — строка)
   const handleAddVariant = () => {
     const newVariant = {
       id: variantCounter,
       attributes: categoryAttributes.reduce((acc, attr) => {
-        acc[String(attr.id)] = attr.values.length > 0 ?
-          (attr.values[0].id ? String(attr.values[0].id) : String(attr.values[0])) : '';
+        acc[String(attr.id)] = attr.has_predefined_values
+          ? (attr.allow_multiple ? [] : '')
+          : '';
         return acc;
       }, {})
     };
@@ -257,16 +260,17 @@ const ProductAddPageMobile = () => {
     setVariantCounter(variantCounter + 1);
   };
 
-  // Изменение варианта
+  // Изменение варианта (value для атрибута с предустановленными значениями — массив id)
   const handleVariantChange = (id, field, value, attributeId = null) => {
     setVariants(variants.map(variant => {
       if (variant.id === id) {
         if (attributeId !== null) {
+          const normalized = Array.isArray(value) ? value : (typeof value === 'number' ? String(value) : value);
           return {
             ...variant,
             attributes: {
               ...variant.attributes,
-              [String(attributeId)]: typeof value === 'number' ? String(value) : value
+              [String(attributeId)]: normalized
             }
           };
         } else {
@@ -277,14 +281,14 @@ const ProductAddPageMobile = () => {
     }));
   };
 
-  // Копирование последнего варианта
+  // Копирование последнего варианта (атрибуты — массивы или строки как есть)
   const handleCopyLastVariant = () => {
     if (variants.length === 0) return;
 
     const lastVariant = variants[variants.length - 1];
     const copiedAttributes = {};
-    Object.entries(lastVariant.attributes || {}).forEach(([key, value]) => {
-      copiedAttributes[String(key)] = typeof value === 'number' ? String(value) : value;
+    Object.entries(lastVariant.attributes || {}).forEach(([key, val]) => {
+      copiedAttributes[String(key)] = Array.isArray(val) ? [...val] : (typeof val === 'number' ? String(val) : val);
     });
 
     const newVariant = {
@@ -436,7 +440,10 @@ const ProductAddPageMobile = () => {
       for (let attr of categoryAttributes) {
         if (attr.required) {
           const val = variant.attributes[attr.id];
-          if (val === undefined || val === null || val === '') {
+          const isEmpty = attr.has_predefined_values
+            ? (attr.allow_multiple ? (!Array.isArray(val) || val.length === 0) : (val === undefined || val === null || val === ''))
+            : (val === undefined || val === null || val === '');
+          if (isEmpty) {
             return {
               valid: false,
               message: `Вариант ${index + 1}: заполните обязательный атрибут "${attr.name}".`
@@ -465,10 +472,26 @@ const ProductAddPageMobile = () => {
         barcode: variant.barcode || '',
         attributes: Object.entries(variant.attributes || {}).map(([attrId, value]) => {
           const attribute = categoryAttributes.find(a => String(a.id) === String(attrId));
+          const isPredefined = attribute?.has_predefined_values;
+          if (isPredefined) {
+            const ids = Array.isArray(value) ? value : (value !== '' && value != null ? [value] : []);
+            return attribute?.allow_multiple
+              ? {
+                  category_attribute: Number(attrId),
+                  predefined_value: null,
+                  predefined_values: ids.map(Number),
+                  custom_value: ''
+                }
+              : {
+                  category_attribute: Number(attrId),
+                  predefined_value: ids[0] != null ? Number(ids[0]) : null,
+                  custom_value: ''
+                };
+          }
           return {
             category_attribute: Number(attrId),
-            predefined_value: attribute?.has_predefined_values ? Number(value) : null,
-            custom_value: attribute?.has_predefined_values ? '' : String(value)
+            predefined_value: null,
+            custom_value: String(value ?? '')
           };
         })
       }))
@@ -637,21 +660,28 @@ const ProductAddPageMobile = () => {
                   </div>
                   <div className={styles.formGroup}>
                     <label htmlFor="product-category" className={styles.formLabel}>Категория *</label>
-                    <CategoryPicker
-                      categories={categories}
-                      value={categoryId}
-                      onChange={(newId) => {
-                        // сохраняем и подтягиваем атрибуты
-                        setCategoryId(newId);
-                        if (newId) {
-                          fetchCategoryAttributes(newId);
-                        } else {
-                          setCategoryAttributes([]);
-                          setVariants([]);
-                        }
-                      }}
-                      disabled={isLoadingCategories || !!error}
-                    />
+                    {isLoadingCategories ? (
+                      <div className={styles.categoriesLoadingWrap}>
+                        <div className={styles.categoriesLoadingSkeleton} />
+                        <div className={styles.categoriesLoadingSpinner} aria-hidden="true" />
+                        <span className={styles.categoriesLoadingText}>Загрузка категорий...</span>
+                      </div>
+                    ) : (
+                      <CategoryPicker
+                        categories={categories}
+                        value={categoryId}
+                        onChange={(newId) => {
+                          setCategoryId(newId);
+                          if (newId) {
+                            fetchCategoryAttributes(newId);
+                          } else {
+                            setCategoryAttributes([]);
+                            setVariants([]);
+                          }
+                        }}
+                        disabled={!!error}
+                      />
+                    )}
                   </div>
                   <div className={styles.formGroup}>
                     <label htmlFor="product-unit" className={styles.formLabel}>Единица измерения</label>
@@ -740,104 +770,87 @@ const ProductAddPageMobile = () => {
                     <div className={styles.errorAlert}>Ошибка загрузки атрибутов: {attributesError}</div>
                   ) : (
                     <>
-                      <div className={styles.tableWrapper}>
-                        <div className={styles.horizontalScroll}>
-                          <table className={styles.variantTable}>
-                            <thead>
-                              <tr>
-                                <th className={styles.stickyColumn}>№</th>
+                      <div className={styles.variantList}>
+                        {variants.length === 0 ? (
+                          <div className={styles.noVariants}>
+                            Нет вариантов. Нажмите «Добавить вариант», чтобы создать первый.
+                          </div>
+                        ) : (
+                          variants.map((variant, index) => (
+                            <div key={variant.id} className={styles.variantCard}>
+                              <div className={styles.variantCardHeader}>
+                                <span className={styles.variantCardTitle}>Вариант {index + 1}</span>
+                                <button
+                                  type="button"
+                                  className={styles.variantButton}
+                                  onClick={() => handleRemoveVariant(variant.id)}
+                                  title="Удалить вариант"
+                                >
+                                  <FaTrash /> Удалить
+                                </button>
+                              </div>
+                              <div className={styles.variantCardBody}>
                                 {categoryAttributes.map(attr => (
-                                  <th key={attr.id}>
-                                    {attr.name}
-                                    {attr.required && <span className={styles.requiredStar}>*</span>}
-                                  </th>
-                                ))}
-                                <th className={styles.stickyColumn}>Штрих-код (опционально)</th>
-                                <th className={styles.stickyColumn}>Действия</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {variants.length === 0 ? (
-                                <tr>
-                                  <td colSpan={categoryAttributes.length + 3} className={styles.noVariants}>
-                                    Нет вариантов. Нажмите "Добавить вариант" чтобы создать первый.
-                                  </td>
-                                </tr>
-                              ) : (
-                                variants.map((variant, index) => (
-                                  <tr key={variant.id}>
-                                    <td className={styles.stickyColumn}>{index + 1}</td>
-                                    {categoryAttributes.map(attr => (
-                                      <td key={attr.id}>
-                                        {attr.has_predefined_values ? (
-                                          <select
-                                            className={styles.formSelect}
-                                            value={variant.attributes[attr.id] || ''}
-                                            onChange={(e) => handleVariantChange(
-                                              variant.id,
-                                              null,
-                                              e.target.value,
-                                              attr.id
-                                            )}
-                                            required={attr.required}
-                                          >
-                                            {!attr.required && <option value="">Не выбрано</option>}
-                                            {attr.values.map(value => (
-                                              <option key={value.id} value={String(value.id)}>
-                                                {value.value}
-                                              </option>
-                                            ))}
-                                          </select>
-                                        ) : (
-                                          <input
-                                            type="text"
-                                            className={styles.formControltd}
-                                            value={variant.attributes[attr.id] || ''}
-                                            onChange={(e) => handleVariantChange(
-                                              variant.id,
-                                              null,
-                                              e.target.value,
-                                              attr.id
-                                            )}
-                                            placeholder={`Введите ${attr.name}`}
-                                            required={attr.required}
-                                          />
+                                  <div key={attr.id} className={styles.variantField}>
+                                    <label className={styles.variantFieldLabel}>
+                                      {attr.name}
+                                      {attr.required && <span className={styles.requiredStar}> *</span>}
+                                    </label>
+                                    {attr.has_predefined_values ? (
+                                      <AttributeValueSelect
+                                        attr={attr}
+                                        multiple={!!attr.allow_multiple}
+                                        value={attr.allow_multiple
+                                          ? (Array.isArray(variant.attributes[attr.id]) ? variant.attributes[attr.id] : (variant.attributes[attr.id] ?? []))
+                                          : (variant.attributes[attr.id] ?? '')}
+                                        onChange={(val) => handleVariantChange(
+                                          variant.id,
+                                          null,
+                                          val,
+                                          attr.id
                                         )}
-                                      </td>
-                                    ))}
-                                    <td className={styles.stickyColumn}>
+                                        required={attr.required}
+                                      />
+                                    ) : (
                                       <input
                                         type="text"
                                         className={styles.formControltd}
-                                        value={variant.barcode || ''}
+                                        value={variant.attributes[attr.id] || ''}
                                         onChange={(e) => handleVariantChange(
                                           variant.id,
-                                          'barcode',
-                                          e.target.value
+                                          null,
+                                          e.target.value,
+                                          attr.id
                                         )}
-                                        placeholder="EAN-13 (13 цифр)"
-                                        maxLength={13}
-                                        pattern="[0-9]{13}"
-                                        title="Введите 13-значный EAN-13 штрих-код"
+                                        placeholder={`Введите ${attr.name}`}
+                                        required={attr.required}
                                       />
-                                    </td>
-                                    <td className={`${styles.stickyColumn} ${styles.variantActions}`}>
-                                      <button
-                                        type="button"
-                                        className={styles.variantButton}
-                                        onClick={() => handleRemoveVariant(variant.id)}
-                                        title="Удалить вариант"
-                                      >
-                                        <FaTrash />
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                        <div className={styles.variantControls}>
+                                    )}
+                                  </div>
+                                ))}
+                                <div className={styles.variantField}>
+                                  <label className={styles.variantFieldLabel}>Штрих-код (опционально)</label>
+                                  <input
+                                    type="text"
+                                    className={styles.formControltd}
+                                    value={variant.barcode || ''}
+                                    onChange={(e) => handleVariantChange(
+                                      variant.id,
+                                      'barcode',
+                                      e.target.value
+                                    )}
+                                    placeholder="EAN-13 (13 цифр)"
+                                    maxLength={13}
+                                    pattern="[0-9]{13}"
+                                    title="Введите 13-значный EAN-13 штрих-код"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className={styles.variantControls}>
                           <div>
                             <button
                               type="button"
@@ -857,7 +870,6 @@ const ProductAddPageMobile = () => {
                             </button>
                           </div>
                         </div>
-                      </div>
                     </>
                   )}
                 </div>

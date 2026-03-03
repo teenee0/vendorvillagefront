@@ -514,6 +514,19 @@
   border: 2px solid #3b82f6;
 }
 
+.storeItemDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.storeQuantityUnavailable {
+  font-size: 0.9rem;
+  color: var(--silver-whisper) !important;
+  margin: 2px 0;
+  font-style: italic;
+}
+
 :root.dark-theme .storeItemActive {
   border-color: var(--royal-emerald);
 }
@@ -557,6 +570,22 @@
 
 :root.light-theme .storeDetails h4 {
   color: #1e293b;
+}
+
+.storeDetails .storeQuantity {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #22c55e !important;
+  margin: 2px 0;
+  display: block;
+}
+
+:root.dark-theme .storeDetails .storeQuantity {
+  color: #22c55e !important;
+}
+
+:root.light-theme .storeDetails .storeQuantity {
+  color: #16a34a !important;
 }
 
 .storeDetails p {
@@ -628,6 +657,40 @@
 
 .selectStoreBtnActive:hover {
   background: #0d9968;
+}
+
+.showMoreStoresBtn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 12px;
+  background-color: transparent;
+  color: var(--platinum-gleam);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+:root.dark-theme .showMoreStoresBtn {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--platinum-gleam);
+}
+
+:root.light-theme .showMoreStoresBtn {
+  border-color: #e5e7eb;
+  color: #1e293b;
+}
+
+.showMoreStoresBtn:hover {
+  background-color: var(--phantom-noir);
+  border-color: var(--royal-emerald);
+}
+
+:root.light-theme .showMoreStoresBtn:hover {
+  background-color: #f1f5f9;
+  border-color: var(--royal-emerald);
 }
 
 /* Покупка и действия */
