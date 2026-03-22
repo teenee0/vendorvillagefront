@@ -42,6 +42,28 @@
   font-weight: 500;
 }
 
+.onlineOrdersButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--royal-emerald);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(45, 175, 159, 0.3);
+}
+
+.onlineOrdersButton:hover {
+  background: var(--luminous-sapphire);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 175, 159, 0.4);
+}
+
 .bonusHistoryButton {
   display: flex;
   align-items: center;

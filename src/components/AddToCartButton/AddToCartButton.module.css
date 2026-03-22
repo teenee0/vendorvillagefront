@@ -1,0 +1,4 @@
+.wrapper { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qty { width: 80px !important; }
+.btn { min-width: 160px; transition: background 0.3s; }
+.added { background: #2daf9f !important; border-color: #2daf9f !important; }

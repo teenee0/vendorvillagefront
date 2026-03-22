@@ -199,12 +199,7 @@ const SalesPageMobile = () => {
     const [showQRScanner, setShowQRScanner] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [bonusSettings, setBonusSettings] = useState(null);
-    const [bonusPercentOverride, setBonusPercentOverride] = useState(null);
-    const [bonusAccrualMode, setBonusAccrualMode] = useState('tier'); // 'tier' или 'settings'
-    const [bonusRedemptionPercent, setBonusRedemptionPercent] = useState(0);
-    const [bonusRedemptionAmount, setBonusRedemptionAmount] = useState(0);
-    const [bonusRedemptionType, setBonusRedemptionType] = useState('percent');
-    const [showBonusRedemption, setShowBonusRedemption] = useState(false);
+    const [bonusParams, setBonusParams] = useState({});
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -684,14 +679,14 @@ const SalesPageMobile = () => {
         let total = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
         
         // Вычитаем списанные бонусы (если есть)
-        if (selectedCustomer && bonusRedemptionType && showBonusRedemption) {
+        if (selectedCustomer && bonusParams) {
             let bonusRedeemed = 0;
             const customerBalance = parseFloat(selectedCustomer.balance || 0);
             
-            if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
-                bonusRedeemed = customerBalance * bonusRedemptionPercent / 100;
-            } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
-                bonusRedeemed = bonusRedemptionAmount;
+            if (bonusParams.bonus_redemption_percent > 0) {
+                bonusRedeemed = customerBalance * bonusParams.bonus_redemption_percent / 100;
+            } else if (bonusParams.bonus_redemption_amount > 0) {
+                bonusRedeemed = bonusParams.bonus_redemption_amount;
             }
             
             // Нельзя списать больше, чем итоговая сумма покупки
@@ -712,55 +707,6 @@ const SalesPageMobile = () => {
         return subtotal - calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
     };
 
-    // Calculate bonus prediction
-    const calculateBonusPrediction = (currentCart, currentDiscountValue = discountValue, currentDiscountType = discountType) => {
-        if (!selectedCustomer || !bonusSettings || !bonusSettings.is_enabled) {
-            return null;
-        }
-
-        const total = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
-        
-        // Проверяем минимальную сумму покупки
-        if (total < parseFloat(bonusSettings.min_purchase_amount || 0)) {
-            return null;
-        }
-
-        // Определяем процент начисления в зависимости от режима
-        let bonusPercent = 0;
-        
-        // Если процент фиксированный, всегда используем настройки (если нет переопределения)
-        if (bonusSettings.is_fixed_percent && bonusPercentOverride === null) {
-            bonusPercent = parseFloat(bonusSettings.bonus_percent || 0);
-        } else if (bonusPercentOverride !== null) {
-            // Если вручную указан процент, используем его
-            bonusPercent = parseFloat(bonusPercentOverride);
-        } else if (bonusAccrualMode === 'tier' && selectedCustomer.tier?.bonus_percent) {
-            // Используем процент из tier системы
-            bonusPercent = parseFloat(selectedCustomer.tier.bonus_percent);
-        } else if (bonusAccrualMode === 'settings') {
-            // Явно используем процент из общих настроек
-            bonusPercent = parseFloat(bonusSettings.bonus_percent || 0);
-        } else {
-            // Fallback: используем процент из общих настроек
-            bonusPercent = parseFloat(bonusSettings.bonus_percent || 0);
-        }
-
-        // Рассчитываем начисление бонусов
-        let bonusAccrual = total * bonusPercent / 100;
-
-        // Применяем лимиты
-        if (bonusSettings.max_bonus_percent) {
-            const maxByPercent = total * parseFloat(bonusSettings.max_bonus_percent) / 100;
-            bonusAccrual = Math.min(bonusAccrual, maxByPercent);
-        }
-
-        if (bonusSettings.max_bonus_amount) {
-            bonusAccrual = Math.min(bonusAccrual, parseFloat(bonusSettings.max_bonus_amount));
-        }
-
-        // Округляем бонусы до целых
-        return Math.max(0, Math.round(bonusAccrual));
-    };
 
     // Complete sale
     const completeSale = async () => {
@@ -780,16 +726,9 @@ const SalesPageMobile = () => {
         // Проверяем валидность списания бонусов перед отправкой
         if (selectedCustomer) {
             const customerBalance = parseFloat(selectedCustomer.balance || 0);
-            if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > customerBalance) {
+            if (bonusParams.bonus_redemption_amount > customerBalance) {
                 alert(`Недостаточно бонусов для списания. Доступно: ${customerBalance.toFixed(2)} баллов`);
                 return;
-            }
-            if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
-                const redemptionAmount = customerBalance * bonusRedemptionPercent / 100;
-                if (redemptionAmount > customerBalance) {
-                    alert(`Недостаточно бонусов для списания. Доступно: ${customerBalance.toFixed(2)} баллов`);
-                    return;
-                }
             }
         }
         
@@ -828,10 +767,10 @@ const SalesPageMobile = () => {
                 customer_phone: customerPhone || null,
                 discount_amount: currentDiscountType === 'amount' ? currentDiscountValue : 0,
                 discount_percent: currentDiscountType === 'percent' ? currentDiscountValue : 0,
-                bonus_redemption_percent: bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0 ? bonusRedemptionPercent : null,
-                bonus_redemption_amount: bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0 ? bonusRedemptionAmount : null,
-                bonus_percent_override: bonusPercentOverride || null,
-                bonus_accrual_mode: bonusAccrualMode // 'tier' или 'settings'
+                bonus_redemption_percent: bonusParams.bonus_redemption_percent || null,
+                bonus_redemption_amount: bonusParams.bonus_redemption_amount || null,
+                bonus_percent_override: bonusParams.bonus_percent_override || null,
+                bonus_accrual_mode: bonusParams.bonus_accrual_mode || 'tier'
             };
 
             console.log('Отправка данных продажи:', saleData); // Логируем отправляемые данные
@@ -856,12 +795,7 @@ const SalesPageMobile = () => {
             setItemFifoStates({}); // Очищаем состояния FIFO
             // Очищаем состояния бонусов
             setSelectedCustomer(null);
-            setBonusPercentOverride(null);
-            setBonusAccrualMode('tier');
-            setBonusRedemptionPercent(0);
-            setBonusRedemptionAmount(0);
-            setBonusRedemptionType('percent');
-            setShowBonusRedemption(false);
+            setBonusParams({});
             setCustomerName('');
             setCustomerPhone('');
         } catch (err) {
@@ -913,11 +847,7 @@ const SalesPageMobile = () => {
             setCustomerName('');
             setCustomerPhone('');
             setSelectedCustomer(null);
-            setBonusPercentOverride(null);
-            setBonusRedemptionPercent(0);
-            setBonusRedemptionAmount(0);
-            setBonusRedemptionType('percent');
-            setShowBonusRedemption(false);
+            setBonusParams({});
             setDiscountValue(0);
             setDiscountType('percent');
             setSaleCompleted(false);
@@ -1038,13 +968,13 @@ const SalesPageMobile = () => {
                     </div>
                     
                     {/* Информация о списанных бонусах */}
-                    {selectedCustomer && bonusRedemptionType && showBonusRedemption && (() => {
+                    {selectedCustomer && bonusParams && (() => {
                         const customerBalance = parseFloat(selectedCustomer.balance || 0);
                         let bonusRedeemed = 0;
-                        if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
-                            bonusRedeemed = Math.min(customerBalance * bonusRedemptionPercent / 100, total);
-                        } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
-                            bonusRedeemed = Math.min(bonusRedemptionAmount, total);
+                        if (bonusParams.bonus_redemption_percent > 0) {
+                            bonusRedeemed = Math.min(customerBalance * bonusParams.bonus_redemption_percent / 100, total);
+                        } else if (bonusParams.bonus_redemption_amount > 0) {
+                            bonusRedeemed = Math.min(bonusParams.bonus_redemption_amount, total);
                         }
                         // Округляем бонусы до целых
                         bonusRedeemed = Math.round(bonusRedeemed);
@@ -1918,6 +1848,13 @@ const SalesPageMobile = () => {
                     <FaCashRegister /> Продажи
                 </h1>
                 <button
+                    onClick={() => navigate(`/business/${business_slug}/online-orders`)}
+                    className={styles.onlineOrdersButton}
+                    title="Онлайн-заказы"
+                >
+                    <FaShoppingCart />
+                </button>
+                <button
                     onClick={() => navigate(`/business/${business_slug}/bonus-history`)}
                     className={styles.bonusHistoryButton}
                     title="История бонусов"
@@ -2293,11 +2230,7 @@ const SalesPageMobile = () => {
                                         setCustomerName('');
                                         setCustomerPhone('');
                                         setSelectedCustomer(null);
-                                        setBonusPercentOverride(null);
-                                        setBonusRedemptionPercent(0);
-                                        setBonusRedemptionAmount(0);
-                                        setBonusRedemptionType('percent');
-                                        setShowBonusRedemption(false);
+                                        setBonusParams({});
                                     }
                                     // Затем закрываем модальное окно
                                     setShowPaymentModal(false);
@@ -2473,17 +2406,17 @@ const SalesPageMobile = () => {
                                                     })().toLocaleString()} ₸</span>
                                                 </div>
                                                 {/* Информация о списанных бонусах в модальном окне */}
-                                                {selectedCustomer && bonusRedemptionType && showBonusRedemption && (() => {
+                                                {selectedCustomer && bonusParams && (() => {
                                                     const currentCart = activeCartForSale === 1 ? cart : cart2;
                                                     const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
                                                     const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
                                                     const totalBeforeBonuses = calculateTotal(currentCart, currentDiscountValue, currentDiscountType);
                                                     const customerBalance = parseFloat(selectedCustomer.balance || 0);
                                                     let bonusRedeemed = 0;
-                                                    if (bonusRedemptionType === 'percent' && bonusRedemptionPercent > 0) {
-                                                        bonusRedeemed = Math.min(customerBalance * bonusRedemptionPercent / 100, totalBeforeBonuses);
-                                                    } else if (bonusRedemptionType === 'amount' && bonusRedemptionAmount > 0) {
-                                                        bonusRedeemed = Math.min(bonusRedemptionAmount, totalBeforeBonuses);
+                                                    if (bonusParams.bonus_redemption_percent > 0) {
+                                                        bonusRedeemed = Math.min(customerBalance * bonusParams.bonus_redemption_percent / 100, totalBeforeBonuses);
+                                                    } else if (bonusParams.bonus_redemption_amount > 0) {
+                                                        bonusRedeemed = Math.min(bonusParams.bonus_redemption_amount, totalBeforeBonuses);
                                                     }
                                                     // Округляем бонусы до целых
                                                     bonusRedeemed = Math.round(bonusRedeemed);
@@ -2499,295 +2432,13 @@ const SalesPageMobile = () => {
                                     </div>
 
                                     {/* Секция бонусов */}
-                                    {selectedCustomer && bonusSettings && bonusSettings.is_enabled && (
-                                        <div className={styles.bonusSection}>
-                                            <div className={styles.bonusSectionHeader}>
-                                                <h5><FaGift /> Бонусы</h5>
-                                            </div>
-                                            
-                                            {/* Информация о балансе и уровне */}
-                                            <div className={styles.bonusInfo}>
-                                                <div className={styles.bonusBalanceDisplay}>
-                                                    <div className={styles.bonusBalanceLabel}>Текущий баланс:</div>
-                                                    <div className={styles.bonusBalanceValue}>
-                                                        {parseFloat(selectedCustomer.balance || 0).toFixed(2)} баллов
-                                                        <span className={styles.bonusBalanceHint}> (1 балл = 1 ₸)</span>
-                                                    </div>
-                                                </div>
-                                                
-                                                {selectedCustomer.tier && (
-                                                    <div className={styles.bonusTierDisplay}>
-                                                        <div className={styles.bonusTierLabel}>Уровень:</div>
-                                                        <div className={styles.bonusTierValue}>
-                                                            {selectedCustomer.tier.name} ({selectedCustomer.tier.bonus_percent}%)
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Выбор режима начисления бонусов */}
-                                            <div className={styles.bonusAccrualModeSelector}>
-                                                <label>Способ начисления бонусов:</label>
-                                                <div className={styles.bonusAccrualModeOptions}>
-                                                    <label className={styles.bonusModeOption}>
-                                                        <input
-                                                            type="radio"
-                                                            name="bonusAccrualMode"
-                                                            value="tier"
-                                                            checked={bonusAccrualMode === 'tier'}
-                                                            onChange={(e) => {
-                                                                setBonusAccrualMode(e.target.value);
-                                                                setBonusPercentOverride(null);
-                                                            }}
-                                                            disabled={!selectedCustomer.tier || bonusSettings.is_fixed_percent}
-                                                        />
-                                                        <span>
-                                                            По уровню ({selectedCustomer.tier?.bonus_percent || bonusSettings.bonus_percent}%)
-                                                        </span>
-                                                    </label>
-                                                    <label className={styles.bonusModeOption}>
-                                                        <input
-                                                            type="radio"
-                                                            name="bonusAccrualMode"
-                                                            value="settings"
-                                                            checked={bonusAccrualMode === 'settings'}
-                                                            onChange={(e) => {
-                                                                setBonusAccrualMode(e.target.value);
-                                                                setBonusPercentOverride(null);
-                                                            }}
-                                                            disabled={bonusSettings.is_fixed_percent}
-                                                        />
-                                                        <span>
-                                                            По общим настройкам ({bonusSettings.bonus_percent}%)
-                                                        </span>
-                                                    </label>
-                                                </div>
-                                                {bonusSettings.is_fixed_percent && (
-                                                    <div className={styles.bonusModeHint}>
-                                                        Процент фиксированный, режим выбран автоматически
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* История транзакций */}
-                                            {selectedCustomer.recent_transactions && selectedCustomer.recent_transactions.length > 0 && (
-                                                <div className={styles.bonusHistory}>
-                                                    <div className={styles.bonusHistoryTitle}>Последние транзакции:</div>
-                                                    <div className={styles.bonusHistoryList}>
-                                                        {selectedCustomer.recent_transactions.slice(0, 5).map((t) => (
-                                                            <div key={t.id} className={styles.bonusHistoryItem}>
-                                                                <div className={styles.bonusHistoryType}>
-                                                                    {t.type === 'accrual' ? 'Начисление' : 'Списание'}
-                                                                </div>
-                                                                <div className={`${styles.bonusHistoryAmount} ${
-                                                                    parseFloat(t.amount) >= 0 ? styles.positive : styles.negative
-                                                                }`}>
-                                                                    {parseFloat(t.amount) >= 0 ? '+' : ''}
-                                                                    {parseFloat(t.amount).toFixed(2)}
-                                                                </div>
-                                                                <div className={styles.bonusHistoryDate}>
-                                                                    {new Date(t.created_at).toLocaleDateString('ru-RU')}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Прогноз начисления бонусов */}
-                                            {(() => {
-                                                const currentCart = activeCartForSale === 1 ? cart : cart2;
-                                                const currentDiscountValue = activeCartForSale === 1 ? discountValue : discountValue2;
-                                                const currentDiscountType = activeCartForSale === 1 ? discountType : discountType2;
-                                                const bonusPrediction = calculateBonusPrediction(currentCart, currentDiscountValue, currentDiscountType);
-                                                
-                                                // Определяем процент бонусов, который будет использован (та же логика, что и в calculateBonusPrediction)
-                                                let bonusPercentToUse = 0;
-                                                
-                                                // Если процент фиксированный, всегда используем настройки (если нет переопределения)
-                                                if (bonusSettings.is_fixed_percent && bonusPercentOverride === null) {
-                                                    bonusPercentToUse = parseFloat(bonusSettings.bonus_percent || 0);
-                                                } else if (bonusPercentOverride !== null) {
-                                                    bonusPercentToUse = bonusPercentOverride;
-                                                } else if (bonusAccrualMode === 'tier' && selectedCustomer.tier?.bonus_percent) {
-                                                    bonusPercentToUse = parseFloat(selectedCustomer.tier.bonus_percent);
-                                                } else if (bonusAccrualMode === 'settings') {
-                                                    // Явно используем процент из общих настроек
-                                                    bonusPercentToUse = parseFloat(bonusSettings.bonus_percent || 0);
-                                                } else {
-                                                    // Fallback: используем процент из общих настроек
-                                                    bonusPercentToUse = parseFloat(bonusSettings.bonus_percent || 0);
-                                                }
-                                                
-                                                if (bonusPrediction !== null && bonusPrediction > 0) {
-                                                    return (
-                                                        <div className={styles.bonusPredictionCard}>
-                                                            <div className={styles.bonusPredictionLabel}>После этой покупки:</div>
-                                                            <div className={styles.bonusPredictionValue}>
-                                                                +{bonusPrediction} баллов
-                                                            </div>
-                                                            <div className={styles.bonusPredictionHint}>
-                                                                (≈ {bonusPrediction} ₸)
-                                                            </div>
-                                                            <div className={styles.bonusPercentInfo}>
-                                                                Процент начисления: {parseFloat(bonusPercentToUse).toFixed(2)}%
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                }
-                                                return null;
-                                            })()}
-
-                                            {/* Ручное управление процентом (если не фиксированный) */}
-                                            {!bonusSettings.is_fixed_percent && (
-                                                <div className={styles.bonusAccrualControl}>
-                                                    <label>Или укажите процент вручную (%):</label>
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        min="0"
-                                                        max="100"
-                                                        value={bonusPercentOverride !== null ? bonusPercentOverride : ''}
-                                                        onChange={(e) => setBonusPercentOverride(e.target.value ? parseFloat(e.target.value) : null)}
-                                                        placeholder={bonusAccrualMode === 'tier' && selectedCustomer.tier?.bonus_percent 
-                                                            ? selectedCustomer.tier.bonus_percent 
-                                                            : bonusSettings.bonus_percent || '5.00'}
-                                                        className={styles.bonusPercentInput}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Кнопка для списания бонусов */}
-                                            {parseFloat(selectedCustomer.balance || 0) > 0 && (
-                                                <div className={styles.bonusRedemptionButtonWrapper}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowBonusRedemption(!showBonusRedemption)}
-                                                        className={`${styles.bonusRedemptionToggleButton} ${
-                                                            showBonusRedemption ? styles.active : ''
-                                                        }`}
-                                                    >
-                                                        <FaGift /> {showBonusRedemption ? 'Скрыть списание бонусов' : 'Списать бонусы'}
-                                                    </button>
-                                                    
-                                                    {/* Секция управления списанием бонусов */}
-                                                    {showBonusRedemption && (
-                                                        <div className={styles.bonusRedemptionControl}>
-                                                            <label className={styles.bonusRedemptionLabel}>
-                                                                Списать бонусы:
-                                                            </label>
-                                                            <div className={styles.bonusRedemptionType}>
-                                                                <label className={styles.radioOption}>
-                                                                    <input
-                                                                        type="radio"
-                                                                        value="percent"
-                                                                        checked={bonusRedemptionType === 'percent'}
-                                                                        onChange={(e) => {
-                                                                            setBonusRedemptionType(e.target.value);
-                                                                            setBonusRedemptionAmount(0);
-                                                                        }}
-                                                                    />
-                                                                    <span>Процент от баланса</span>
-                                                                </label>
-                                                                <label className={styles.radioOption}>
-                                                                    <input
-                                                                        type="radio"
-                                                                        value="amount"
-                                                                        checked={bonusRedemptionType === 'amount'}
-                                                                        onChange={(e) => {
-                                                                            setBonusRedemptionType(e.target.value);
-                                                                            setBonusRedemptionPercent(0);
-                                                                        }}
-                                                                    />
-                                                                    <span>Фиксированная сумма</span>
-                                                                </label>
-                                                            </div>
-                                                            {bonusRedemptionType === 'percent' ? (
-                                                                <div className={styles.bonusRedemptionInputWrapper}>
-                                                                    <div className={styles.bonusRedemptionInput}>
-                                                                        <input
-                                                                            type="number"
-                                                                            min="0"
-                                                                            max="100"
-                                                                            step="1"
-                                                                            value={bonusRedemptionPercent || ''}
-                                                                            onChange={(e) => {
-                                                                                const value = e.target.value ? parseFloat(e.target.value) : 0;
-                                                                                setBonusRedemptionPercent(Math.min(100, Math.max(0, value)));
-                                                                            }}
-                                                                            placeholder="0"
-                                                                            className={bonusRedemptionPercent > 0 ? styles.hasValue : ''}
-                                                                        />
-                                                                        <span className={styles.inputSuffix}>%</span>
-                                                                    </div>
-                                                                    {bonusRedemptionPercent > 0 && (
-                                                                        <div className={styles.bonusRedemptionPreview}>
-                                                                            Будет списано: <span className={styles.bonusRedemptionPreviewValue}>
-                                                                                {Math.round(parseFloat(selectedCustomer.balance || 0) * bonusRedemptionPercent / 100)} баллов
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <div className={styles.bonusRedemptionInputWrapper}>
-                                                                    <div className={styles.bonusRedemptionInput}>
-                                                                        <input
-                                                                            type="number"
-                                                                            min="0"
-                                                                            max={parseFloat(selectedCustomer.balance || 0)}
-                                                                            step="0.01"
-                                                                            value={bonusRedemptionAmount || ''}
-                                                                            onChange={(e) => {
-                                                                                const inputValue = e.target.value;
-                                                                                if (inputValue === '' || inputValue === null) {
-                                                                                    setBonusRedemptionAmount(0);
-                                                                                    return;
-                                                                                }
-                                                                                const value = parseFloat(inputValue);
-                                                                                if (isNaN(value)) {
-                                                                                    setBonusRedemptionAmount(0);
-                                                                                    return;
-                                                                                }
-                                                                                const maxBalance = parseFloat(selectedCustomer.balance || 0);
-                                                                                // Разрешаем вводить больше, но показываем ошибку
-                                                                                setBonusRedemptionAmount(Math.max(0, value));
-                                                                            }}
-                                                                            placeholder="0.00"
-                                                                            className={`${bonusRedemptionAmount > 0 ? styles.hasValue : ''} ${
-                                                                                bonusRedemptionAmount > parseFloat(selectedCustomer.balance || 0) 
-                                                                                    ? styles.inputError 
-                                                                                    : ''
-                                                                            }`}
-                                                                        />
-                                                                        <span className={styles.inputSuffix}>баллов</span>
-                                                                    </div>
-                                                                    {bonusRedemptionAmount > 0 && (
-                                                                        <div className={`${styles.bonusRedemptionPreview} ${
-                                                                            bonusRedemptionAmount > parseFloat(selectedCustomer.balance || 0) 
-                                                                                ? styles.bonusRedemptionPreviewError 
-                                                                                : ''
-                                                                        }`}>
-                                                                            Будет списано: <span className={styles.bonusRedemptionPreviewValue}>
-                                                                                {bonusRedemptionAmount.toFixed(2)} баллов
-                                                                            </span>
-                                                                            {bonusRedemptionAmount > parseFloat(selectedCustomer.balance || 0) && (
-                                                                                <span className={styles.bonusRedemptionError}>
-                                                                                    ⚠ Недостаточно бонусов
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                    <div className={styles.bonusRedemptionHint}>
-                                                                        Доступно: <strong>{parseFloat(selectedCustomer.balance || 0).toFixed(2)} баллов</strong>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                    {/* Секция бонусов */}
+                                    <BonusPanel
+                                        customer={selectedCustomer}
+                                        bonusSettings={bonusSettings}
+                                        totalAmount={calculateTotal(cart, discountValue, discountType)}
+                                        onChange={setBonusParams}
+                                    />
                                     </div>
 
                                     <div className={styles.paymentForm}>
@@ -2944,10 +2595,7 @@ const SalesPageMobile = () => {
                                             setCustomerName('');
                                             setCustomerPhone('');
                                             setSelectedCustomer(null);
-                                            setBonusPercentOverride(null);
-                                            setBonusRedemptionPercent(0);
-                                            setBonusRedemptionAmount(0);
-                                            setBonusRedemptionType('percent');
+                                            setBonusParams({});
                                             setDiscountValue(0);
                                         }}
                                     >
@@ -2969,11 +2617,8 @@ const SalesPageMobile = () => {
                         setCustomerName(customerData.user.full_name || customerData.user.username);
                         // Сбрасываем значения списания из QR-сканера, если они были
                         if (customerData.bonus_redemption_percent) {
-                            setBonusRedemptionType('percent');
-                            setBonusRedemptionPercent(customerData.bonus_redemption_percent);
                         } else if (customerData.bonus_redemption_amount) {
-                            setBonusRedemptionType('amount');
-                            setBonusRedemptionAmount(customerData.bonus_redemption_amount);
+
                         }
                         setShowQRScanner(false);
                     }}

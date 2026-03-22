@@ -1,0 +1,425 @@
+.bonusSection {
+  padding: 20px;
+  background: var(--background-hover);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.bonusSectionHeader {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.bonusSectionHeader h5 {
+  margin: 0;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.bonusInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.bonusBalanceDisplay,
+.bonusTierDisplay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: var(--background-card);
+  border-radius: 6px;
+}
+
+.bonusBalanceLabel,
+.bonusTierLabel {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.bonusBalanceValue {
+  color: var(--accent-green);
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bonusBalanceHint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.bonusTierValue {
+  color: var(--imperial-gold);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.bonusHistory {
+  margin-bottom: 15px;
+}
+
+.bonusHistoryTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.bonusHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.bonusHistoryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-card);
+  border-radius: 6px;
+}
+
+.bonusHistoryType {
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.bonusHistoryAmount {
+  font-weight: 600;
+  margin: 0 10px;
+}
+
+.bonusHistoryAmount.positive {
+  color: var(--accent-green);
+}
+
+.bonusHistoryAmount.negative {
+  color: var(--text-danger);
+}
+
+.bonusHistoryDate {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.bonusPredictionCard {
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(45, 175, 159, 0.2) 0%, rgba(45, 175, 159, 0.1) 100%);
+  border: 2px solid var(--accent-green);
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.bonusPredictionLabel {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.bonusPredictionValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.bonusPredictionHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  opacity: 0.8;
+}
+
+.bonusPercentInfo {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  font-style: italic;
+}
+
+.bonusAccrualModeSelector {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(45, 175, 159, 0.05);
+  border: 1px solid rgba(45, 175, 159, 0.2);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.bonusAccrualModeSelector > label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: var(--platinum-gleam);
+  font-size: 14px;
+}
+
+.bonusAccrualModeOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bonusModeOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.bonusModeOption:hover {
+  border-color: var(--royal-emerald);
+  background: rgba(45, 175, 159, 0.1);
+}
+
+.bonusModeOption input[type="radio"] {
+  cursor: pointer;
+  accent-color: var(--royal-emerald);
+}
+
+.bonusModeOption input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bonusModeOption:has(input[type="radio"]:checked) {
+  border-color: var(--royal-emerald);
+  background: rgba(45, 175, 159, 0.15);
+}
+
+.bonusModeOption span {
+  color: var(--platinum-gleam);
+  font-size: 14px;
+}
+
+.bonusModeOption:has(input[type="radio"]:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bonusModeNone {
+  color: var(--text-muted);
+}
+
+.bonusModeHint {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: var(--imperial-gold);
+  font-size: 12px;
+}
+
+.bonusAccrualControl {
+  margin-top: 12px;
+  padding: 15px;
+  background: var(--background-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.bonusAccrualControl > label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.bonusPercentInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--background-card);
+  color: var(--text-main);
+}
+
+.bonusRedemptionButtonWrapper {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-light);
+}
+
+.bonusRedemptionToggleButton {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--background-card);
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.bonusRedemptionToggleButton:hover {
+  background: var(--background-hover);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.bonusRedemptionToggleButton.active {
+  background: rgba(45, 175, 159, 0.1);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.bonusRedemptionControl {
+  margin-top: 12px;
+  padding: 15px;
+  background: var(--background-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.bonusRedemptionLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.bonusRedemptionType {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--background-hover);
+  border-radius: 6px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.radioOption input[type="radio"] {
+  accent-color: var(--royal-emerald);
+  cursor: pointer;
+}
+
+.bonusRedemptionInputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bonusRedemptionInput {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--background-hover);
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.bonusRedemptionInput:focus-within {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 0 3px rgba(45, 175, 159, 0.1);
+}
+
+.bonusRedemptionInput input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+}
+
+.bonusRedemptionInput input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.bonusRedemptionInput input.hasValue {
+  font-weight: 600;
+  color: var(--accent-green);
+}
+
+.bonusRedemptionInput input.inputError {
+  color: var(--text-danger);
+}
+
+.inputSuffix {
+  color: var(--text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.bonusRedemptionPreview {
+  padding: 10px 12px;
+  background: rgba(45, 175, 159, 0.1);
+  border: 1px solid var(--accent-green);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.bonusRedemptionPreviewError {
+  background: rgba(255, 107, 107, 0.1);
+  border-color: var(--text-danger);
+}
+
+.bonusRedemptionPreviewValue {
+  color: var(--accent-green);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.bonusRedemptionPreviewError .bonusRedemptionPreviewValue {
+  color: var(--text-danger);
+}
+
+.bonusRedemptionError {
+  color: var(--text-danger);
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.bonusRedemptionHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-left: 4px;
+  opacity: 0.8;
+}

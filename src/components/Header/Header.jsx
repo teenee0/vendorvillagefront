@@ -9,6 +9,7 @@ import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import SnowfallToggle from '../SnowfallToggle/SnowfallToggle';
 import axios from '../../api/axiosDefault';
 import SearchDropdown from './SearchDropdown';
+import CartButton from '../CartButton/CartButton';
 
 // ─── история поиска (localStorage) ───────────────────────────────────────────
 
@@ -474,9 +475,7 @@ function Header() {
 
               <ul className={styles.navbarNav}>
                 <li className={styles.navItem}>
-                  <Link to="/cart" className={styles.navLink}>
-                    <i className="fas fa-shopping-cart" /> Корзина
-                  </Link>
+                  <CartButton className={styles.navLink} />
                 </li>
                 <li className={styles.navItem}>
                   <Link to="/account" className={styles.navLink}>

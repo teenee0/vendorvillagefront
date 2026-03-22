@@ -19,14 +19,27 @@ import {
   RiWallet3Line,
   RiNotificationLine
 } from 'react-icons/ri';
-import { FaBuilding, FaStore, FaMapMarkerAlt, FaCoins, FaGift, FaChevronLeft, FaChevronRight, FaCopy, FaCheck, FaExpandAlt, FaSync, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { FaBuilding, FaStore, FaMapMarkerAlt, FaCoins, FaGift, FaChevronLeft, FaChevronRight, FaCopy, FaCheck, FaExpandAlt, FaSync, FaArrowUp, FaArrowDown, FaShoppingBag, FaBoxOpen, FaTruck, FaCheckCircle } from 'react-icons/fa';
 import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
+
+const STATUS_INFO = {
+  new:       { label: 'Ожидает ответа',         color: '#f59e0b' },
+  seen:      { label: 'Продавец смотрит',        color: '#3b82f6' },
+  confirmed: { label: 'Подтверждён',             color: '#8b5cf6' },
+  paid:      { label: 'Оплачен',                 color: '#10b981' },
+  ready:     { label: 'Товар готов к выдаче',    color: '#7c3aed' },
+  completed: { label: 'Завершён',                color: '#6b7280' },
+  cancelled: { label: 'Отменён',                 color: '#ef4444' },
+  expired:   { label: 'Истёк',                   color: '#9ca3af' },
+};
 
 const AccountPage = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [employments, setEmployments] = useState([]);
   const [employmentsLoading, setEmploymentsLoading] = useState(false);
   const [bonusBalances, setBonusBalances] = useState([]);
@@ -113,6 +126,21 @@ const AccountPage = () => {
 
     fetchBonusBalances();
     fetchQRCode();
+  }, []);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setOrdersLoading(true);
+        const res = await axios.get('/api/orders/list/');
+        setOrders(res.data || []);
+      } catch {
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+    fetchOrders();
   }, []);
 
   // Обновление QR-кода
@@ -388,6 +416,61 @@ const AccountPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Orders Widget */}
+          {(ordersLoading || orders.length > 0) && (
+            <div className={styles.ordersWidget}>
+              <div className={styles.ordersWidgetHeader}>
+                <h3><FaShoppingBag /> Мои заказы</h3>
+                <Link to="/my-orders" className={styles.ordersWidgetLink}>Все заказы →</Link>
+              </div>
+              {ordersLoading ? (
+                <div className={styles.ordersWidgetLoading}><Loader size="small" /></div>
+              ) : (
+                <div className={styles.ordersWidgetScroll}>
+                  {orders.map((order) => {
+                    const info = STATUS_INFO[order.status] || STATUS_INFO.new;
+                    const isPickup = order.delivery_type === 'pickup' || (!order.delivery_type && !order.delivery_address);
+                    const isReadyForPickup = order.status === 'ready' && isPickup;
+                    const isClosed = order.status === 'cancelled' || order.status === 'expired';
+                    return (
+                      <Link to={`/my-orders/${order.id}`} key={order.id} className={styles.orderWidgetCard}>
+                        <div className={styles.owImage}>
+                          {order.first_item_image
+                            ? <img src={order.first_item_image} alt="" />
+                            : <div className={styles.owImageFallback}><FaBoxOpen /></div>
+                          }
+                        </div>
+                        <div className={styles.owInfo}>
+                          <div className={styles.owStatus} style={{ color: info.color }}>
+                            {info.label}
+                          </div>
+                          <div className={styles.owDelivery}>
+                            {isPickup
+                              ? <><FaStore /> Самовывоз из магазина</>
+                              : <><FaTruck /> Доставка по адресу</>
+                            }
+                          </div>
+                          <div className={styles.owDate}>
+                            {isReadyForPickup
+                              ? <span className={styles.owReady}><FaCheckCircle /> Можно забирать</span>
+                              : order.status === 'completed'
+                              ? <span className={styles.owClosed}><FaCheckCircle /> Завершён</span>
+                              : isClosed
+                              ? <span className={styles.owClosed}>{info.label}</span>
+                              : order.expires_at
+                              ? `Ожидаем до ${new Date(order.expires_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'short' })}`
+                              : order.business_name
+                            }
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Main Bonus Section */}
           <div className={styles.bonusSection}>

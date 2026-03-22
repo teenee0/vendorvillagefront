@@ -1,0 +1,148 @@
+.page { padding: 24px 0 60px; min-height: 60vh; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+.title { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-main); }
+.layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+@media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+.card { border-radius: 12px !important; }
+.orderItem { width: 100%; }
+.itemName { font-weight: 600; font-size: 14px; color: var(--text-main); }
+.itemMeta { font-size: 12px; color: var(--text-muted); margin: 2px 0; }
+.itemPriceRow { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-main); }
+.total { font-size: 18px; text-align: right; color: var(--text-main); }
+.totalPrice { font-size: 22px; color: var(--royal-emerald); font-weight: 700; }
+.note { font-size: 12px; color: var(--text-muted); margin-top: 12px; line-height: 1.5; }
+
+/* Переключатели способа доставки */
+.deliveryToggle { display: flex; gap: 12px; }
+@media (max-width: 600px) { .deliveryToggle { flex-direction: column; } }
+
+.deliveryOption {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 12px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color, #333);
+  background: var(--background-card, #1e1e2e);
+  color: var(--text-main, #e0e0e0);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+
+.deliveryOption:hover { border-color: #4a90e2; }
+
+.deliveryOptionActive {
+  border-color: #4a90e2;
+  background: rgba(74, 144, 226, 0.12);
+}
+
+.deliveryOptionDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.deliveryOptionDisabled:hover { border-color: var(--border-color, #333); }
+
+.deliveryComingSoon {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(74, 144, 226, 0.2);
+  color: #4a90e2;
+  vertical-align: middle;
+}
+
+.deliveryIcon { font-size: 28px; color: #4a90e2; }
+
+.deliveryLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main, #e0e0e0);
+  text-align: center;
+}
+
+.deliveryDesc {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  text-align: center;
+}
+
+/* Поле телефона с маской */
+.phoneInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #434343;
+  background: transparent;
+  color: var(--text-main, #e0e0e0);
+  outline: none;
+  height: 40px;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.phoneInput:focus { border-color: #4a90e2; box-shadow: 0 0 0 2px rgba(74,144,226,0.2); }
+.phoneInput::placeholder { color: #666; }
+:global(:root.light-theme) .phoneInput { border-color: #d9d9d9; color: #333; }
+:global(:root.light-theme) .phoneInput:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+:global(:root.light-theme) .phoneInput::placeholder { color: #bbb; }
+
+/* Dropdown добавления телефона */
+.phoneDropdownAdd {
+  display: flex;
+  gap: 8px;
+  padding: 8px 8px 4px;
+  align-items: center;
+}
+
+.phoneDropdownAdd .phoneInput {
+  flex: 1;
+  height: 32px;
+  font-size: 14px;
+  padding: 4px 10px;
+}
+
+/* Опция телефона в Select */
+.phoneOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.phoneOptionDelete {
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+
+.phoneOptionDelete:hover { opacity: 1; }
+
+/* Светлая тема */
+:global(:root.light-theme) .title { color: #212529; }
+:global(:root.light-theme) .itemName { color: #333; }
+:global(:root.light-theme) .itemMeta { color: #888; }
+:global(:root.light-theme) .itemPriceRow { color: #333; }
+:global(:root.light-theme) .total { color: #333; }
+:global(:root.light-theme) .totalPrice { color: #1a73e8; }
+:global(:root.light-theme) .note { color: #888; }
+:global(:root.light-theme) .deliveryOption { border-color: #d9d9d9; background: #fff; color: #333; }
+:global(:root.light-theme) .deliveryOptionActive { border-color: #1a73e8; background: #e8f0fe; }
+:global(:root.light-theme) .deliveryIcon { color: #1a73e8; }
+:global(:root.light-theme) .deliveryLabel { color: #333; }
+:global(:root.light-theme) .deliveryDesc { color: #888; }
+:global(:root.light-theme) .phoneInput { border-color: #d9d9d9; color: #333; }
+:global(:root.light-theme) .phoneInput:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }

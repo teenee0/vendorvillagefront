@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import { useFileUtils } from '../../hooks/useFileUtils';
+import { useCart } from '../../contexts/CartContext';
 import Breadcrumbs from '../../components/Breadcrumbs/Breadcrumbs';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import Loader from '../../components/Loader';
+import { notification } from 'antd';
 import { FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown, FaMapMarkerAlt, FaPhone, FaShoppingCart, FaHeart, FaBolt, FaTags, FaStore, FaExternalLinkAlt } from 'react-icons/fa';
 import styles from './ProductDetailDesktop.module.css';
 
@@ -12,6 +14,7 @@ const ProductDetailDesktop = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
   const { getFileUrl } = useFileUtils();
+  const { addToCart } = useCart();
   
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,8 @@ const ProductDetailDesktop = () => {
   const [slideDirection, setSlideDirection] = useState(null);
   const [previousImageIndex, setPreviousImageIndex] = useState(null);
   const [showAllStores, setShowAllStores] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartAdded, setCartAdded] = useState(false);
   const thumbnailGalleryRef = useRef(null);
 
   useEffect(() => {
@@ -506,8 +511,30 @@ const ProductDetailDesktop = () => {
           </div>
           
           <div className={styles.actionButtons}>
-            <button className={styles.btnPrimary}>
-              <FaShoppingCart /> Добавить в корзину
+            <button
+              className={`${styles.btnPrimary}${cartAdded ? ` ${styles.btnPrimaryAdded}` : ''}`}
+              disabled={cartLoading}
+              onClick={async () => {
+                if (!selectedVariant || !selectedLocation) return;
+                if (!selectedLocation.location_price_id) {
+                  notification.warning({ message: 'Нет данных о локации. Попробуйте перезагрузить страницу.', duration: 3 });
+                  return;
+                }
+                setCartLoading(true);
+                const result = await addToCart(selectedVariant.id, selectedLocation.location_price_id, 1);
+                setCartLoading(false);
+                if (result.success) {
+                  setCartAdded(true);
+                  notification.success({ message: 'Товар добавлен в корзину', duration: 2 });
+                  setTimeout(() => setCartAdded(false), 2500);
+                } else if (result.error?.includes('401')) {
+                  navigate('/registration-login');
+                } else {
+                  notification.error({ message: result.error || 'Ошибка при добавлении в корзину', duration: 3 });
+                }
+              }}
+            >
+              <FaShoppingCart /> {cartLoading ? 'Добавляем...' : cartAdded ? '✓ Добавлено' : 'Добавить в корзину'}
             </button>
             <button className={styles.btnSecondary}>
               <FaBolt /> Купить сейчас

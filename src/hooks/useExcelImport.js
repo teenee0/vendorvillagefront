@@ -211,7 +211,7 @@ export const useExcelImport = () => {
     }
 
     try {
-      const response = await axios.get(`/api/categories/${categoryId}/attributes/`);
+      const response = await axios.get(`/api/business/${business_slug}/categories/${categoryId}/attributes/`);
       const formattedAttributes = response.data.map(attr => ({
         ...attr,
         values: attr.values || [],
@@ -229,7 +229,7 @@ export const useExcelImport = () => {
       console.error('Ошибка при загрузке атрибутов категории:', err);
       return [];
     }
-  }, [categoryAttributes]);
+  }, [categoryAttributes, business_slug]);
 
   // Обновление данных товара после парсинга
   const updateProductData = useCallback((index, data) => {
@@ -462,6 +462,7 @@ export const useExcelImport = () => {
     locations,
     unitsOfMeasure,
     categoryAttributes,
+    business_slug,
     loading,
     parsing,
     importing,

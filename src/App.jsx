@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import { useIsMobile } from './hooks/useIsMobile';
 import { TooManyRequestsProvider } from './contexts/TooManyRequestsContext';
+import { CartProvider } from './contexts/CartContext';
 import TooManyRequestsModalManager from './components/TooManyRequestsModal/TooManyRequestsModalManager';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
@@ -77,6 +78,12 @@ import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy.jsx';
 import CookieConsent from './components/CookieConsent/CookieConsent.jsx';
 import BonusHistory from './pages/BonusHistory/BonusHistory.jsx';
 import BonusHistoryMobile from './pages/BonusHistory/BonusHistoryMobile.jsx';
+import CartPage from './pages/CartPage/CartPage.jsx';
+import CheckoutPage from './pages/CheckoutPage/CheckoutPage.jsx';
+import MyOrdersPage from './pages/MyOrdersPage/MyOrdersPage.jsx';
+import MyOrderDetailPage from './pages/MyOrderDetailPage/MyOrderDetailPage.jsx';
+import BusinessOnlineOrdersPage from './pages/BusinessOnlineOrdersPage/BusinessOnlineOrdersPage.jsx';
+import BusinessOnlineOrderDetailPage from './pages/BusinessOnlineOrderDetailPage/BusinessOnlineOrderDetailPage.jsx';
 
 function App() {
   const location = useLocation();
@@ -282,6 +289,14 @@ function App() {
                           />
                         } 
                       />
+                      <Route
+                        path="/business/:business_slug/online-orders"
+                        element={<BusinessOnlineOrdersPage />}
+                      />
+                      <Route
+                        path="/business/:business_slug/online-orders/:order_id"
+                        element={<BusinessOnlineOrderDetailPage />}
+                      />
                     </Route>
                   </Route>
                 </Route>
@@ -391,6 +406,10 @@ function App() {
                       />
                     } 
                   />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/my-orders" element={<MyOrdersPage />} />
+                  <Route path="/my-orders/:id" element={<MyOrderDetailPage />} />
                 </Route>
               </Routes>
             </motion.main>

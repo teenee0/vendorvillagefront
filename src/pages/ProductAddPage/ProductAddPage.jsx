@@ -25,7 +25,8 @@ const AttributeValueSelect = ({
   onChange,
   required,
   disabled,
-  multiple = false
+  multiple = false,
+  businessSlug
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -46,7 +47,7 @@ const AttributeValueSelect = ({
   const hasMore = isAsync && totalCount != null && options.length < totalCount;
 
   const fetchOptions = useCallback(async (search = '', page = 1, selectedIdsParam = [], append = false) => {
-    if (!attr.attribute_id) return;
+    if (!attr.attribute_id || !businessSlug) return;
     if (append) {
       setLoadingMore(true);
     } else {
@@ -56,7 +57,7 @@ const AttributeValueSelect = ({
       const params = { page, page_size: PAGE_SIZE };
       if (search) params.search = search;
       if (selectedIdsParam.length) params.selected_ids = selectedIdsParam.join(',');
-      const res = await axios.get(`/api/attributes/${attr.attribute_id}/values/`, { params });
+      const res = await axios.get(`/api/business/${businessSlug}/attributes/${attr.attribute_id}/values/`, { params });
       const newResults = res.data.results || [];
       if (res.data.count != null) setTotalCount(res.data.count);
       setOptions(prev => append ? [...prev, ...newResults] : newResults);
@@ -68,7 +69,7 @@ const AttributeValueSelect = ({
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [attr.attribute_id]);
+  }, [attr.attribute_id, businessSlug]);
 
   useEffect(() => {
     if (!isAsync && attr.values?.length) {
@@ -498,7 +499,7 @@ const ProductAddPage = () => {
     try {
       setIsLoadingAttributes(true);
       setAttributesError(null);
-      const response = await axios.get(`/api/categories/${categoryId}/attributes/`);
+      const response = await axios.get(`/api/business/${business_slug}/categories/${categoryId}/attributes/`);
       const formattedAttributes = response.data.map(attr => ({
         ...attr,
         values: attr.values || [],
@@ -1083,6 +1084,7 @@ const ProductAddPage = () => {
                                           attr.id
                                         )}
                                         required={attr.required}
+                                        businessSlug={business_slug}
                                       />
                                     ) : (
                                       <input

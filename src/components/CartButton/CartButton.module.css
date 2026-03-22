@@ -1,0 +1,15 @@
+.cartBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--platinum-gleam);
+  font-size: 14px;
+  transition: color 0.2s;
+}
+.cartBtn:hover { color: var(--royal-emerald); }
+.icon { font-size: 20px; }
+.label { white-space: nowrap; }
+
+:global(:root.light-theme) .cartBtn { color: var(--silver-whisper); }
+:global(:root.light-theme) .cartBtn:hover { color: var(--royal-emerald); }

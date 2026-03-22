@@ -634,6 +634,10 @@
   height: 20px;
 }
 
+.addToCartButtonAdded {
+  background-color: #2e7d32 !important;
+}
+
 /* Действия */
 .actionButtons {
   display: flex;

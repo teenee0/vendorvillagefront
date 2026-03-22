@@ -4,18 +4,23 @@ import axios from "../../api/axiosDefault.js";
 import { FiShoppingCart, FiHeart, FiShare2, FiChevronLeft } from 'react-icons/fi';
 import { FaRegStar, FaStar, FaMapMarkerAlt, FaPhone, FaTags, FaStore, FaExternalLinkAlt } from 'react-icons/fa';
 import { useFileUtils } from '../../hooks/useFileUtils';
+import { useCart } from '../../contexts/CartContext';
 import ProductCard from '/src/components/ProductCard/ProductCard.jsx';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Loader from '../../components/Loader';
+import { notification } from 'antd';
 import styles from './ProductDetailMobile.module.css';
 
 const ProductDetail = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
   const { getFileUrl } = useFileUtils();
+  const { addToCart } = useCart();
   const [productData, setProductData] = useState(null);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartAdded, setCartAdded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -130,15 +135,25 @@ const ProductDetail = () => {
     );
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const variant = getCurrentVariant();
     if (!variant || !selectedLocation) return;
-    console.log('Добавлено в корзину:', {
-      productId: productData.product.id,
-      variantId: variant.id,
-      locationId: selectedLocation.id,
-      price: selectedLocation.price
-    });
+    if (!selectedLocation.location_price_id) {
+      notification.warning({ message: 'Нет данных о локации. Попробуйте перезагрузить страницу.', duration: 3 });
+      return;
+    }
+    setCartLoading(true);
+    const result = await addToCart(variant.id, selectedLocation.location_price_id, 1);
+    setCartLoading(false);
+    if (result.success) {
+      setCartAdded(true);
+      notification.success({ message: 'Товар добавлен в корзину', duration: 2 });
+      setTimeout(() => setCartAdded(false), 2500);
+    } else if (result.error?.includes('401')) {
+      navigate('/registration-login');
+    } else {
+      notification.error({ message: result.error || 'Ошибка при добавлении в корзину', duration: 3 });
+    }
   };
 
   const formatPrice = (price) => {
@@ -399,12 +414,12 @@ const ProductDetail = () => {
 
         {/* Кнопка добавления в корзину */}
         <button
-          className={styles.addToCartButton}
+          className={`${styles.addToCartButton}${cartAdded ? ` ${styles.addToCartButtonAdded}` : ''}`}
           onClick={handleAddToCart}
-          disabled={!currentVariant || !selectedLocation || currentVariant.stock_quantity <= 0}
+          disabled={!currentVariant || !selectedLocation || cartLoading}
         >
           <FiShoppingCart />
-          Добавить в корзину
+          {cartLoading ? 'Добавляем...' : cartAdded ? '✓ Добавлено в корзину' : 'Добавить в корзину'}
         </button>
 
         {/* Действия */}

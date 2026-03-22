@@ -1,0 +1,137 @@
+.page { padding: 24px 0 60px; min-height: 60vh; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.loading { display: flex; justify-content: center; padding: 80px; }
+
+.header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.back {
+  color: var(--text-muted); font-size: 14px;
+  text-decoration: none; display: flex; align-items: center; gap: 6px;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--royal-emerald); }
+.headerRight { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.title { font-size: 22px; font-weight: 700; margin: 0; color: var(--text-main); }
+.timer { margin-bottom: 16px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+.card { border-radius: 12px !important; }
+
+.item { display: flex; gap: 10px; align-items: center; width: 100%; }
+.noImg {
+  width: 48px; height: 48px;
+  background: var(--phantom-noir);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--text-muted);
+  flex-shrink: 0;
+}
+.itemInfo { flex: 1; }
+.itemName { font-size: 13px; font-weight: 600; color: var(--text-main); }
+.itemMeta { font-size: 12px; color: var(--text-muted); }
+.itemPrice { font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--text-main); }
+.total { font-size: 16px; text-align: right; color: var(--text-main); }
+
+.invoice { text-align: center; padding: 12px; }
+.invoiceAmount { font-size: 28px; font-weight: 700; color: var(--royal-emerald); }
+.invoiceComment { font-size: 13px; color: var(--silver-whisper); margin-top: 8px; }
+
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+
+.invoiceBonusBlock {
+  border-top: 1px solid var(--border-light);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.invoiceBonusTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.invoiceFinalAmount {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(45, 175, 159, 0.15), rgba(45, 175, 159, 0.05));
+  border: 2px solid var(--accent-green);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text-main);
+  flex-wrap: wrap;
+}
+
+.invoiceFinalAmount strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.invoiceBonusHint {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.invoiceBreakdown {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--phantom-noir);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invoiceBreakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.invoiceBreakdownDiscount span:last-child { color: #f5a623; }
+.invoiceBreakdownBonus span:last-child { color: var(--accent-green); }
+.invoiceBreakdownAccrued span:last-child { color: #4caf50; font-weight: 600; }
+
+.invoiceComment {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.invoiceBreakdownDivider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+.invoiceBreakdownTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Светлая тема */
+:global(:root.light-theme) .back { color: #888; }
+:global(:root.light-theme) .back:hover { color: #1a73e8; }
+:global(:root.light-theme) .title { color: #212529; }
+:global(:root.light-theme) .noImg { background: #f5f5f5; color: #ccc; }
+:global(:root.light-theme) .itemName { color: #333; }
+:global(:root.light-theme) .itemMeta { color: #888; }
+:global(:root.light-theme) .itemPrice { color: #333; }
+:global(:root.light-theme) .total { color: #333; }
+:global(:root.light-theme) .invoiceAmount { color: #1a73e8; }
+:global(:root.light-theme) .invoiceComment { color: #666; }

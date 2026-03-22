@@ -28,6 +28,7 @@ const ExcelImportPage = () => {
     locations,
     unitsOfMeasure,
     categoryAttributes,
+    business_slug,
     loading,
     parsing,
     importing,
@@ -676,6 +677,7 @@ const ExcelImportPage = () => {
                                       updateProductData(index, { attributes: newAttributes });
                                     }}
                                     required={attr.required}
+                                    businessSlug={business_slug}
                                   />
                                 ) : (
                                   <input

@@ -791,6 +791,15 @@
   background: var(--luminous-sapphire);
 }
 
+.btnPrimaryAdded {
+  background: #2e7d32 !important;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .btnSecondary {
   background: var(--phantom-noir);
   color: var(--platinum-gleam);

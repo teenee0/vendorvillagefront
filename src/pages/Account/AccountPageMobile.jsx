@@ -19,18 +19,31 @@ import {
   RiWallet3Line,
   RiNotificationLine
 } from 'react-icons/ri';
-import { FaBuilding, FaStore, FaMapMarkerAlt, FaCoins, FaGift, FaChevronLeft, FaChevronRight, FaCopy, FaCheck, FaExpandAlt, FaSync, FaArrowUp, FaArrowDown, FaTimes } from 'react-icons/fa';
+import { FaBuilding, FaStore, FaMapMarkerAlt, FaCoins, FaGift, FaChevronLeft, FaChevronRight, FaCopy, FaCheck, FaExpandAlt, FaSync, FaArrowUp, FaArrowDown, FaTimes, FaShoppingBag, FaBoxOpen, FaTruck, FaCheckCircle } from 'react-icons/fa';
 import ModalCloseButton from '../../components/ModalCloseButton/ModalCloseButton';
 import CitySelector from '../../components/CitySelector/CitySelector';
 import { useCity } from '../../hooks/useCity';
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
 import SnowfallToggle from '../../components/SnowfallToggle/SnowfallToggle';
 
+const STATUS_INFO = {
+  new:       { label: 'Ожидает ответа',         color: '#f59e0b' },
+  seen:      { label: 'Продавец смотрит',        color: '#3b82f6' },
+  confirmed: { label: 'Подтверждён',             color: '#8b5cf6' },
+  paid:      { label: 'Оплачен',                 color: '#10b981' },
+  ready:     { label: 'Товар готов к выдаче',    color: '#7c3aed' },
+  completed: { label: 'Завершён',                color: '#6b7280' },
+  cancelled: { label: 'Отменён',                 color: '#ef4444' },
+  expired:   { label: 'Истёк',                   color: '#9ca3af' },
+};
+
 const AccountPageMobile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [employments, setEmployments] = useState([]);
   const [employmentsLoading, setEmploymentsLoading] = useState(false);
   const [bonusBalances, setBonusBalances] = useState([]);
@@ -115,6 +128,21 @@ const AccountPageMobile = () => {
 
     fetchBonusBalances();
     fetchQRCode();
+  }, []);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setOrdersLoading(true);
+        const res = await axios.get('/api/orders/list/');
+        setOrders(res.data || []);
+      } catch {
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+    fetchOrders();
   }, []);
 
   // Обновление QR-кода
@@ -404,6 +432,61 @@ const AccountPageMobile = () => {
           )}
         </div>
       </section>
+
+      {/* Orders Section */}
+      {(ordersLoading || orders.length > 0) && (
+        <section className={styles.ordersSection}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}><FaShoppingBag /> Мои заказы</h3>
+            <Link to="/my-orders" className={styles.ordersAllLink}>Все →</Link>
+          </div>
+          {ordersLoading ? (
+            <div className={styles.loadingState}><Loader size="small" /></div>
+          ) : (
+            <div className={styles.ordersScroll}>
+              {orders.map((order) => {
+                const info = STATUS_INFO[order.status] || STATUS_INFO.new;
+                const isPickup = order.delivery_type === 'pickup' || (!order.delivery_type && !order.delivery_address);
+                const isReadyForPickup = order.status === 'ready' && isPickup;
+                const isClosed = order.status === 'cancelled' || order.status === 'expired';
+                return (
+                  <Link to={`/my-orders/${order.id}`} key={order.id} className={styles.orderCard}>
+                    <div className={styles.orderCardImg}>
+                      {order.first_item_image
+                        ? <img src={order.first_item_image} alt="" />
+                        : <div className={styles.orderCardImgFallback}><FaBoxOpen /></div>
+                      }
+                    </div>
+                    <div className={styles.orderCardInfo}>
+                      <div className={styles.orderCardStatus} style={{ color: info.color }}>
+                        {info.label}
+                      </div>
+                      <div className={styles.orderCardDelivery}>
+                        {isPickup
+                          ? <><FaStore /> Самовывоз</>
+                          : <><FaTruck /> Доставка</>
+                        }
+                      </div>
+                      <div className={styles.orderCardDate}>
+                        {isReadyForPickup
+                          ? <span className={styles.orderCardReady}><FaCheckCircle /> Можно забирать</span>
+                          : order.status === 'completed'
+                          ? <span className={styles.orderCardClosed}><FaCheckCircle /> Завершён</span>
+                          : isClosed
+                          ? <span className={styles.orderCardClosed}>{info.label}</span>
+                          : order.expires_at
+                          ? `До ${new Date(order.expires_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}`
+                          : order.business_name
+                        }
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Stores Section */}
       <section className={styles.storesSection}>

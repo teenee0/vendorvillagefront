@@ -115,9 +115,19 @@
   box-shadow: 0 4px 12px rgba(45, 175, 159, 0.2);
 }
 
-.add-to-cart-button:hover {
+.add-to-cart-button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(45, 175, 159, 0.3);
+}
+
+.add-to-cart-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.add-to-cart-button--added {
+  background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%) !important;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3) !important;
 }
 
 /* Медиа-запросы для адаптивности */

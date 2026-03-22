@@ -48,6 +48,11 @@ const BusinessBottomNavigation = () => {
           label: 'Товары'
         },
         {
+          path: `/business/${business_slug}/online-orders`,
+          icon: 'fas fa-shopping-bag',
+          label: 'Онлайн заказы'
+        },
+        {
           path: `/business/${business_slug}/settings`,
           icon: 'fas fa-cog',
           label: 'Настройки'
@@ -75,6 +80,11 @@ const BusinessBottomNavigation = () => {
           path: `/business/${business_slug}/sale-products`,
           icon: 'fas fa-shopping-cart',
           label: 'Заказы'
+        },
+        {
+          path: `/business/${business_slug}/online-orders`,
+          icon: 'fas fa-shopping-bag',
+          label: 'Онлайн заказы'
         },
         {
           path: `/business/${business_slug}/transactions`,
@@ -117,6 +127,11 @@ const BusinessBottomNavigation = () => {
           path: `/business/${business_slug}/sale-products`,
           icon: 'fas fa-cash-register',
           label: 'Продажа'
+        },
+        {
+          path: `/business/${business_slug}/online-orders`,
+          icon: 'fas fa-shopping-bag',
+          label: 'Онлайн заказы'
         },
         {
           path: `/business/${business_slug}/transactions`,
@@ -162,6 +177,11 @@ const BusinessBottomNavigation = () => {
         path: '/business/' + business_slug + '/batches',
         icon: 'fas fa-layer-group',
         label: 'Партии'
+      },
+      {
+        path: `/business/${business_slug}/online-orders`,
+        icon: 'fas fa-shopping-bag',
+        label: 'Онлайн заказы'
       },
       {
         path: '/business/' + business_slug + '/settings',

@@ -92,7 +92,7 @@ const ProductEditPageMobile = () => {
                 })));
 
                 // Загрузка атрибутов категории (в т.ч. allow_multiple)
-                const attributesResponse = await axios.get(`/api/categories/${productData.category}/attributes/`);
+                const attributesResponse = await axios.get(`/api/business/${business_slug}/categories/${productData.category}/attributes/`);
                 const formattedAttributes = attributesResponse.data.map(attr => ({
                     ...attr,
                     values: attr.values || [],
@@ -771,6 +771,7 @@ const ProductEditPageMobile = () => {
                                                                                             attr.id
                                                                                         )}
                                                                                         required={attr.required}
+                                                                                        businessSlug={business_slug}
                                                                                     />
                                                                                 ) : (
                                                                                     <input

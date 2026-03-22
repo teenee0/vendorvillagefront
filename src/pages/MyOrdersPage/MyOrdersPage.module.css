@@ -1,0 +1,25 @@
+.page { padding: 24px 0 60px; min-height: 60vh; }
+.container { max-width: 800px; margin: 0 auto; padding: 0 16px; }
+.title { font-size: 24px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); }
+.loading { display: flex; justify-content: center; padding: 60px; }
+.tabs { margin-bottom: 20px; }
+.listItem { padding: 0 !important; margin-bottom: 12px !important; border: none !important; display: block !important; }
+.orderCard { border-radius: 12px !important; width: 100%; }
+.cardTop { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.orderMeta { flex: 1; }
+.orderNum { font-weight: 700; font-size: 15px; display: block; color: var(--text-main); }
+.businessName { font-size: 13px; color: var(--text-muted); }
+.cardBody {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  font-size: 14px; color: var(--silver-whisper);
+  margin-bottom: 12px; align-items: center;
+}
+.date { font-size: 12px; color: var(--text-muted); }
+.cardActions { display: flex; justify-content: flex-end; }
+
+/* Светлая тема */
+:global(:root.light-theme) .title { color: #212529; }
+:global(:root.light-theme) .orderNum { color: #212529; }
+:global(:root.light-theme) .businessName { color: #888; }
+:global(:root.light-theme) .cardBody { color: #555; }
+:global(:root.light-theme) .date { color: #aaa; }

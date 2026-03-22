@@ -1,0 +1,7 @@
+.timer { font-size: 13px; color: var(--text-muted); }
+.urgent { color: #ff6b6b; font-weight: 600; }
+.expired { font-size: 13px; color: var(--text-muted); }
+
+:global(:root.light-theme) .timer { color: #555; }
+:global(:root.light-theme) .urgent { color: #d32f2f; }
+:global(:root.light-theme) .expired { color: #999; }

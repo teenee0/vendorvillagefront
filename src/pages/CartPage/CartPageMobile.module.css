@@ -1,0 +1,58 @@
+.page { padding: 16px; padding-bottom: 100px; }
+.title { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); }
+.list { display: flex; flex-direction: column; gap: 12px; }
+
+.card {
+  background: var(--background-card);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.top { display: flex; gap: 12px; align-items: flex-start; }
+.img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+
+.noImg {
+  width: 64px; height: 64px;
+  background: var(--phantom-noir);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.info { flex: 1; }
+.name { font-size: 14px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
+.shop { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.price { font-size: 16px; font-weight: 700; color: var(--royal-emerald); margin-top: 4px; }
+
+.bottom {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.unitPrice { font-size: 12px; color: var(--text-muted); }
+
+.footer {
+  position: fixed; bottom: 60px; left: 0; right: 0;
+  background: var(--background-card);
+  padding: 12px 16px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--border-light);
+  z-index: 100;
+}
+
+.total { font-size: 16px; margin-bottom: 10px; color: var(--text-main); }
+
+/* Светлая тема */
+:global(:root.light-theme) .title { color: #212529; }
+:global(:root.light-theme) .card { background: #fff; border-color: #e9ecef; }
+:global(:root.light-theme) .noImg { background: #f5f5f5; color: #ccc; }
+:global(:root.light-theme) .name { color: #333; }
+:global(:root.light-theme) .shop { color: #888; }
+:global(:root.light-theme) .price { color: #1a73e8; }
+:global(:root.light-theme) .bottom { border-color: #f0f0f0; }
+:global(:root.light-theme) .unitPrice { color: #999; }
+:global(:root.light-theme) .footer { background: #fff; border-color: #eee; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); }
+:global(:root.light-theme) .total { color: #333; }

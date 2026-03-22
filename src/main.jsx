@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { SnowfallProvider } from './contexts/SnowfallContext'
 import { TooManyRequestsProvider } from './contexts/TooManyRequestsContext'
+import { CartProvider } from './contexts/CartContext'
 import './index.css'
 
 const root = document.getElementById('root');
@@ -15,7 +16,9 @@ reactRoot.render(
       <ThemeProvider>
         <SnowfallProvider>
           <TooManyRequestsProvider>
-            <App />
+            <CartProvider>
+              <App />
+            </CartProvider>
           </TooManyRequestsProvider>
         </SnowfallProvider>
       </ThemeProvider>

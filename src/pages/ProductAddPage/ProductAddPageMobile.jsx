@@ -214,7 +214,7 @@ const ProductAddPageMobile = () => {
     try {
       setIsLoadingAttributes(true);
       setAttributesError(null);
-      const response = await axios.get(`/api/categories/${categoryId}/attributes/`);
+      const response = await axios.get(`/api/business/${business_slug}/categories/${categoryId}/attributes/`);
       const formattedAttributes = response.data.map(attr => ({
         ...attr,
         values: attr.values || [],
@@ -810,6 +810,7 @@ const ProductAddPageMobile = () => {
                                           attr.id
                                         )}
                                         required={attr.required}
+                                        businessSlug={business_slug}
                                       />
                                     ) : (
                                       <input
