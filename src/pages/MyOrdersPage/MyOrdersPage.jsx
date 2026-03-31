@@ -56,7 +56,7 @@ function MyOrdersPage() {
           <div className={styles.loading}><Spin size="large" /></div>
         ) : orders.length === 0 ? (
           <Empty description="Заказов нет">
-            <Link to="/marketplace"><Button type="primary">В каталог</Button></Link>
+            <Link to="/marketplace/categories"><Button type="primary">В каталог</Button></Link>
           </Empty>
         ) : (
           <List

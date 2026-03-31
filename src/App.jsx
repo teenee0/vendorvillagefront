@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -17,7 +17,7 @@ import CityRequiredWrapper from './components/CityRequiredWrapper/CityRequiredWr
 import SnowfallEffect from './components/Snowfall/Snowfall.jsx';
 import Main from './pages/Main/Main';
 import MainMobile from './pages/Main/MainMobile';
-import Marketplace from './pages/Marketplace/Marketplace';
+import BusinessContactPage from './pages/BusinessContactPage/BusinessContactPage';
 
 import "./App.css";
 import BusinessCategoriesDesktop from './pages/BusinessCategories/BusinessCategoriesDesktop';
@@ -304,7 +304,7 @@ function App() {
             </motion.main>
           </AnimatePresence>
         </div>
-        <BusinessFooter />
+        {!isMobile && <BusinessFooter />}
         {isMobile && <BusinessBottomNavigation />}
       </>
     );
@@ -341,7 +341,7 @@ function App() {
                   />
                   <Route path="/registration-login" element={<AuthPage />} />
                   <Route path="/password-reset" element={<PasswordReset />} />
-                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/marketplace" element={<Navigate to="/marketplace/categories" replace />} />
                   <Route 
                     path='/marketplace/categories' 
                     element={
@@ -395,6 +395,7 @@ function App() {
                   />
                   <Route path="/invite/employee/:token" element={<EmployeeInvite />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/business-contact" element={<BusinessContactPage />} />
                 </Route>
                 <Route element={<PrivateRoute />}>
                   <Route 
@@ -416,7 +417,7 @@ function App() {
           </AnimatePresence>
           </CityRequiredWrapper>
         </div>
-        <Footer />
+        {!isMobile && <Footer />}
         {isMobile && <BottomNavigation />}
         <CookieConsent />
       </>

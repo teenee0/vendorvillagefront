@@ -14,10 +14,9 @@ const CityRequiredWrapper = ({ children }) => {
   // Список страниц, где требуется выбор города
   const marketplacePages = [
     '/',
-    '/marketplace',
     '/marketplace/categories',
     '/marketplace/products',
-    '/business-categories'
+    '/business-categories',
   ];
 
   const isMarketplacePage = marketplacePages.some(page => 

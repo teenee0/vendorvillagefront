@@ -1,22 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import axios from '../../api/axiosDefault.js';
+import { Link, useLocation } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard/ProductCard.jsx';
 import Loader from '../../components/Loader';
-import TextType from '../../components/TextType/TextType.jsx';
 import LogoLoop from '../../components/LogoLoop/LogoLoop.jsx';
-import { FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { useMainPageProductsInfinite } from '../../hooks/useMainPageProductsInfinite';
 import styles from './MainMobile.module.css';
 
 function MainMobile() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const {
+    products,
+    loading,
+    loadingMore,
+    error,
+    hasNext,
+    loadMore,
+  } = useMainPageProductsInfinite();
   const servicesScrollRef = useRef(null);
+  const infiniteSentinelRef = useRef(null);
 
   const currentUrl = `${window.location.origin}${location.pathname}`;
 
@@ -73,28 +76,18 @@ function MainMobile() {
   ];
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('marketplace/api/products/?page_size=6&sort=-created_at');
-        setProducts(response.data.products || []);
-      } catch (err) {
-        console.error('Ошибка загрузки товаров:', err);
-        setError(err.message || 'Произошла ошибка при загрузке товаров');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/business-categories?search=${encodeURIComponent(searchQuery)}`;
-    }
-  };
+    if (!hasNext || loading) return;
+    const el = infiniteSentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMore();
+      },
+      { root: null, rootMargin: '240px', threshold: 0 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasNext, loading, loadMore, products.length]);
 
   const scrollServices = (direction) => {
     if (servicesScrollRef.current) {
@@ -125,43 +118,15 @@ function MainMobile() {
         <link rel="canonical" href={currentUrl} />
       </Helmet>
 
-      {/* Hero Section */}
+      {/*
       <section className={styles.heroSection}>
         <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            <span className={styles.heroTitleMain}>
-              <TextType
-                text="Все в одном месте"
-                as="span"
-                typingSpeed={100}
-                initialDelay={500}
-                pauseDuration={9000}
-                showCursor={true}
-                cursorCharacter="_"
-                cursorBlinkDuration={0.8}
-                loop={true}
-              />
-            </span>
-            <span className={styles.heroTitleSub}>товары, еда и бизнесы</span>
-          </h1>
-          <p className={styles.heroDescription}>
-            Откройте для себя лучшие товары, рестораны и бизнес-платформы в одном удобном месте. Быстро, просто и эффективно.
-          </p>
-          <form className={styles.searchBar} onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Поиск товаров, ресторанов..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit">
-              <FaSearch />
-            </button>
-          </form>
+          <h1 className={styles.heroTitle}>...</h1>
+          <form className={styles.searchBar}>...</form>
         </div>
       </section>
+      */}
 
-      {/* Advertisement Logos Loop */}
       <section className={styles.advertisementLogosSection}>
         <LogoLoop
           logos={[
@@ -208,7 +173,6 @@ function MainMobile() {
         />
       </section>
 
-      {/* Services Section */}
       <section className={styles.servicesSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
@@ -276,24 +240,18 @@ function MainMobile() {
         </div>
       </section>
 
-      {/* Marketplace Products Section */}
-      <section className={styles.marketplaceSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionHeaderContent}>
-            <h2 className={styles.sectionTitle}>
-              <span className={styles.sectionTitleIcon}>
-                <i className="fas fa-shopping-bag"></i>
-              </span>
-              Рекомендуем для вас
-            </h2>
-            <p className={styles.sectionSubtitle}>
-              Товары, блюда и бизнесы, которые могут вас заинтересовать
-            </p>
-          </div>
+      <section className={styles.marketplaceSection} aria-label="Товары">
+        <div className={styles.heroCtaBlock}>
+          <Link to="/business-contact" className={styles.heroBusinessCta}>
+            Подключить бизнес к Axione
+          </Link>
+          <p className={styles.heroCtaHint}>
+            Связь для магазинов и партнёров
+          </p>
         </div>
 
         {loading && products.length === 0 ? (
-          <div className={styles.loaderContainer}>
+          <div className={styles.loaderContainer} style={{ minHeight: 200 }}>
             <Loader />
           </div>
         ) : error ? (
@@ -302,11 +260,25 @@ function MainMobile() {
             <p>{error}</p>
           </div>
         ) : products.length > 0 ? (
-          <div className={styles.productsGrid}>
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className={styles.productsGrid}>
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            {hasNext ? (
+              <div
+                ref={infiniteSentinelRef}
+                className={styles.infiniteSentinel}
+                aria-hidden
+              />
+            ) : null}
+            {loadingMore ? (
+              <div className={styles.infiniteLoadingMore}>
+                <Loader />
+              </div>
+            ) : null}
+          </>
         ) : (
           <div className={styles.noProducts}>
             <i className="fas fa-box-open"></i>
@@ -319,4 +291,3 @@ function MainMobile() {
 }
 
 export default MainMobile;
-

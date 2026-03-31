@@ -38,22 +38,19 @@ const ProductDetailDesktop = () => {
         const response = await axios.get(`marketplace/api/products/${pk}/`);
         setProductData(response.data);
         
-        // Устанавливаем вариант по умолчанию
-        if (response.data.product.default_variant) {
-          const defaultVariant = response.data.product.default_variant;
-          setSelectedVariant(defaultVariant);
-          
-          // Находим атрибут "Размер" для установки выбранного размера
-          const sizeAttribute = defaultVariant.attributes.find(
+        const firstVariant = response.data.product.variants?.[0];
+        if (firstVariant) {
+          setSelectedVariant(firstVariant);
+
+          const sizeAttribute = firstVariant.attributes.find(
             attr => attr.attribute_name === 'Размер'
           );
           if (sizeAttribute) {
             setSelectedSize(sizeAttribute.display_value);
           }
-          
-          // Устанавливаем первую локацию с наличием
-          if (defaultVariant.locations && defaultVariant.locations.length > 0) {
-            const firstInStock = defaultVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+
+          if (firstVariant.locations && firstVariant.locations.length > 0) {
+            const firstInStock = firstVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
             setSelectedLocation(firstInStock || null);
           }
         }
@@ -252,7 +249,7 @@ const ProductDetailDesktop = () => {
 
   const { product, breadcrumbs, same_products } = productData;
   const availableSizes = getAvailableSizes();
-  const currentVariant = selectedVariant || product.default_variant;
+  const currentVariant = selectedVariant || product.variants?.[0];
   const currentLocations = currentVariant?.locations || [];
   const currentImage = product.images[selectedImageIndex] || product.images[0];
 

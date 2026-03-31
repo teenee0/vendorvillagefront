@@ -124,10 +124,11 @@ axios.interceptors.response.use(
           '/registration-login',
           '/password-reset',
           '/privacy',
+          '/business-contact',
           '/',
           '/marketplace',
           '/business-categories',
-          '/invite'
+          '/invite',
         ];
         
         const currentPath = window.location.pathname;

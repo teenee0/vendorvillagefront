@@ -23,7 +23,7 @@ function CartPageMobile() {
 
       {items.length === 0 ? (
         <Empty description="Корзина пуста">
-          <Link to="/marketplace"><Button type="primary">В каталог</Button></Link>
+          <Link to="/marketplace/categories"><Button type="primary">В каталог</Button></Link>
         </Empty>
       ) : (
         <>

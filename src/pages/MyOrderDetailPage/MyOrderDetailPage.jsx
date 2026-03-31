@@ -10,6 +10,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import OrderStatusBadge from '../../components/OrderStatusBadge/OrderStatusBadge';
 import OrderCountdownTimer from '../../components/OrderCountdownTimer/OrderCountdownTimer';
 import OrderChat from '../../components/OrderChat/OrderChat';
+import OnlineOrderReceiptBlock from '../../components/OnlineOrderReceiptBlock/OnlineOrderReceiptBlock';
 import styles from './MyOrderDetailPage.module.css';
 
 function MyOrderDetailPage() {
@@ -256,6 +257,12 @@ function MyOrderDetailPage() {
                 )}
               </div>
             </Card>
+
+            <OnlineOrderReceiptBlock
+              receipt={order.receipt}
+              className={styles.card}
+              style={{ marginTop: 16 }}
+            />
           </div>
 
           <div className={styles.right}>

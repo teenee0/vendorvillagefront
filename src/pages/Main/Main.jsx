@@ -1,21 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useLocation } from 'react-router-dom';
-import axios from '../../api/axiosDefault.js';
 import ProductCard from '../../components/ProductCard/ProductCard.jsx';
 import Loader from '../../components/Loader';
-import TextType from '../../components/TextType/TextType.jsx';
 import LogoLoop from '../../components/LogoLoop/LogoLoop.jsx';
+import { useMainPageProductsInfinite } from '../../hooks/useMainPageProductsInfinite';
 import styles from './Main.module.css';
 
 function Main() {
   const location = useLocation();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const {
+    products,
+    loading,
+    loadingMore,
+    error,
+    hasNext,
+    loadMore,
+  } = useMainPageProductsInfinite();
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
   const carouselRef = useRef(null);
+  const infiniteSentinelRef = useRef(null);
 
   const currentUrl = `${window.location.origin}${location.pathname}`;
 
@@ -72,28 +76,18 @@ function Main() {
   ];
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('marketplace/api/products/?page_size=8&sort=-created_at');
-        setProducts(response.data.products || []);
-      } catch (err) {
-        console.error('Ошибка загрузки товаров:', err);
-        setError(err.message || 'Произошла ошибка при загрузке товаров');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/business-categories?search=${encodeURIComponent(searchQuery)}`;
-    }
-  };
+    if (!hasNext || loading) return;
+    const el = infiniteSentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMore();
+      },
+      { root: null, rootMargin: '320px', threshold: 0 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasNext, loading, loadMore, products.length]);
 
   const servicesPerPage = 3;
   const totalPages = Math.ceil(services.length / servicesPerPage);
@@ -128,7 +122,8 @@ function Main() {
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={currentUrl} />
       </Helmet>
-      {/* Hero Section */}
+
+      {/*
       <section className={styles.heroSection}>
         <div className={styles.mainPageContainer}>
           <div className={styles.heroContent}>
@@ -165,8 +160,9 @@ function Main() {
           </div>
         </div>
       </section>
+      */}
 
-      {/* Advertisement Logos Loop */}
+      {/* Реклама — первым блоком */}
       <section className={styles.advertisementLogosSection}>
         <LogoLoop
             logos={[
@@ -213,7 +209,7 @@ function Main() {
           />
       </section>
 
-      {/* Services Carousel */}
+      {/* Наши сервисы */}
       <section className={styles.servicesSection}>
         <div className={styles.mainPageContainer}>
           <div className={styles.servicesCarouselWrapper}>
@@ -287,25 +283,20 @@ function Main() {
         </div>
       </section>
 
-      {/* Marketplace Products Section */}
-      <section className={styles.marketplaceSection}>
+      {/* Товары: без отдельного заголовка */}
+      <section className={styles.marketplaceSection} aria-label="Товары">
         <div className={styles.mainPageContainer}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionHeaderContent}>
-              <h2 className={styles.sectionTitle}>
-                <span className={styles.sectionTitleIcon}>
-                  <i className="fas fa-shopping-bag"></i>
-                </span>
-                Рекомендуем для вас
-              </h2>
-              <p className={styles.sectionSubtitle}>
-                Товары, блюда и бизнесы, которые могут вас заинтересовать
-              </p>
-            </div>
+          <div className={styles.heroCtaBlock}>
+            <Link to="/business-contact" className={styles.heroBusinessCta}>
+              Подключить бизнес к Axione
+            </Link>
+            <p className={styles.heroCtaHint}>
+              Связь для магазинов и партнёров — условия размещения на маркетплейсе
+            </p>
           </div>
 
           {loading && products.length === 0 ? (
-            <div className={styles.loaderContainer}>
+            <div className={styles.loaderContainer} style={{ minHeight: 220 }}>
               <Loader />
             </div>
           ) : error ? (
@@ -314,11 +305,25 @@ function Main() {
               <p>{error}</p>
             </div>
           ) : products.length > 0 ? (
-            <div className={styles.productsGrid}>
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className={styles.productsGrid}>
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+              {hasNext ? (
+                <div
+                  ref={infiniteSentinelRef}
+                  className={styles.infiniteSentinel}
+                  aria-hidden
+                />
+              ) : null}
+              {loadingMore ? (
+                <div className={styles.infiniteLoadingMore}>
+                  <Loader />
+                </div>
+              ) : null}
+            </>
           ) : (
             <div className={styles.noProducts}>
               <i className="fas fa-box-open"></i>

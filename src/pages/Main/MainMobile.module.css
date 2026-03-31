@@ -146,6 +146,44 @@
   box-shadow: 0 4px 12px rgba(45, 175, 159, 0.3);
 }
 
+/* CTA над сеткой товаров (моб. главная) */
+.heroCtaBlock {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  padding: 0 0.25rem;
+  box-sizing: border-box;
+}
+
+.heroBusinessCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 340px;
+  padding: 0.9rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 55%, var(--imperial-gold) 100%);
+  box-shadow: 0 6px 22px rgba(45, 175, 159, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.heroBusinessCta:active {
+  transform: scale(0.98);
+}
+
+.heroCtaHint {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: var(--palladium-mist);
+  padding: 0 0.5rem;
+  line-height: 1.4;
+}
+
 /* Advertisement Logos Section */
 .advertisementLogosSection {
   padding: 2rem 0;
@@ -484,6 +522,20 @@
   gap: 0.875rem;
   width: 100%;
   box-sizing: border-box;
+}
+
+.infiniteSentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.infiniteLoadingMore {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0;
+  min-height: 64px;
 }
 
 .loaderContainer {

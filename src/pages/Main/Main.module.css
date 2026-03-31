@@ -133,6 +133,47 @@
   box-shadow: 0 8px 20px rgba(45, 175, 159, 0.3);
 }
 
+/* CTA «Подключить бизнес» над сеткой товаров */
+.heroCtaBlock {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.heroBusinessCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2.25rem;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--royal-emerald) 0%, var(--luminous-sapphire) 55%, var(--imperial-gold) 100%);
+  box-shadow: 0 8px 28px rgba(45, 175, 159, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.heroBusinessCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(45, 175, 159, 0.45);
+  color: #fff !important;
+}
+
+.heroCtaHint {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--palladium-mist);
+}
+
+@media (max-width: 768px) {
+  .heroBusinessCta {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
 /* Advertisement Logos Section */
 .advertisementLogosSection {
   padding: 3rem 0;
@@ -480,6 +521,20 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
+}
+
+.infiniteSentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.infiniteLoadingMore {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0;
+  min-height: 80px;
 }
 
 .loaderContainer {

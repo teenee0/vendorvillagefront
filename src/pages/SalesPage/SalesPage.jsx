@@ -246,10 +246,17 @@ const SalesPage = () => {
             // API возвращает массив локаций напрямую
             const locationsList = Array.isArray(response.data) ? response.data : response.data.locations || [];
             setLocations(locationsList);
-            // Автоматически выбираем первую локацию или основную
             if (locationsList.length > 0) {
-                const primaryLocation = locationsList.find(loc => loc.is_primary);
-                setSelectedLocation(primaryLocation?.id || locationsList[0].id);
+                const storageKey = `business_${business_slug}_location`;
+                const savedRaw =
+                    typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+                const fromStorage = savedRaw
+                    ? locationsList.find((loc) => String(loc.id) === String(savedRaw))
+                    : null;
+                const primaryLocation = locationsList.find((loc) => loc.is_primary);
+                setSelectedLocation(
+                    fromStorage?.id ?? primaryLocation?.id ?? locationsList[0].id
+                );
             }
             setLocationsLoading(false);
         } catch (err) {
@@ -1846,6 +1853,10 @@ const SalesPage = () => {
                                     options={locations}
                                     value={selectedLocation}
                                     onChange={(locationId) => {
+                                        localStorage.setItem(
+                                            `business_${business_slug}_location`,
+                                            String(locationId)
+                                        );
                                         setSelectedLocation(locationId);
                                         setCart([]); // Очищаем корзину при смене локации
                                         setCart2([]); // Очищаем вторую корзину при смене локации

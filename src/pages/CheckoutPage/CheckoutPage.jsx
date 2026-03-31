@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, List, Divider, notification, Spin, Empty, Select, ConfigProvider, theme as antdTheme } from 'antd';
+import { Form, Input, Button, Card, List, Divider, notification, Spin, Empty, Select, ConfigProvider, theme as antdTheme, Alert } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShopOutlined, CarOutlined, PhoneOutlined, PlusOutlined, DeleteOutlined, WalletOutlined, CreditCardOutlined } from '@ant-design/icons';
 import { IMaskInput } from 'react-imask';
@@ -8,16 +8,70 @@ import { useCart } from '../../contexts/CartContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './CheckoutPage.module.css';
 
+/** Текст ошибки из ответа DRF / axios (detail, поля, errors[], сеть, таймаут). */
+function formatOrderSubmitError(err) {
+  const data = err.response?.data;
+  const status = err.response?.status;
+
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    const d = data.detail;
+    if (typeof d === 'string' && d.trim()) return d.trim();
+    if (Array.isArray(d) && d.length) {
+      const parts = d.map((item) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object' && 'string' in item) return item.string;
+        return String(item);
+      });
+      const joined = parts.filter(Boolean).join(' ').trim();
+      if (joined) return joined;
+    }
+
+    if (Array.isArray(data.errors) && data.errors.length) {
+      return data.errors
+        .map((e) => (e && typeof e === 'object' ? e.error || e.message : String(e)))
+        .filter(Boolean)
+        .join('; ');
+    }
+
+    const fieldOrder = ['non_field_errors', 'delivery_address', 'buyer_phone', 'buyer_comment', 'payment_type', 'delivery_type'];
+    for (const key of fieldOrder) {
+      const v = data[key];
+      if (Array.isArray(v) && v.length) return v.join(' ');
+      if (typeof v === 'string' && v.trim()) return v.trim();
+    }
+
+    for (const val of Object.values(data)) {
+      if (Array.isArray(val) && val.length && typeof val[0] === 'string') {
+        return val.join(' ');
+      }
+    }
+  }
+
+  if (err.code === 'ECONNABORTED' || err.message?.toLowerCase?.().includes('timeout')) {
+    return 'Превышено время ожидания ответа сервера. Попробуйте ещё раз.';
+  }
+  if (err.code === 'ERR_CANCELED') {
+    return 'Запрос прерван. Проверьте соединение и попробуйте снова.';
+  }
+  if (!err.response) {
+    return 'Нет ответа от сервера. Проверьте соединение и попробуйте снова.';
+  }
+  if (status === 401 || status === 403) {
+    return 'Сессия истекла или доступ запрещён. Войдите снова и повторите заказ.';
+  }
+  return 'Не удалось оформить заказ. Попробуйте позже.';
+}
+
 function CheckoutPage() {
   const { cart, loading, fetchCart } = useCart();
   const { theme: currentTheme } = useTheme();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [deliveryType, setDeliveryType] = useState('pickup');
-  const [paymentType, setPaymentType] = useState('offline');
   const [savedPhones, setSavedPhones] = useState([]);
   const [newPhone, setNewPhone] = useState('');
   const [addingPhone, setAddingPhone] = useState(false);
+  const [orderSubmitError, setOrderSubmitError] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -70,30 +124,36 @@ function CheckoutPage() {
 
   const handleDeliveryTypeChange = (type) => {
     setDeliveryType(type);
-    if (type === 'delivery') setPaymentType('online');
   };
 
   const handleSubmit = async (values) => {
     const phone = (values.buyer_phone || '').trim();
     if (!phone) {
-      notification.error({ message: 'Укажите номер телефона' });
+      setOrderSubmitError('Укажите номер телефона');
       return;
     }
+    setOrderSubmitError(null);
     setSubmitting(true);
     try {
-      const res = await axios.post('/api/orders/', {
-        delivery_type: deliveryType,
-        delivery_address: deliveryType === 'delivery' ? (values.delivery_address || '') : '',
-        payment_type: paymentType,
-        buyer_phone: phone,
-        buyer_comment: values.buyer_comment || '',
-      });
+      // Только самовывоз + оплата при получении (см. CreateOrderSerializer). UI «доставка / онлайн» — заглушка «скоро».
+      const res = await axios.post(
+        '/api/orders/',
+        {
+          delivery_type: 'pickup',
+          delivery_address: '',
+          payment_type: 'offline',
+          buyer_phone: phone,
+          buyer_comment: values.buyer_comment || '',
+        },
+        { timeout: 120000 },
+      );
 
       const data = res.data;
       const orders = data.orders || [];
       const errors = data.errors || [];
 
       if (orders.length > 0) {
+        setOrderSubmitError(null);
         await fetchCart();
         notification.success({
           message: `Создано заказов: ${orders.length}`,
@@ -102,18 +162,25 @@ function CheckoutPage() {
         });
         navigate('/my-orders');
       } else {
+        const desc = errors.length
+          ? errors.map((e) => e.error).join('; ')
+          : 'Попробуйте обновить корзину и оформить заказ снова.';
+        setOrderSubmitError(desc);
         notification.error({
           message: 'Не удалось создать заказ',
-          description: errors.map(e => e.error).join('; '),
-          duration: 6,
+          description: desc,
+          duration: 8,
         });
       }
     } catch (err) {
-      const msg = err.response?.data?.detail
-        || err.response?.data?.delivery_address?.[0]
-        || err.response?.data?.buyer_phone?.[0]
-        || 'Ошибка при создании заказа';
-      notification.error({ message: msg });
+      const msg = formatOrderSubmitError(err);
+      setOrderSubmitError(msg);
+      notification.error({
+        message: 'Оформление заказа',
+        description: msg,
+        duration: 8,
+        placement: 'top',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -129,7 +196,7 @@ function CheckoutPage() {
         <div className={styles.page}>
           <div className={styles.container}>
             <Empty description="Корзина пуста — нечего оформлять">
-              <Link to="/marketplace"><Button type="primary">В каталог</Button></Link>
+              <Link to="/marketplace/categories"><Button type="primary">В каталог</Button></Link>
             </Empty>
           </div>
         </div>
@@ -169,7 +236,13 @@ function CheckoutPage() {
                 </button>
               </div>
 
-              <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: 20 }}>
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                onValuesChange={() => orderSubmitError && setOrderSubmitError(null)}
+                style={{ marginTop: 20 }}
+              >
                 <Form.Item
                   name="buyer_phone"
                   label={<span><PhoneOutlined style={{ marginRight: 6 }} />Номер телефона</span>}
@@ -247,15 +320,12 @@ function CheckoutPage() {
                     </button>
                     <button
                       type="button"
-                      disabled={deliveryType === 'delivery'}
-                      className={`${styles.deliveryOption} ${paymentType === 'offline' ? styles.deliveryOptionActive : ''} ${deliveryType === 'delivery' ? styles.deliveryOptionDisabled : ''}`}
-                      onClick={() => deliveryType !== 'delivery' && setPaymentType('offline')}
+                      className={`${styles.deliveryOption} ${styles.deliveryOptionActive}`}
+                      aria-current="true"
                     >
                       <WalletOutlined className={styles.deliveryIcon} />
                       <span className={styles.deliveryLabel}>При получении</span>
-                      <span className={styles.deliveryDesc}>
-                        {deliveryType === 'delivery' ? 'Только при самовывозе' : 'Наличными или картой'}
-                      </span>
+                      <span className={styles.deliveryDesc}>Наличными или картой в магазине</span>
                     </button>
                   </div>
                 </Form.Item>
@@ -263,7 +333,7 @@ function CheckoutPage() {
                 <Form.Item name="buyer_comment" label="Комментарий для продавца">
                   <Input.TextArea rows={2} placeholder="Пожелания, вопросы..." />
                 </Form.Item>
-                <Form.Item>
+                <Form.Item style={{ marginBottom: 0 }}>
                   <Button
                     type="primary"
                     htmlType="submit"
@@ -273,6 +343,16 @@ function CheckoutPage() {
                   >
                     Подтвердить заказ
                   </Button>
+                  {orderSubmitError ? (
+                    <Alert
+                      type="error"
+                      showIcon
+                      closable
+                      message={orderSubmitError}
+                      onClose={() => setOrderSubmitError(null)}
+                      className={styles.submitErrorAlert}
+                    />
+                  ) : null}
                 </Form.Item>
               </Form>
             </Card>

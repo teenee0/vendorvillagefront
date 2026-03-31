@@ -4,13 +4,14 @@ import {
   Card, Button, Descriptions, Divider, List, Spin, Popconfirm,
   notification, InputNumber, Input, Image, Form, Select, ConfigProvider, theme as antdTheme
 } from 'antd';
-import { ArrowLeftOutlined, ShoppingOutlined, EditOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ShoppingOutlined, EditOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import axios from '../../api/axiosDefault';
 import { useTheme } from '../../contexts/ThemeContext';
 import OrderStatusBadge from '../../components/OrderStatusBadge/OrderStatusBadge';
 import OrderCountdownTimer from '../../components/OrderCountdownTimer/OrderCountdownTimer';
 import OrderChat from '../../components/OrderChat/OrderChat';
 import BonusPanel from '../../components/BonusPanel/BonusPanel';
+import OnlineOrderReceiptBlock from '../../components/OnlineOrderReceiptBlock/OnlineOrderReceiptBlock';
 import styles from './BusinessOnlineOrderDetailPage.module.css';
 
 function BusinessOnlineOrderDetailPage() {
@@ -294,6 +295,15 @@ function BusinessOnlineOrderDetailPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)' }}>
                   <CheckCircleOutlined style={{ fontSize: 20, color: '#52c41a' }} />
                   <span>Заказ завершён — изменение статуса недоступно. Чек и продажи созданы автоматически.</span>
+                </div>
+              </Card>
+            ) : order.status === 'expired' ? (
+              <Card className={styles.card} style={{ marginTop: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-muted)' }}>
+                  <ClockCircleOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                  <span>
+                    Заказ истёк — срок резерва прошёл, резерв снят. Смена статуса недоступна.
+                  </span>
                 </div>
               </Card>
             ) : (
@@ -791,6 +801,12 @@ function BusinessOnlineOrderDetailPage() {
                 </Card>
               );
             })()}
+
+            <OnlineOrderReceiptBlock
+              receipt={order.receipt}
+              className={styles.card}
+              style={{ marginTop: 16 }}
+            />
           </div>
         </div>
       </div>

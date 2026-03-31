@@ -29,7 +29,7 @@ function CartPageDesktop() {
             image={<ShoppingOutlined style={{ fontSize: 64, color: '#ccc' }} />}
             description={<span>Корзина пуста</span>}
           >
-            <Link to="/marketplace"><Button type="primary">Перейти в каталог</Button></Link>
+            <Link to="/marketplace/categories"><Button type="primary">Перейти в каталог</Button></Link>
           </Empty>
         ) : (
           <div className={styles.layout}>
@@ -102,7 +102,7 @@ function CartPageDesktop() {
               <Button type="primary" size="large" block onClick={handleCheckout}>
                 Оформить заказ
               </Button>
-              <Link to="/marketplace">
+              <Link to="/marketplace/categories">
                 <Button style={{ marginTop: 8 }} block>Продолжить покупки</Button>
               </Link>
             </div>

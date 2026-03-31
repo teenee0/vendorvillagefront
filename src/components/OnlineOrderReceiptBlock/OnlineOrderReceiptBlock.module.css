@@ -1,0 +1,26 @@
+.titleIcon {
+  margin-right: 8px;
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.noPdf {
+  font-size: 13px;
+  color: var(--text-muted, #888);
+}
+
+.preview {
+  margin-top: 16px;
+}
+
+.previewImg {
+  max-width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 8px;
+}

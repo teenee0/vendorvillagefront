@@ -73,7 +73,7 @@ const ProductsPageDesktop = () => {
         <h3>Категория не найдена</h3>
         <button
           className={styles.primaryButton}
-          onClick={() => navigate('/marketplace')}
+          onClick={() => navigate('/marketplace/categories')}
         >
           Вернуться в каталог
         </button>

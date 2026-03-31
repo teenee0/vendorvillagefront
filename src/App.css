@@ -53,7 +53,6 @@ body.marketplace-theme {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
   background-color: transparent;
 }
 
@@ -69,18 +68,9 @@ body.marketplace-theme {
 /* Адаптивные отступы */
 @media (max-width: 768px) {
   .content-wrapper {
-    margin-top: 120px; /* Высота header + полоса города */
+    margin-top: 100px; /* Высота header + полоса города */
     min-height: calc(100vh - 120px);
     padding-bottom: 80px; /* Отступ для bottom navigation */
   }
   
-  .page-content {
-    padding: 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .page-content {
-    padding: 1rem;
-  }
 }

@@ -52,19 +52,18 @@ const ProductDetail = () => {
         setLoading(true);
         const response = await axios.get(`marketplace/api/products/${pk}/`);
         setProductData(response.data);
-        if (response.data.product.default_variant) {
-          const defaultVariant = response.data.product.default_variant;
-          setSelectedVariant(defaultVariant.id);
+        const firstVariant = response.data.product.variants?.[0];
+        if (firstVariant) {
+          setSelectedVariant(firstVariant.id);
           const defaultAttrs = {};
-          defaultVariant.attributes.forEach(attr => {
+          firstVariant.attributes.forEach(attr => {
             if (defaultAttrs[attr.attribute_id] === undefined) {
               defaultAttrs[attr.attribute_id] = attr.display_value;
             }
           });
           setSelectedAttributes(defaultAttrs);
-          // Устанавливаем первую локацию с наличием по умолчанию
-          if (defaultVariant.locations && defaultVariant.locations.length > 0) {
-            const firstInStock = defaultVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+          if (firstVariant.locations && firstVariant.locations.length > 0) {
+            const firstInStock = firstVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
             setSelectedLocation(firstInStock || null);
           }
         }
@@ -82,7 +81,7 @@ const ProductDetail = () => {
     if (selectedVariant) {
       return productData.product.variants.find(v => v.id === selectedVariant);
     }
-    return productData.product.default_variant;
+    return productData.product.variants?.[0] ?? null;
   };
 
   const hasStockAtLocation = (loc) =>
