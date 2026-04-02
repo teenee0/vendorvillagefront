@@ -9,6 +9,14 @@ import Loader from '../../components/Loader';
 import AuthRequiredForCartModal from '../../components/AuthRequiredForCartModal/AuthRequiredForCartModal';
 import { notification } from 'antd';
 import { FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown, FaMapMarkerAlt, FaPhone, FaShoppingCart, FaHeart, FaBolt, FaTags, FaStore, FaExternalLinkAlt } from 'react-icons/fa';
+import {
+  buildVariantCombinationGroups,
+  buildDefaultRightSelection,
+  buildMergedGroupFromRightSelection,
+  combinationSectionTitle,
+  getOptionsForRightSpec,
+  rightSelectionAfterPick,
+} from '../../utils/buildVariantCombinationGroups';
 import styles from './ProductDetailDesktop.module.css';
 
 const ProductDetailDesktop = () => {
@@ -24,7 +32,10 @@ const ProductDetailDesktop = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [selectedSize, setSelectedSize] = useState(null);
+  /** Выбранная комплектация (несколько атрибутов справа или legacy-размер) */
+  const [selectedCombination, setSelectedCombination] = useState(null);
+  /** Пошаговый выбор при 2+ attributes_at_right: attribute_id -> значение */
+  const [rightDimSelection, setRightDimSelection] = useState(null);
   const [activeTab, setActiveTab] = useState('specs');
   const [slideDirection, setSlideDirection] = useState(null);
   const [previousImageIndex, setPreviousImageIndex] = useState(null);
@@ -41,20 +52,48 @@ const ProductDetailDesktop = () => {
         const response = await axios.get(`marketplace/api/products/${pk}/`);
         setProductData(response.data);
         
-        const firstVariant = response.data.product.variants?.[0];
-        if (firstVariant) {
-          setSelectedVariant(firstVariant);
-
-          const sizeAttribute = firstVariant.attributes.find(
-            attr => attr.attribute_name === 'Размер'
-          );
-          if (sizeAttribute) {
-            setSelectedSize(sizeAttribute.display_value);
-          }
-
-          if (firstVariant.locations && firstVariant.locations.length > 0) {
-            const firstInStock = firstVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+        const prod = response.data.product;
+        const specs = prod.attributes_at_right;
+        const groups = buildVariantCombinationGroups(prod);
+        if (specs?.length >= 2 && groups.length > 0) {
+          const sel = buildDefaultRightSelection(prod, specs);
+          setRightDimSelection(sel);
+          const group = buildMergedGroupFromRightSelection(prod, specs, sel);
+          if (group) {
+            setSelectedCombination(group);
+            setSelectedVariant(group.variant);
+            const firstInStock = group.locations?.find(
+              (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+            );
             setSelectedLocation(firstInStock || null);
+          } else {
+            setRightDimSelection(null);
+            setSelectedCombination(null);
+            setSelectedVariant(prod.variants?.[0] || null);
+            setSelectedLocation(null);
+          }
+        } else {
+          setRightDimSelection(null);
+          if (groups.length > 0) {
+            const g = groups[0];
+            setSelectedCombination(g);
+            setSelectedVariant(g.variant);
+            const firstInStock = g.locations?.find(
+              (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+            );
+            setSelectedLocation(firstInStock || null);
+          } else {
+            const firstVariant = prod.variants?.[0];
+            setSelectedCombination(null);
+            if (firstVariant) {
+              setSelectedVariant(firstVariant);
+              if (firstVariant.locations && firstVariant.locations.length > 0) {
+                const firstInStock = firstVariant.locations.find(
+                  (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+                );
+                setSelectedLocation(firstInStock || null);
+              }
+            }
           }
         }
       } catch (err) {
@@ -67,82 +106,41 @@ const ProductDetailDesktop = () => {
     fetchProduct();
   }, [pk]);
 
-  // Получаем все доступные размеры из вариантов
-  const getAvailableSizes = () => {
-    if (!productData) return [];
-    
-    const sizes = new Map();
-    productData.product.variants.forEach(variant => {
-      const sizeAttr = variant.attributes.find(attr => attr.attribute_name === 'Размер');
-      if (sizeAttr && variant.is_in_stock && variant.locations && variant.locations.length > 0) {
-        const sizeValue = sizeAttr.display_value;
-        
-        // Если размер уже есть, объединяем локации и пересчитываем цены
-        if (!sizes.has(sizeValue)) {
-          // Вычисляем min и max цены из всех локаций варианта
-          const prices = variant.locations.map(loc => parseFloat(loc.price));
-          const minPrice = Math.min(...prices);
-          const maxPrice = Math.max(...prices);
-          
-          sizes.set(sizeValue, {
-            size: sizeValue,
-            variant: variant,
-            minPrice: minPrice,
-            maxPrice: maxPrice,
-            locations: variant.locations || []
-          });
-        } else {
-          // Если есть несколько вариантов одного размера, объединяем локации
-          const existing = sizes.get(sizeValue);
-          const allLocations = [...existing.locations, ...(variant.locations || [])];
-          const allPrices = allLocations.map(loc => parseFloat(loc.price));
-          const minPrice = Math.min(...allPrices);
-          const maxPrice = Math.max(...allPrices);
-          
-          // Выбираем вариант с большим количеством локаций или лучшей ценой
-          if (variant.locations.length > existing.locations.length || 
-              Math.min(...variant.locations.map(loc => parseFloat(loc.price))) < existing.minPrice) {
-            sizes.set(sizeValue, {
-              size: sizeValue,
-              variant: variant,
-              minPrice: minPrice,
-              maxPrice: maxPrice,
-              locations: allLocations
-            });
-          } else {
-            sizes.set(sizeValue, {
-              ...existing,
-              minPrice: minPrice,
-              maxPrice: maxPrice,
-              locations: allLocations
-            });
-          }
-        }
-      }
-    });
-    
-    return Array.from(sizes.values()).sort((a, b) => {
-      // Сортируем размеры по порядку (если это числа)
-      const aNum = parseFloat(a.size);
-      const bNum = parseFloat(b.size);
-      if (!isNaN(aNum) && !isNaN(bNum)) {
-        return aNum - bNum;
-      }
-      // Для буквенных размеров (S, M, L, XL и т.д.)
-      return a.size.localeCompare(b.size);
-    });
-  };
-
-  const handleSizeSelect = (sizeData) => {
-    setSelectedSize(sizeData.size);
-    setSelectedVariant(sizeData.variant);
-    
-    // Устанавливаем первую локацию с наличием для выбранного размера
-    if (sizeData.locations && sizeData.locations.length > 0) {
-      const firstInStock = sizeData.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
+  const handleCombinationSelect = (group) => {
+    setSelectedCombination(group);
+    setSelectedVariant(group.variant);
+    setShowAllStores(false);
+    if (group.locations && group.locations.length > 0) {
+      const firstInStock = group.locations.find(
+        (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+      );
       setSelectedLocation(firstInStock || null);
     } else {
       setSelectedLocation(null);
+    }
+  };
+
+  const handleRightDimPick = (attributeId, value) => {
+    if (!productData?.product) return;
+    const { product } = productData;
+    const specs = product.attributes_at_right;
+    if (!specs?.length) return;
+    const prev = rightDimSelection || buildDefaultRightSelection(product, specs);
+    const nextSel = rightSelectionAfterPick(product, specs, prev, attributeId, value);
+    setRightDimSelection(nextSel);
+    const group = buildMergedGroupFromRightSelection(product, specs, nextSel);
+    setShowAllStores(false);
+    if (group) {
+      setSelectedCombination(group);
+      setSelectedVariant(group.variant);
+      if (group.locations?.length > 0) {
+        const firstInStock = group.locations.find(
+          (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+        );
+        setSelectedLocation(firstInStock || null);
+      } else {
+        setSelectedLocation(null);
+      }
     }
   };
 
@@ -251,17 +249,15 @@ const ProductDetailDesktop = () => {
   }
 
   const { product, breadcrumbs, same_products } = productData;
-  const availableSizes = getAvailableSizes();
+  const combinationGroups = buildVariantCombinationGroups(product);
+  const specsAtRight = product.attributes_at_right;
+  const useRightDimensions = (specsAtRight?.length ?? 0) >= 2 && combinationGroups.length > 0;
   const currentVariant = selectedVariant || product.variants?.[0];
-  const currentLocations = currentVariant?.locations || [];
-  const currentImage = product.images[selectedImageIndex] || product.images[0];
-
-  // Получаем название атрибута размера из available_attributes
-  const sizeAttributeName = product.available_attributes && Object.keys(product.available_attributes).length > 0
-    ? Object.keys(product.available_attributes).find(key => 
-        key.toLowerCase().includes('размер') || key.toLowerCase().includes('size')
-      ) || 'Размер'
-    : 'Размер';
+  const currentLocations =
+    selectedCombination?.locations?.length > 0
+      ? selectedCombination.locations
+      : currentVariant?.locations || [];
+  const sectionCombinationTitle = combinationSectionTitle(product);
 
   return (
     <>
@@ -379,31 +375,71 @@ const ProductDetailDesktop = () => {
             </p>
           )}
 
-          {/* Выбор размера */}
-          {availableSizes.length > 0 && (
+          {/* Два и больше атрибутов «справа» — отдельная строка на атрибут, недоступные значения серые */}
+          {useRightDimensions &&
+            specsAtRight.map((spec, specIdx) => (
+              <div key={spec.attribute_id} className={styles.sizesSection}>
+                <h2 className={styles.sectionTitle}>
+                  <i className="fas fa-sliders-h"></i> {spec.name}
+                </h2>
+                <div className={styles.sizeOptions}>
+                  {getOptionsForRightSpec(
+                    product,
+                    specsAtRight,
+                    specIdx,
+                    rightDimSelection || {}
+                  ).map(({ value, selectable }, optIdx) => {
+                    const sel = rightDimSelection || {};
+                    const checked = sel[spec.attribute_id] === value;
+                    const inputId = `right-${spec.attribute_id}-${optIdx}`;
+                    return (
+                      <div
+                        key={`${spec.attribute_id}-${value}`}
+                        className={`${styles.sizeOption} ${!selectable ? styles.sizeOptionDisabled : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`right-attr-${spec.attribute_id}`}
+                          id={inputId}
+                          className={styles.sizeRadio}
+                          checked={checked}
+                          disabled={!selectable}
+                          onChange={() => selectable && handleRightDimPick(spec.attribute_id, value)}
+                        />
+                        <label htmlFor={inputId} className={styles.sizeLabel}>
+                          {value}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+          {/* Одна строка: один атрибут справа или legacy «Размер» */}
+          {!useRightDimensions && combinationGroups.length > 0 && (
             <div className={styles.sizesSection}>
               <h2 className={styles.sectionTitle}>
-                <i className="fas fa-ruler"></i> {sizeAttributeName}
+                <i className="fas fa-ruler"></i> {sectionCombinationTitle}
               </h2>
               <div className={styles.sizeOptions}>
-                {availableSizes.map((sizeData) => (
-                  <div key={sizeData.size} className={styles.sizeOption}>
+                {combinationGroups.map((group, idx) => (
+                  <div key={group.key} className={styles.sizeOption}>
                     <input
                       type="radio"
-                      name="size"
-                      id={`size-${sizeData.size}`}
+                      name="variant-combination"
+                      id={`combo-${idx}`}
                       className={styles.sizeRadio}
-                      checked={selectedSize === sizeData.size}
-                      onChange={() => handleSizeSelect(sizeData)}
+                      checked={selectedCombination?.key === group.key}
+                      onChange={() => handleCombinationSelect(group)}
                     />
-                    <label htmlFor={`size-${sizeData.size}`} className={styles.sizeLabel}>
-                      {sizeData.size}
+                    <label htmlFor={`combo-${idx}`} className={styles.sizeLabel}>
+                      {group.label}
                     </label>
                     <span className={styles.sizePrice}>
-                      {sizeData.minPrice === sizeData.maxPrice 
-                        ? `${formatPrice(sizeData.minPrice)} ₸`
-                        : `${formatPrice(Math.min(sizeData.minPrice, sizeData.maxPrice))} - ${formatPrice(Math.max(sizeData.minPrice, sizeData.maxPrice))} ₸`
-                      }
+                      {group.minPrice === group.maxPrice
+                        ? `${formatPrice(group.minPrice)} ₸`
+                        : `${formatPrice(Math.min(group.minPrice, group.maxPrice))} - ${formatPrice(Math.max(group.minPrice, group.maxPrice))} ₸`}
                     </span>
                   </div>
                 ))}
@@ -498,8 +534,19 @@ const ProductDetailDesktop = () => {
         <div className={styles.purchaseSection}>
           <div className={styles.selectedInfo}>
             <div className={styles.selectedSize}>
-              <span>Размер:</span>
-              <strong>{selectedSize}</strong>
+              <span>
+                {product.attributes_at_right?.length >= 2
+                  ? 'Комплектация:'
+                  : product.attributes_at_right?.length === 1
+                    ? 'Комплектация:'
+                    : 'Размер:'}
+              </span>
+              <strong>
+                {selectedCombination?.label ||
+                  selectedVariant?.attributes?.find((a) => a.attribute_name === 'Размер')
+                    ?.display_value ||
+                  '—'}
+              </strong>
             </div>
             <div className={styles.selectedStore}>
               <span>Магазин:</span>

@@ -408,6 +408,21 @@
   padding-right: 0;
 }
 
+.sizeOptionDisabled .sizeLabel {
+  opacity: 0.42;
+  cursor: not-allowed;
+  border-style: dashed;
+  pointer-events: none;
+}
+
+.sizeOptionDisabled .sizeRadio:disabled + .sizeLabel {
+  color: var(--platinum-gleam);
+}
+
+:root.light-theme .sizeOptionDisabled .sizeLabel {
+  color: #64748b;
+}
+
 .sizeRadio {
   display: none;
 }

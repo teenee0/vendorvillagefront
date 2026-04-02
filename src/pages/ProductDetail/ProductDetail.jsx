@@ -12,6 +12,14 @@ import "slick-carousel/slick/slick-theme.css";
 import Loader from '../../components/Loader';
 import AuthRequiredForCartModal from '../../components/AuthRequiredForCartModal/AuthRequiredForCartModal';
 import { notification } from 'antd';
+import {
+  buildVariantCombinationGroups,
+  buildDefaultRightSelection,
+  buildMergedGroupFromRightSelection,
+  combinationSectionTitle,
+  getOptionsForRightSpec,
+  rightSelectionAfterPick,
+} from '../../utils/buildVariantCombinationGroups';
 import styles from './ProductDetailMobile.module.css';
 
 const ProductDetail = () => {
@@ -25,7 +33,6 @@ const ProductDetail = () => {
   const [cartAdded, setCartAdded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('specs');
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
@@ -33,6 +40,9 @@ const ProductDetail = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showAllStores, setShowAllStores] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  /** Группа по attributes_at_right или legacy «Размер» */
+  const [selectedCombination, setSelectedCombination] = useState(null);
+  const [rightDimSelection, setRightDimSelection] = useState(null);
 
   useEffect(() => {
     // Убираем padding у .page-content для этой страницы
@@ -55,19 +65,73 @@ const ProductDetail = () => {
         setLoading(true);
         const response = await axios.get(`marketplace/api/products/${pk}/`);
         setProductData(response.data);
-        const firstVariant = response.data.product.variants?.[0];
-        if (firstVariant) {
-          setSelectedVariant(firstVariant.id);
-          const defaultAttrs = {};
-          firstVariant.attributes.forEach(attr => {
-            if (defaultAttrs[attr.attribute_id] === undefined) {
-              defaultAttrs[attr.attribute_id] = attr.display_value;
+        const prod = response.data.product;
+        const specs = prod.attributes_at_right;
+        const groups = buildVariantCombinationGroups(prod);
+        if (specs?.length >= 2 && groups.length > 0) {
+          const sel = buildDefaultRightSelection(prod, specs);
+          setRightDimSelection(sel);
+          const group = buildMergedGroupFromRightSelection(prod, specs, sel);
+          if (group) {
+            setSelectedCombination(group);
+            setSelectedVariant(group.variant.id);
+            const defaultAttrs = {};
+            group.variant.attributes.forEach((attr) => {
+              if (defaultAttrs[attr.attribute_id] === undefined) {
+                defaultAttrs[attr.attribute_id] = attr.display_value;
+              }
+            });
+            setSelectedAttributes(defaultAttrs);
+            if (group.locations?.length > 0) {
+              const firstInStock = group.locations.find(
+                (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+              );
+              setSelectedLocation(firstInStock || null);
             }
-          });
-          setSelectedAttributes(defaultAttrs);
-          if (firstVariant.locations && firstVariant.locations.length > 0) {
-            const firstInStock = firstVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
-            setSelectedLocation(firstInStock || null);
+          } else {
+            setRightDimSelection(null);
+            setSelectedCombination(null);
+            setSelectedVariant(prod.variants?.[0]?.id ?? null);
+            setSelectedLocation(null);
+          }
+        } else {
+          setRightDimSelection(null);
+          if (groups.length > 0) {
+            const g = groups[0];
+            setSelectedCombination(g);
+            setSelectedVariant(g.variant.id);
+            const defaultAttrs = {};
+            g.variant.attributes.forEach((attr) => {
+              if (defaultAttrs[attr.attribute_id] === undefined) {
+                defaultAttrs[attr.attribute_id] = attr.display_value;
+              }
+            });
+            setSelectedAttributes(defaultAttrs);
+            if (g.locations?.length > 0) {
+              const firstInStock = g.locations.find(
+                (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+              );
+              setSelectedLocation(firstInStock || null);
+            }
+          } else {
+            setSelectedCombination(null);
+            const firstVariant = prod.variants?.[0];
+            if (firstVariant) {
+              setSelectedVariant(firstVariant.id);
+              const defaultAttrs = {};
+              firstVariant.attributes.forEach((attr) => {
+                if (defaultAttrs[attr.attribute_id] === undefined) {
+                  defaultAttrs[attr.attribute_id] = attr.display_value;
+                }
+              });
+              setSelectedAttributes(defaultAttrs);
+              if (firstVariant.locations && firstVariant.locations.length > 0) {
+                const firstInStock = firstVariant.locations.find(
+                  (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+                );
+                setSelectedLocation(firstInStock || null);
+              }
+            }
           }
         }
       } catch (err) {
@@ -95,45 +159,127 @@ const ProductDetail = () => {
     setSelectedLocation(location);
   };
 
-  const handleAttributeSelect = (attributeId, value) => {
-    setSelectedAttributes(prev => {
-      const newAttributes = { ...prev, [attributeId]: value };
-      const matchingVariant = productData.product.variants.find(variant =>
-        variant.attributes.some(a =>
-          a.attribute_id === Number(attributeId) && a.display_value === value
-        )
-      );
-      if (matchingVariant) {
-        setSelectedVariant(matchingVariant.id);
-        // Устанавливаем первую локацию с наличием при выборе варианта
-        if (matchingVariant.locations && matchingVariant.locations.length > 0) {
-          const firstInStock = matchingVariant.locations.find(loc => loc != null && loc.quantity != null && Number(loc.quantity) > 0);
-          setSelectedLocation(firstInStock || null);
-        } else {
-          setSelectedLocation(null);
-        }
-        // Сбрасываем показ всех магазинов при смене варианта
-        setShowAllStores(false);
-        const updatedAttrs = {};
-        matchingVariant.attributes.forEach(attr => {
-          if (updatedAttrs[attr.attribute_id] === undefined) {
-            updatedAttrs[attr.attribute_id] = attr.display_value;
-          }
-        });
-        return updatedAttrs;
+  const variantMatchesAttributes = (variant, attrMap) => {
+    const attrs = variant.attributes || [];
+    return Object.entries(attrMap).every(([id, val]) =>
+      attrs.some(
+        (a) => a.attribute_id === Number(id) && a.display_value === val
+      )
+    );
+  };
+
+  const handleCombinationSelect = (group) => {
+    setSelectedCombination(group);
+    setSelectedVariant(group.variant.id);
+    setShowAllStores(false);
+    const updatedAttrs = {};
+    group.variant.attributes.forEach((attr) => {
+      if (updatedAttrs[attr.attribute_id] === undefined) {
+        updatedAttrs[attr.attribute_id] = attr.display_value;
       }
-      return newAttributes;
     });
+    setSelectedAttributes(updatedAttrs);
+    if (group.locations?.length > 0) {
+      const firstInStock = group.locations.find(
+        (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+      );
+      setSelectedLocation(firstInStock || null);
+    } else {
+      setSelectedLocation(null);
+    }
+  };
+
+  const handleRightDimPick = (attributeId, value) => {
+    if (!productData?.product) return;
+    const { product } = productData;
+    const specs = product.attributes_at_right;
+    if (!specs?.length) return;
+    const prev = rightDimSelection || buildDefaultRightSelection(product, specs);
+    const nextSel = rightSelectionAfterPick(product, specs, prev, attributeId, value);
+    setRightDimSelection(nextSel);
+    const group = buildMergedGroupFromRightSelection(product, specs, nextSel);
+    setShowAllStores(false);
+    if (group) {
+      setSelectedCombination(group);
+      setSelectedVariant(group.variant.id);
+      const updatedAttrs = {};
+      group.variant.attributes.forEach((attr) => {
+        if (updatedAttrs[attr.attribute_id] === undefined) {
+          updatedAttrs[attr.attribute_id] = attr.display_value;
+        }
+      });
+      setSelectedAttributes(updatedAttrs);
+      if (group.locations?.length > 0) {
+        const firstInStock = group.locations.find(
+          (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+        );
+        setSelectedLocation(firstInStock || null);
+      } else {
+        setSelectedLocation(null);
+      }
+    }
+  };
+
+  const handleAttributeSelect = (attributeId, value) => {
+    if (!productData?.product) return;
+    const { product } = productData;
+    const newAttributes = { ...selectedAttributes, [attributeId]: value };
+    const matchingVariant = product.variants.find((variant) =>
+      variantMatchesAttributes(variant, newAttributes)
+    );
+    setShowAllStores(false);
+    if (matchingVariant) {
+      setSelectedVariant(matchingVariant.id);
+      const groups = buildVariantCombinationGroups(product);
+      let nextCombo = null;
+      const specs = product.attributes_at_right;
+      if (specs?.length) {
+        const ids = specs.map((s) => s.attribute_id);
+        const valueById = {};
+        for (const att of matchingVariant.attributes || []) {
+          if (ids.includes(att.attribute_id)) {
+            valueById[att.attribute_id] = att.display_value;
+          }
+        }
+        if (ids.every((id) => valueById[id] != null && valueById[id] !== '')) {
+          const key = ids.map((id) => `${id}=${valueById[id]}`).join('|');
+          nextCombo = groups.find((g) => g.key === key) || null;
+        }
+      } else {
+        nextCombo = groups.find((g) => g.variant.id === matchingVariant.id) || null;
+      }
+      setSelectedCombination(nextCombo);
+      const locs =
+        nextCombo?.locations?.length > 0
+          ? nextCombo.locations
+          : matchingVariant.locations;
+      if (locs?.length) {
+        const firstInStock = locs.find(
+          (loc) => loc != null && loc.quantity != null && Number(loc.quantity) > 0
+        );
+        setSelectedLocation(firstInStock || null);
+      } else {
+        setSelectedLocation(null);
+      }
+      const updatedAttrs = {};
+      matchingVariant.attributes.forEach((attr) => {
+        if (updatedAttrs[attr.attribute_id] === undefined) {
+          updatedAttrs[attr.attribute_id] = attr.display_value;
+        }
+      });
+      setSelectedAttributes(updatedAttrs);
+    } else {
+      setSelectedAttributes(newAttributes);
+    }
   };
 
   const isAttributeValueAvailable = (attributeId, value) => {
     if (!productData || !productData.product || !productData.product.variants) {
       return false;
     }
-    return productData.product.variants.some(variant =>
-      variant.attributes.some(a =>
-        a.attribute_id === Number(attributeId) && a.display_value === value
-      )
+    const testAttrs = { ...selectedAttributes, [attributeId]: value };
+    return productData.product.variants.some((variant) =>
+      variantMatchesAttributes(variant, testAttrs)
     );
   };
 
@@ -173,9 +319,15 @@ const ProductDetail = () => {
 
   const { product, same_products } = productData;
   const currentVariant = getCurrentVariant();
-  const currentImage = product.images && product.images.length > 0 
-    ? (product.images[selectedImageIndex] || product.images[0])
-    : null;
+  const combinationGroups = buildVariantCombinationGroups(product);
+  const specsAtRight = product.attributes_at_right;
+  const useRightDimensions =
+    (specsAtRight?.length ?? 0) >= 2 && combinationGroups.length > 0;
+  const storeLocations =
+    selectedCombination?.locations?.length > 0
+      ? selectedCombination.locations
+      : currentVariant?.locations || [];
+  const sectionCombinationTitle = combinationSectionTitle(product);
 
   const availableAttributes = {};
   if (product.available_attributes) {
@@ -189,12 +341,12 @@ const ProductDetail = () => {
   }
 
   // Получаем размеры для отображения
-  const sizeAttribute = Object.entries(availableAttributes).find(([_, attr]) => 
+  const sizeAttribute = Object.entries(availableAttributes).find(([, attr]) =>
     attr.name.toLowerCase().includes('размер') || attr.name.toLowerCase().includes('size')
   );
 
   // Получаем цвета для отображения
-  const colorAttribute = Object.entries(availableAttributes).find(([_, attr]) => 
+  const colorAttribute = Object.entries(availableAttributes).find(([, attr]) =>
     attr.name.toLowerCase().includes('цвет') || attr.name.toLowerCase().includes('color')
   );
 
@@ -207,7 +359,6 @@ const ProductDetail = () => {
     arrows: false,
     swipe: true,
     touchMove: true,
-    beforeChange: (_, next) => setSelectedImageIndex(next),
   };
 
   const similarProductsSettings = {
@@ -288,59 +439,116 @@ const ProductDetail = () => {
         <div className={styles.brandName}>{product.business_name || 'Бренд'}</div>
         <h1 className={styles.productTitle}>{product.name}</h1>
 
-        {/* Выбор размера */}
-        {sizeAttribute && (
+        {/* 2+ атрибута справа — отдельный блок на каждый; недоступные значения disabled */}
+        {useRightDimensions &&
+          specsAtRight.map((spec, specIdx) => (
+            <div key={spec.attribute_id} className={styles.sizeSection}>
+              <div className={styles.sizeHeader}>
+                <span className={styles.sizeLabel}>{spec.name}</span>
+              </div>
+              <div className={styles.sizeOptions}>
+                {getOptionsForRightSpec(
+                  product,
+                  specsAtRight,
+                  specIdx,
+                  rightDimSelection || {}
+                ).map(({ value, selectable }) => {
+                  const sel = rightDimSelection || {};
+                  const isSelected = sel[spec.attribute_id] === value;
+                  return (
+                    <button
+                      key={`${spec.attribute_id}-${value}`}
+                      type="button"
+                      disabled={!selectable}
+                      className={`${styles.sizeButton} ${isSelected ? styles.sizeButtonSelected : ''} ${!selectable ? styles.sizeButtonDisabled : ''}`}
+                      onClick={() => selectable && handleRightDimPick(spec.attribute_id, value)}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+        {!useRightDimensions && combinationGroups.length > 0 ? (
           <div className={styles.sizeSection}>
             <div className={styles.sizeHeader}>
-              <span className={styles.sizeLabel}>{sizeAttribute[1].name}</span>
+              <span className={styles.sizeLabel}>{sectionCombinationTitle}</span>
             </div>
             <div className={styles.sizeOptions}>
-              {sizeAttribute[1].values.map(size => {
-                const isAvailable = isAttributeValueAvailable(Number(sizeAttribute[0]), size);
-                const isSelected = selectedAttributes[Number(sizeAttribute[0])] === size;
-                // Находим вариант для этого размера и получаем цену
-                const sizeVariant = product.variants?.find(v => 
-                  v.attributes?.some(a => 
-                    a.attribute_id === Number(sizeAttribute[0]) && 
-                    a.display_value === size
-                  )
-                );
-                let sizePrice = null;
-                if (sizeVariant?.locations && sizeVariant.locations.length > 0) {
-                  const prices = sizeVariant.locations.map(loc => parseFloat(loc.price));
-                  const minPrice = Math.min(...prices);
-                  const maxPrice = Math.max(...prices);
-                  sizePrice = minPrice === maxPrice ? minPrice : { min: minPrice, max: maxPrice };
-                }
+              {combinationGroups.map((group) => {
+                const isSelected = selectedCombination?.key === group.key;
+                const priceLabel =
+                  group.minPrice === group.maxPrice
+                    ? `${formatPrice(group.minPrice)} ₸`
+                    : `${formatPrice(Math.min(group.minPrice, group.maxPrice))} - ${formatPrice(Math.max(group.minPrice, group.maxPrice))} ₸`;
                 return (
                   <button
-                    key={size}
-                    className={`${styles.sizeButton} ${isSelected ? styles.sizeButtonSelected : ''} ${!isAvailable ? styles.sizeButtonDisabled : ''}`}
-                    onClick={() => isAvailable && handleAttributeSelect(Number(sizeAttribute[0]), size)}
-                    disabled={!isAvailable}
+                    key={group.key}
+                    type="button"
+                    className={`${styles.sizeButton} ${isSelected ? styles.sizeButtonSelected : ''}`}
+                    onClick={() => handleCombinationSelect(group)}
                   >
-                    {size}
-                    {isAvailable && sizePrice && (
-                      <span className={styles.sizePrice}>
-                        {typeof sizePrice === 'object' 
-                          ? `${formatPrice(sizePrice.min)} - ${formatPrice(sizePrice.max)} ₸`
-                          : `${formatPrice(sizePrice)} ₸`
-                        }
-                      </span>
-                    )}
+                    {group.label}
+                    <span className={styles.sizePrice}>{priceLabel}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-        )}
+        ) : !useRightDimensions ? (
+          sizeAttribute && (
+            <div className={styles.sizeSection}>
+              <div className={styles.sizeHeader}>
+                <span className={styles.sizeLabel}>{sizeAttribute[1].name}</span>
+              </div>
+              <div className={styles.sizeOptions}>
+                {sizeAttribute[1].values.map((size) => {
+                  const isAvailable = isAttributeValueAvailable(Number(sizeAttribute[0]), size);
+                  const isSelected = selectedAttributes[Number(sizeAttribute[0])] === size;
+                  const sizeVariant = product.variants?.find((v) =>
+                    variantMatchesAttributes(v, {
+                      ...selectedAttributes,
+                      [Number(sizeAttribute[0])]: size,
+                    })
+                  );
+                  let sizePrice = null;
+                  if (sizeVariant?.locations && sizeVariant.locations.length > 0) {
+                    const prices = sizeVariant.locations.map((loc) => parseFloat(loc.price));
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    sizePrice = minPrice === maxPrice ? minPrice : { min: minPrice, max: maxPrice };
+                  }
+                  return (
+                    <button
+                      key={size}
+                      className={`${styles.sizeButton} ${isSelected ? styles.sizeButtonSelected : ''} ${!isAvailable ? styles.sizeButtonDisabled : ''}`}
+                      onClick={() => isAvailable && handleAttributeSelect(Number(sizeAttribute[0]), size)}
+                      disabled={!isAvailable}
+                    >
+                      {size}
+                      {isAvailable && sizePrice && (
+                        <span className={styles.sizePrice}>
+                          {typeof sizePrice === 'object'
+                            ? `${formatPrice(sizePrice.min)} - ${formatPrice(sizePrice.max)} ₸`
+                            : `${formatPrice(sizePrice)} ₸`}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )
+        ) : null}
 
         {/* Наличие в магазинах */}
-        {currentVariant && currentVariant.locations && currentVariant.locations.length > 0 && (
+        {currentVariant && storeLocations.length > 0 && (
           <div className={styles.storesSection}>
             <h3 className={styles.storesTitle}>Наличие в магазинах</h3>
             <div className={styles.storeList}>
-              {(showAllStores ? currentVariant.locations : currentVariant.locations.slice(0, 3)).map((location) => {
+              {(showAllStores ? storeLocations : storeLocations.slice(0, 3)).map((location) => {
                 const inStock = hasStockAtLocation(location);
                 return (
                 <div
@@ -404,7 +612,7 @@ const ProductDetail = () => {
               );
               })}
             </div>
-            {currentVariant.locations.length > 3 && (
+            {storeLocations.length > 3 && (
               <button 
                 className={styles.showMoreStoresBtn}
                 onClick={() => setShowAllStores(!showAllStores)}
@@ -442,12 +650,12 @@ const ProductDetail = () => {
           <div className={styles.colorsSection}>
             <h3 className={styles.colorsTitle}>В другом цвете</h3>
             <div className={styles.colorsGrid}>
-              {colorAttribute[1].values.slice(0, 4).map((color, index) => {
-                const colorVariant = product.variants?.find(v => 
-                  v.attributes?.some(a => 
-                    a.attribute_id === Number(colorAttribute[0]) && 
-                    a.display_value === color
-                  )
+              {colorAttribute[1].values.slice(0, 4).map((color) => {
+                const colorVariant = product.variants?.find((v) =>
+                  variantMatchesAttributes(v, {
+                    ...selectedAttributes,
+                    [Number(colorAttribute[0])]: color,
+                  })
                 );
                 const colorImage = colorVariant?.images?.[0] || (product.images && product.images[0]);
                 const isSelected = selectedAttributes[Number(colorAttribute[0])] === color;
