@@ -31,7 +31,16 @@ function MainMobile() {
       description: 'Широкий ассортимент товаров',
       link: '/business-categories',
       gradient: 'marketplaceGradient',
-      available: true
+      available: true,
+    },
+    {
+      id: 5,
+      icon: 'fa-briefcase',
+      title: 'Для Бизнеса',
+      description: 'Решения и инструменты для развития вашего бизнеса',
+      link: '/business-contact',
+      gradient: 'businessSolutionsGradient',
+      available: true,
     },
     {
       id: 2,
@@ -39,7 +48,7 @@ function MainMobile() {
       title: 'Рестораны',
       description: 'Закажите еду из лучших ресторанов города',
       gradient: 'restaurantsGradient',
-      available: false
+      available: false,
     },
     {
       id: 3,
@@ -47,7 +56,7 @@ function MainMobile() {
       title: 'Сайты бизнесов',
       description: 'Персональные страницы для вашего бизнеса',
       gradient: 'businessGradient',
-      available: false
+      available: false,
     },
     {
       id: 4,
@@ -55,15 +64,7 @@ function MainMobile() {
       title: 'ТРЦ',
       description: 'Торгово-развлекательные центры в вашем городе',
       gradient: 'trcGradient',
-      available: false
-    },
-    {
-      id: 5,
-      icon: 'fa-briefcase',
-      title: 'Для Бизнеса',
-      description: 'Решения и инструменты для развития вашего бизнеса',
-      gradient: 'businessSolutionsGradient',
-      available: false
+      available: false,
     },
     {
       id: 6,
@@ -71,8 +72,8 @@ function MainMobile() {
       title: 'Item Route',
       description: 'Создай путь покупок для своего города',
       gradient: 'itemRouteGradient',
-      available: false
-    }
+      available: false,
+    },
   ];
 
   useEffect(() => {
