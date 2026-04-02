@@ -53,6 +53,13 @@
 .author { font-size: 11px; font-weight: 600; color: var(--royal-emerald); margin-bottom: 2px; }
 .text { margin: 0; line-height: 1.5; color: var(--text-main); }
 .time { font-size: 10px; color: var(--text-muted); margin-top: 4px; align-self: flex-end; }
+.inputWrap { display: flex; flex-direction: column; gap: 8px; }
+.closedHint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
 .input { display: flex; gap: 8px; align-items: flex-end; }
 .input :global(.ant-input) { flex: 1; }
 
@@ -74,3 +81,4 @@
 :global(:root.light-theme) .text { color: #333; }
 :global(:root.light-theme) .time { color: #aaa; }
 :global(:root.light-theme) .empty { color: #999; }
+:global(:root.light-theme) .closedHint { color: #666; }

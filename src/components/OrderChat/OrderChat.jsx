@@ -6,7 +6,11 @@ import styles from './OrderChat.module.css';
 
 const POLL_INTERVAL = 15000;
 
-function OrderChat({ orderId, currentUserId }) {
+/** Статусы, в которых чат только для чтения (совпадает с ChatClosed на бэкенде). */
+const CHAT_CLOSED_STATUSES = ['completed', 'cancelled', 'expired'];
+
+function OrderChat({ orderId, currentUserId, orderStatus }) {
+  const canSend = orderStatus ? !CHAT_CLOSED_STATUSES.includes(orderStatus) : true;
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,6 +39,7 @@ function OrderChat({ orderId, currentUserId }) {
   }, [messages]);
 
   const handleSend = async () => {
+    if (!canSend) return;
     const trimmed = text.trim();
     if (!trimmed) return;
     setSending(true);
@@ -62,7 +67,9 @@ function OrderChat({ orderId, currentUserId }) {
     <div className={styles.chat}>
       <div className={styles.messages} ref={messagesRef}>
         {messages.length === 0 && (
-          <p className={styles.empty}>Сообщений пока нет. Напишите первым!</p>
+          <p className={styles.empty}>
+            {canSend ? 'Сообщений пока нет. Напишите первым!' : 'Сообщений пока нет.'}
+          </p>
         )}
         {messages.map((msg) => {
           const isOwn = msg.author_id === currentUserId;
@@ -86,22 +93,33 @@ function OrderChat({ orderId, currentUserId }) {
         })}
       </div>
 
-      <div className={styles.input}>
-        <Input.TextArea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Введите сообщение... (Enter — отправить)"
-          autoSize={{ minRows: 1, maxRows: 4 }}
-          disabled={sending}
-        />
-        <Button
-          type="primary"
-          icon={<SendOutlined />}
-          onClick={handleSend}
-          loading={sending}
-          disabled={!text.trim()}
-        />
+      <div className={styles.inputWrap}>
+        {!canSend && (
+          <p className={styles.closedHint}>
+            Чат закрыт: заказ завершён, отменён или истёк. Новые сообщения отправить нельзя.
+          </p>
+        )}
+        <div className={styles.input}>
+          <Input.TextArea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              canSend
+                ? 'Введите сообщение... (Enter — отправить)'
+                : 'Отправка сообщений недоступна'
+            }
+            autoSize={{ minRows: 1, maxRows: 4 }}
+            disabled={sending || !canSend}
+          />
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={handleSend}
+            loading={sending}
+            disabled={!canSend || !text.trim()}
+          />
+        </div>
       </div>
     </div>
   );

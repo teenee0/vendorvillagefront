@@ -267,7 +267,7 @@ function MyOrderDetailPage() {
 
           <div className={styles.right}>
             <Card title="Чат с продавцом" className={styles.card}>
-              <OrderChat orderId={order.id} currentUserId={currentUserId} />
+              <OrderChat orderId={order.id} currentUserId={currentUserId} orderStatus={order.status} />
             </Card>
           </div>
         </div>

@@ -740,7 +740,7 @@ function BusinessOnlineOrderDetailPage() {
 
           <div className={styles.right}>
             <Card title="Чат с покупателем" className={styles.card}>
-              <OrderChat orderId={order.id} currentUserId={currentUserId} />
+              <OrderChat orderId={order.id} currentUserId={currentUserId} orderStatus={order.status} />
             </Card>
 
             {order.invoice_amount && ['invoiced', 'confirmed', 'ready', 'paid', 'completed'].includes(order.status) && (() => {
