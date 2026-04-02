@@ -98,10 +98,15 @@ const ProductCard = ({ product }) => {
     }, [mainImage?.image, getImageUrl]);
     
     const hasDiscount = variant && parseFloat(variant.discount) > 0;
-    const currentPrice = variant?.current_price || product.min_price;
-    const originalPrice = parseFloat(variant?.price || product.min_price);
-    const priceRange = product.min_price !== product.max_price 
-        ? `${product.min_price.toLocaleString('ru-RU')} - ${product.max_price.toLocaleString('ru-RU')} ₸`
+    const minP = Number(product.min_price);
+    const maxP = Number(product.max_price);
+    const currentPrice = variant?.current_price ?? minP;
+    const hasPriceRange =
+        Number.isFinite(minP) &&
+        Number.isFinite(maxP) &&
+        Math.abs(minP - maxP) > 0.0001;
+    const priceRange = hasPriceRange
+        ? `${minP.toLocaleString('ru-RU')} - ${maxP.toLocaleString('ru-RU')} ₸`
         : null;
 
     return (
@@ -165,9 +170,10 @@ const ProductCard = ({ product }) => {
                 <div className="business-name">
                     <span>{product.business_name}</span>
                     {product.business_logo && (
-                        <img 
-                            src={getImageUrl(product.business_logo)} 
-                            alt={product.business_name}
+                        <img
+                            src={getImageUrl(product.business_logo)}
+                            alt=""
+                            aria-hidden="true"
                             className="business-logo"
                         />
                     )}
