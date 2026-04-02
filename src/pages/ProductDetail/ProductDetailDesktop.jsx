@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from '../../api/axiosDefault';
 import { useFileUtils } from '../../hooks/useFileUtils';
 import { useCart } from '../../contexts/CartContext';
 import Breadcrumbs from '../../components/Breadcrumbs/Breadcrumbs';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import Loader from '../../components/Loader';
+import AuthRequiredForCartModal from '../../components/AuthRequiredForCartModal/AuthRequiredForCartModal';
 import { notification } from 'antd';
 import { FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown, FaMapMarkerAlt, FaPhone, FaShoppingCart, FaHeart, FaBolt, FaTags, FaStore, FaExternalLinkAlt } from 'react-icons/fa';
 import styles from './ProductDetailDesktop.module.css';
@@ -13,6 +14,7 @@ import styles from './ProductDetailDesktop.module.css';
 const ProductDetailDesktop = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { getFileUrl } = useFileUtils();
   const { addToCart } = useCart();
   
@@ -29,6 +31,7 @@ const ProductDetailDesktop = () => {
   const [showAllStores, setShowAllStores] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const thumbnailGalleryRef = useRef(null);
 
   useEffect(() => {
@@ -261,6 +264,7 @@ const ProductDetailDesktop = () => {
     : 'Размер';
 
   return (
+    <>
     <div className={styles.container}>
       <Breadcrumbs breadcrumbs={breadcrumbs} productName={product.name} />
       
@@ -524,8 +528,8 @@ const ProductDetailDesktop = () => {
                   setCartAdded(true);
                   notification.success({ message: 'Товар добавлен в корзину', duration: 2 });
                   setTimeout(() => setCartAdded(false), 2500);
-                } else if (result.error?.includes('401')) {
-                  navigate('/registration-login');
+                } else if (result.error?.includes('401') || result.error?.includes('403')) {
+                  setAuthModalOpen(true);
                 } else {
                   notification.error({ message: result.error || 'Ошибка при добавлении в корзину', duration: 3 });
                 }
@@ -659,6 +663,12 @@ const ProductDetailDesktop = () => {
         </div>
       )}
     </div>
+    <AuthRequiredForCartModal
+      open={authModalOpen}
+      onClose={() => setAuthModalOpen(false)}
+      redirectPath={`${location.pathname}${location.search}`}
+    />
+    </>
   );
 };
 

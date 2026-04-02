@@ -140,8 +140,10 @@ axios.interceptors.response.use(
         if (!isPublicPage) {
           window.location.href = '/registration-login';
         }
-        
-        return Promise.reject(refreshError);
+
+        // Важно: отклоняем исходный 401 (напр. POST /api/cart/), а не ответ refresh (часто 400).
+        // Иначе addToCart не видит status 401 и не показывает модалку «войдите в аккаунт».
+        return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }

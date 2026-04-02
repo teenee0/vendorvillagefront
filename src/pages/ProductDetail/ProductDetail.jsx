@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from "../../api/axiosDefault.js";
 import { FiShoppingCart, FiHeart, FiShare2, FiChevronLeft } from 'react-icons/fi';
 import { FaRegStar, FaStar, FaMapMarkerAlt, FaPhone, FaTags, FaStore, FaExternalLinkAlt } from 'react-icons/fa';
@@ -10,12 +10,14 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Loader from '../../components/Loader';
+import AuthRequiredForCartModal from '../../components/AuthRequiredForCartModal/AuthRequiredForCartModal';
 import { notification } from 'antd';
 import styles from './ProductDetailMobile.module.css';
 
 const ProductDetail = () => {
   const { pk } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { getFileUrl } = useFileUtils();
   const { addToCart } = useCart();
   const [productData, setProductData] = useState(null);
@@ -30,6 +32,7 @@ const ProductDetail = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showAllStores, setShowAllStores] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     // Убираем padding у .page-content для этой страницы
@@ -148,8 +151,8 @@ const ProductDetail = () => {
       setCartAdded(true);
       notification.success({ message: 'Товар добавлен в корзину', duration: 2 });
       setTimeout(() => setCartAdded(false), 2500);
-    } else if (result.error?.includes('401')) {
-      navigate('/registration-login');
+    } else if (result.error?.includes('401') || result.error?.includes('403')) {
+      setAuthModalOpen(true);
     } else {
       notification.error({ message: result.error || 'Ошибка при добавлении в корзину', duration: 3 });
     }
@@ -227,6 +230,7 @@ const ProductDetail = () => {
   };
 
   return (
+    <>
     <div className={styles.container}>
       {/* Галерея изображений */}
       <div className={styles.imageSection}>
@@ -620,6 +624,12 @@ const ProductDetail = () => {
         )}
       </div>
     </div>
+    <AuthRequiredForCartModal
+      open={authModalOpen}
+      onClose={() => setAuthModalOpen(false)}
+      redirectPath={`${location.pathname}${location.search}`}
+    />
+    </>
   );
 };
 

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFileUtils } from '../../hooks/useFileUtils';
 import { useEnvironment } from '../../hooks/useEnvironment';
 import { useCart } from '../../contexts/CartContext';
 import { notification } from 'antd';
+import AuthRequiredForCartModal from '../AuthRequiredForCartModal/AuthRequiredForCartModal';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
@@ -15,6 +16,7 @@ const ProductCard = ({ product }) => {
     const [imageError, setImageError] = useState(false);
     const [cartAdded, setCartAdded] = useState(false);
     const [cartLoading, setCartLoading] = useState(false);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
 
     const goToProductPage = () => navigate(`/marketplace/products/${product.id}`);
     
@@ -49,8 +51,8 @@ const ProductCard = ({ product }) => {
             setCartAdded(true);
             notification.success({ message: 'Товар добавлен в корзину', duration: 2 });
             setTimeout(() => setCartAdded(false), 2500);
-        } else if (result.error?.includes('401') || result.error?.includes('авториз')) {
-            navigate('/registration-login');
+        } else if (result.error?.includes('401') || result.error?.includes('403') || result.error?.includes('авториз')) {
+            setAuthModalOpen(true);
         } else {
             // Ошибка — переходим на страницу товара для выбора
             navigate(`/marketplace/products/${product.id}`);
@@ -103,6 +105,7 @@ const ProductCard = ({ product }) => {
         : null;
 
     return (
+        <Fragment>
         <div className="product-card" onClick={goToProductPage}>
             <div className="product-image">
                 {mainImage?.image && !imageError ? (
@@ -180,6 +183,12 @@ const ProductCard = ({ product }) => {
                 </button>
             </div>
         </div>
+        <AuthRequiredForCartModal
+            open={authModalOpen}
+            onClose={() => setAuthModalOpen(false)}
+            redirectPath={`/marketplace/products/${product.id}`}
+        />
+        </Fragment>
     );
 };
 
