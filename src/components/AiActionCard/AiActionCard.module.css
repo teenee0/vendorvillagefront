@@ -1,0 +1,208 @@
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 1rem 1.15rem;
+  border-radius: 1.5rem;
+  background: var(--phantom-noir);
+  border: 1px solid var(--gilded-shadow);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.shellIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(145deg, #8b5cf6, #6366f1);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+}
+
+.shellIcon :global(svg) {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: inherit;
+  opacity: 1;
+}
+
+.cardReady {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.cardReady:hover {
+  border-color: rgba(129, 140, 248, 0.65);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.18), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.cardWaiting {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.04);
+}
+
+.cardWaiting:hover {
+  border-color: rgba(251, 191, 36, 0.55);
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.1);
+}
+
+.cardWaiting:hover .prereq {
+  color: var(--platinum-gleam);
+}
+
+.cardBusy {
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.cardQuota {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.cardQuota:hover {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.actionBtn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease,
+    opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionBtn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  transform: translateY(-1px);
+}
+
+.actionBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.actionBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.88;
+  filter: grayscale(0.15) brightness(0.92);
+  box-shadow: none;
+  transform: none;
+}
+
+.cardWaiting .actionBtn:disabled {
+  background: linear-gradient(135deg, #52525b, #71717a);
+  opacity: 0.95;
+}
+
+.cardQuota .actionBtn:disabled {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  opacity: 0.92;
+}
+
+.btnIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+.prereq {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #fbbf24;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+}
+
+.cardQuota .prereq {
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+.cardBusy .prereq {
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.22);
+}
+
+:root.light-theme .card {
+  background: #ffffff;
+  border-color: #eef2f8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+:root.light-theme .cardReady {
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+:root.light-theme .cardReady:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.12);
+}
+
+:root.light-theme .cardWaiting {
+  background: #fffbeb;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+:root.light-theme .cardWaiting:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+:root.light-theme .cardQuota {
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:root.light-theme .prereq {
+  color: #b45309;
+  background: #fff7ed;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+:root.light-theme .cardQuota .prereq {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+:root.light-theme .cardBusy .prereq {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+:root.light-theme .cardWaiting:hover .prereq {
+  color: #92400e;
+}

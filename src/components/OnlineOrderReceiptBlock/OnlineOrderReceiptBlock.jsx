@@ -1,11 +1,13 @@
 import React from 'react';
-import { Card, Button, Descriptions, Image } from 'antd';
+import { Card, Button, Descriptions } from 'antd';
 import { FileTextOutlined } from '@ant-design/icons';
+import PreviewableImage from '../PreviewableImage/PreviewableImage.jsx';
 import styles from './OnlineOrderReceiptBlock.module.css';
 
 /**
  * Чек по онлайн-заказу (после завершения и формирования Receipt на бэкенде).
  * receipt: { number, total_amount, created_at, pdf_url, preview_url } | null
+ * Превью — через PreviewableImage (antd Image + «Просмотр», как в других местах приложения).
  */
 function OnlineOrderReceiptBlock({ receipt, className, style }) {
   if (!receipt) return null;
@@ -48,7 +50,7 @@ function OnlineOrderReceiptBlock({ receipt, className, style }) {
       </div>
       {receipt.preview_url ? (
         <div className={styles.preview}>
-          <Image
+          <PreviewableImage
             src={receipt.preview_url}
             alt="Превью чека"
             className={styles.previewImg}

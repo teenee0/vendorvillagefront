@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import PreviewableImage from '../PreviewableImage/PreviewableImage.jsx';
 import { FaStar, FaTimes } from 'react-icons/fa';
 import styles from './DraggableImageList.module.css';
 
@@ -36,24 +37,35 @@ const DraggableThumbnail = ({ image, index, moveImage, onSetMain, onRemove }) =>
         cursor: image.isMain ? 'default' : 'grab'
       }}
     >
-      <img src={image.preview} className={styles.thumbnail} alt="Превью" />
+      <PreviewableImage
+        src={image.preview}
+        alt={`Фото ${index + 1}`}
+        className={styles.thumbnailImg}
+        rootClassName={styles.thumbnailImageRoot}
+      />
       <span className={styles.orderBadge}>{index + 1}</span>
       {image.isMain && <span className={styles.mainImageBadge}>Главное</span>}
       <div className={styles.thumbnailActions}>
         {!image.isMain && (
-          <button
-            type="button"
-            className={styles.thumbnailButton}
-            onClick={() => onSetMain(image.id)}
-            title="Сделать главной"
-          >
+        <button
+          type="button"
+          className={styles.thumbnailButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSetMain(image.id);
+          }}
+          title="Сделать главной"
+        >
             <FaStar />
           </button>
         )}
         <button
           type="button"
           className={styles.thumbnailButton}
-          onClick={() => onRemove(image.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(image.id);
+          }}
           title="Удалить"
         >
           <FaTimes />
@@ -73,18 +85,20 @@ const DraggableImageList = ({ images, onImagesReorder, onSetMainImage, onRemoveI
   };
 
   return (
-    <div className={styles.thumbnailsContainer}>
-      {images.map((image, index) => (
-        <DraggableThumbnail
-          key={image.id}
-          image={image}
-          index={index}
-          moveImage={moveImage}
-          onSetMain={onSetMainImage}
-          onRemove={onRemoveImage}
-        />
-      ))}
-    </div>
+    <PreviewableImage.PreviewGroup>
+      <div className={styles.thumbnailsContainer}>
+        {images.map((image, index) => (
+          <DraggableThumbnail
+            key={image.id}
+            image={image}
+            index={index}
+            moveImage={moveImage}
+            onSetMain={onSetMainImage}
+            onRemove={onRemoveImage}
+          />
+        ))}
+      </div>
+    </PreviewableImage.PreviewGroup>
   );
 };
 

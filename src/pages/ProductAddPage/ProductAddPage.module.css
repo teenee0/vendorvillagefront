@@ -257,6 +257,11 @@
   box-shadow: 0 0 0 0.2rem rgba(45, 175, 159, 0.25);
 }
 
+.formControl:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 textarea.formControl {
   min-height: calc(1.5em + 0.75rem + 2px);
 }
@@ -293,8 +298,69 @@ textarea.formControl {
   position: relative;
 }
 
-/* Варианты товара — вертикальная раскладка (карточки) */
-.variantList {
+/* Комплектация: секции с галочками (как design_test/add-product.html) */
+.attributeSection {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 0.75rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--gilded-shadow);
+}
+
+.attributeSectionTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--platinum-gleam);
+  margin-bottom: 0.75rem;
+  padding-left: 0.65rem;
+  border-left: 4px solid var(--royal-emerald);
+}
+
+.variantsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.variantCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--phantom-noir);
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--gilded-shadow);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.variantCheck:hover {
+  border-color: var(--silver-whisper);
+}
+
+.variantCheck input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--royal-emerald);
+  cursor: pointer;
+}
+
+.variantCheck span {
+  font-size: 0.875rem;
+  color: var(--platinum-gleam);
+  font-weight: 500;
+}
+
+.attributeSectionHint {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--silver-whisper);
+  line-height: 1.4;
+}
+
+/* Строки штрих-кодов / свободных вариантов — вертикальный стек (без отдельного «списка» в смысле макета) */
+.variantStack {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -423,6 +489,12 @@ textarea.formControl {
     border-color 0.15s ease-in-out, 
     box-shadow 0.15s ease-in-out;
 }
+
+.formControltd:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .formSelect:focus {
   border-color: var(--royal-emerald);
   outline: 0;
@@ -487,6 +559,141 @@ textarea.formControl {
 
 .variantCopyButton:hover {
   background-color: rgba(176, 176, 176, 0.1);
+}
+
+.aiFillRow {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gilded-shadow);
+}
+
+.aiActionCardWrap {
+  margin-top: 0.85rem;
+  width: 100%;
+}
+
+.aiFillButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s;
+  color: #a8c4f0;
+  background-color: transparent;
+  border: 1px solid #7a9fd4;
+}
+
+.aiFillButton:hover:not(:disabled) {
+  background-color: rgba(122, 159, 212, 0.12);
+}
+
+.aiFillButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.aiFillHint {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--silver-whisper);
+  line-height: 1.4;
+}
+
+.aiFillFieldsLockedHint {
+  margin: 0.65rem 0 0;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--silver-whisper);
+  background: rgba(122, 159, 212, 0.1);
+  border: 1px solid rgba(122, 159, 212, 0.25);
+  border-radius: 0.35rem;
+}
+
+.aiFillDemoRow {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--gilded-shadow);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.aiFillDemoButton {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  border-radius: 0.35rem;
+  color: var(--silver-whisper);
+  background: rgba(122, 159, 212, 0.12);
+  border: 1px dashed rgba(122, 159, 212, 0.45);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.aiFillDemoButton:hover {
+  background: rgba(122, 159, 212, 0.2);
+  border-color: rgba(122, 159, 212, 0.65);
+}
+
+.aiFillDemoNote {
+  font-size: 0.75rem;
+  color: var(--silver-whisper);
+  opacity: 0.75;
+}
+
+/* Два столбца: слева фото + основная информация, справа варианты */
+.addProductLayout {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+  margin-bottom: 2rem;
+}
+
+.addProductColLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0;
+}
+
+.addProductColRight {
+  min-width: 0;
+  align-self: start;
+}
+
+.addProductLayout .sectionCard {
+  margin-bottom: 0;
+}
+
+.addProductColLeft .uploadRow {
+  flex-direction: column;
+  margin: 0;
+}
+
+.addProductColLeft .uploadColumn,
+.addProductColLeft .infoColumn {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.5rem 0;
+}
+
+.addProductVariantsPlaceholder {
+  margin: 0;
+  color: var(--silver-whisper);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  .addProductLayout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .buttonIcon {
@@ -604,6 +811,114 @@ textarea.formControl {
   overflow: hidden;
 }
 
+.aiBgReviewModal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.aiBgReviewPanel {
+  background: var(--background-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  overflow: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.aiBgReviewTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  color: var(--text-primary, inherit);
+}
+
+.aiBgReviewHint {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, rgba(255, 255, 255, 0.65));
+  line-height: 1.45;
+}
+
+.aiBgReviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.aiBgReviewCell {
+  aspect-ratio: 5 / 7;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* antd PreviewableImage в ячейке сетки (как миниатюры в DraggableImageList) */
+.aiBgReviewThumbRoot {
+  width: 100%;
+  height: 100%;
+  display: block;
+  line-height: 0;
+}
+
+.aiBgReviewThumbRoot :global(.ant-image) {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.aiBgReviewThumbRoot :global(.ant-image-img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aiBgReviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.aiBgReviewReject {
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-primary, inherit);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.aiBgReviewReject:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.aiBgReviewAccept {
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, var(--royal-emerald, #2daf9f), #238f82);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.aiBgReviewAccept:hover {
+  filter: brightness(1.05);
+}
+
 /* Анимация загрузки категорий */
 .categoriesLoadingWrap {
   position: relative;
@@ -660,6 +975,17 @@ textarea.formControl {
 .attrSelectWrap {
   position: relative;
   min-width: 0;
+}
+
+.attrSelectWrapDisabled .catPickerControl {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.attrSelectWrapDisabled .catPickerControl:hover {
+  border-color: var(--gilded-shadow);
+  box-shadow: none;
 }
 
 .catPicker {
@@ -857,6 +1183,51 @@ textarea.formControl {
 
 .catItemChecked {
   background: rgba(45, 175, 159, 0.12);
+}
+
+.barcodeCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 200px;
+}
+
+.barcodeInputWrapper {
+  width: 100%;
+}
+
+.generateBarcodeLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--silver-whisper);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.generateBarcodeCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--royal-emerald);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.autoGeneratedBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--royal-emerald);
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.autoGeneratedBadge span {
+  color: var(--royal-emerald);
 }
 
 /* Адаптив */

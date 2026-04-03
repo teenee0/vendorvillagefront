@@ -42,11 +42,30 @@ const currentEnv = getEnvironment();
 const currentConfig = config[currentEnv];
 
 // Экспортируем конфигурацию
+/** Таймаут запроса «Заполнить с ИИ» (мс): дольше обычного API из‑за vision-модели. */
+const AI_VISION_SUGGEST_TIMEOUT_MS = Number(import.meta.env.VITE_AI_VISION_SUGGEST_TIMEOUT_MS) || 320000;
+
+/** Лимиты матрицы вариантов (синхронно с Django PRODUCT_ADD_*). */
+const PRODUCT_ADD_MAX_VARIANTS_FREE_RIGHT_ATTR =
+  Number(import.meta.env.VITE_PRODUCT_ADD_MAX_VARIANTS_FREE_RIGHT_ATTR) || 10;
+const PRODUCT_ADD_MAX_VARIANTS_CARTESIAN_CAP =
+  Number(import.meta.env.VITE_PRODUCT_ADD_MAX_VARIANTS_CARTESIAN_CAP) || 500;
+
+/** Макс. число вариантов в режиме «все at_right из справочника» (на UI не больше обоих лимитов). */
+const PRODUCT_ADD_MAX_VARIANTS_MATRIX = Math.min(
+  PRODUCT_ADD_MAX_VARIANTS_FREE_RIGHT_ATTR,
+  PRODUCT_ADD_MAX_VARIANTS_CARTESIAN_CAP
+);
+
 export const ENV_CONFIG = {
   ...currentConfig,
   ENVIRONMENT: currentEnv,
   IS_DEVELOPMENT: currentEnv === 'development',
-  IS_PRODUCTION: currentEnv === 'production'
+  IS_PRODUCTION: currentEnv === 'production',
+  AI_VISION_SUGGEST_TIMEOUT_MS,
+  PRODUCT_ADD_MAX_VARIANTS_FREE_RIGHT_ATTR,
+  PRODUCT_ADD_MAX_VARIANTS_CARTESIAN_CAP,
+  PRODUCT_ADD_MAX_VARIANTS_MATRIX,
 };
 
 // Утилиты для логирования

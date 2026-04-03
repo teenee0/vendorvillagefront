@@ -40,8 +40,6 @@ import PasswordReset from './pages/PasswordReset/PasswordReset';
 import PublicRoute from './pages/PublicRoute/PublicRoute';
 import ProductManagement from './pages/ProductManagement/ProductManagement';
 import ProductManagementMobile from './pages/ProductManagement/ProductManagementMobile';
-import ProductEditPage from './pages/ProductEditPage/ProductEditPage';
-import ProductEditPageMobile from './pages/ProductEditPage/ProductEditPageMobile';
 import ResponsiveRoute from './components/ResponsiveRoute/ResponsiveRoute';
 import BusinessMainPage from './pages/BusinessMainPage/BusinessMainPage.jsx';
 import BusinessMainPageMobile from './pages/BusinessMainPage/BusinessMainPageMobile.jsx';
@@ -193,8 +191,8 @@ function App() {
                         path="/business/:business_slug/products/:product_id/edit" 
                         element={
                           <ResponsiveRoute 
-                            desktopComponent={ProductEditPage}
-                            mobileComponent={ProductEditPageMobile}
+                            desktopComponent={ProductAddPage}
+                            mobileComponent={ProductAddPageMobile}
                           />
                         } 
                       />

@@ -281,13 +281,6 @@
     color: var(--platinum-gleam);
   }
   
-  /* Варианты товара — вертикальная раскладка (карточки), как на странице создания */
-  .variantList {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
   .noVariants {
     padding: 1.5rem;
     text-align: center;
