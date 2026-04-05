@@ -622,6 +622,13 @@
   letter-spacing: 0.5px;
 }
 
+.subtasksHint {
+  color: var(--palladium-mist);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0 0 12px 0;
+}
+
 .emptyState {
     text-align: center;
   padding: 48px 24px;

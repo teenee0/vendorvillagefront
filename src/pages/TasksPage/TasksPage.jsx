@@ -612,6 +612,11 @@ const TaskCard = ({
                             <FaUsers /> {task.assignees.map(a => a.name || a.full_name).join(', ')}
                         </span>
                     )}
+                    {(task.comments_count ?? 0) > 0 && (
+                        <span className={styles.metaItem}>
+                            Комментариев: {task.comments_count}
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -684,24 +689,19 @@ const TaskCard = ({
                         </button>
                     </div>
 
-                    {task.subtasks && task.subtasks.length > 0 && (
+                    {(task.subtasks_count ?? 0) > 0 && (
                         <div className={styles.subtasks}>
-                            <h4>Подзадачи:</h4>
-                            {task.subtasks.map(subtask => (
-                                <TaskCard
-                                    key={subtask.id}
-                                    task={subtask}
-                                    onEdit={onEdit}
-                                    onDelete={onDelete}
-                                    onFileUpload={onFileUpload}
-                                    onFileDelete={onFileDelete}
-                                    uploadingFile={uploadingFile}
-                                    getPriorityColor={getPriorityColor}
-                                    getStatusColor={getStatusColor}
-                                    formatDate={formatDate}
-                                    business_slug={business_slug}
-                                />
-                            ))}
+                            <h4>Подзадачи</h4>
+                            <p className={styles.subtasksHint}>
+                                Всего: {task.subtasks_count}. Откройте карточку, чтобы
+                                увидеть список.
+                            </p>
+                            <Link
+                                to={`/business/${business_slug}/tasks/${task.id}`}
+                                className={styles.actionButton}
+                            >
+                                <FaEye /> К задаче
+                            </Link>
                         </div>
                     )}
                 </div>

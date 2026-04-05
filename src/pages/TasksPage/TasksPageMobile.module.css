@@ -608,6 +608,13 @@
     font-weight: 600;
 }
 
+.subtasksHint {
+    font-size: 0.85rem;
+    color: var(--palladium-mist);
+    line-height: 1.4;
+    margin: 0 0 0.75rem 0;
+}
+
 /* Modal */
 .modalOverlay {
     position: fixed;
