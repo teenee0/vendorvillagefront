@@ -10,6 +10,13 @@ import TransferDetailModal from '../../components/TransferDetailModal/TransferDe
 import { FaPlus, FaBoxes, FaCalendarAlt, FaTruck } from 'react-icons/fa';
 import Loader from '../../components/Loader';
 
+/** DRF PageNumberPagination: { count, next, previous, results }; иначе — массив. */
+function normalizePagedList(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
 const BatchManagement = () => {
   const { business_slug } = useParams();
   const navigate = useNavigate();
@@ -56,7 +63,7 @@ const BatchManagement = () => {
     try {
       if (showLoading) setLoading(true);
       const response = await axios.get(`/api/business/${business_slug}/transfers/`);
-      setTransfers(response.data);
+      setTransfers(normalizePagedList(response.data));
     } catch (err) {
       console.error('Ошибка загрузки перемещений:', err);
       setError('Не удалось загрузить перемещения');
@@ -95,7 +102,7 @@ const BatchManagement = () => {
     try {
       if (showLoading) setLoading(true);
       const response = await axios.get(`/api/business/${business_slug}/batches/`);
-      setBatches(response.data);
+      setBatches(normalizePagedList(response.data));
     } catch (err) {
       console.error('Ошибка загрузки партий:', err);
       setError('Не удалось загрузить партии');
