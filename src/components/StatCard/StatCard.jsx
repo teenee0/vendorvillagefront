@@ -2,15 +2,28 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import styles from './StatCard.module.css';
 
-const StatCard = ({ 
-  title, 
-  value, 
-  icon, 
-  color = 'primary', 
-  trend, 
+const StatCard = ({
+  title,
+  value,
+  icon,
+  color = 'primary',
+  trend,
+  subtitle,
+  trendHint = 'нет данных за прошлый период',
+  inverseTrend = false,
+  suppressTrendHint = false,
   delay = 0,
-  onClick 
+  onClick,
 }) => {
+  const trendArrow = trend == null ? null : trend > 0 ? '↗' : trend < 0 ? '↘' : '→';
+
+  const trendPositive =
+    trend != null &&
+    (inverseTrend ? trend < 0 : trend > 0);
+  const trendNegative =
+    trend != null &&
+    (inverseTrend ? trend > 0 : trend < 0);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -28,10 +41,24 @@ const StatCard = ({
         <div className={styles.textContent}>
           <h6 className={styles.title}>{title}</h6>
           <h3 className={styles.value}>{value}</h3>
-          {trend && (
-            <div className={`${styles.trend} ${trend > 0 ? styles.positive : styles.negative}`}>
-              {trend > 0 ? '↗' : '↘'} {Math.abs(trend)}%
+          {subtitle && (
+            <p className={styles.subtitle}>{subtitle}</p>
+          )}
+          {trend != null && trendArrow && (
+            <div
+              className={`${styles.trend} ${
+                trendPositive
+                  ? styles.positive
+                  : trendNegative
+                    ? styles.negative
+                    : styles.neutral
+              }`}
+            >
+              {trendArrow} {Math.abs(trend)}%
             </div>
+          )}
+          {trend == null && !suppressTrendHint && (
+            <div className={styles.trendMuted}>{trendHint}</div>
           )}
         </div>
       </div>

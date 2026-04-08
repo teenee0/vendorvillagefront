@@ -8,7 +8,8 @@ const TransactionCard = ({
   onClick, 
   delay = 0 
 }) => {
-  const isRefund = transaction.is_refund;
+  const isRefund = transaction.is_refund === true;
+  const hasRefunds = Boolean(transaction.has_refunds);
   const amount = parseFloat(transaction.amount);
   const formattedAmount = amount.toLocaleString('ru-RU');
 
@@ -49,7 +50,7 @@ const TransactionCard = ({
         </div>
         <div className={styles.statusIndicator}>
           <div className={`${styles.statusDot} ${isRefund ? styles.refundDot : styles.saleDot}`}></div>
-          {isRefund ? 'Возврат' : 'Продажа'}
+          {isRefund ? 'Возврат' : hasRefunds ? 'Продажа · есть возврат' : 'Продажа'}
         </div>
       </div>
       

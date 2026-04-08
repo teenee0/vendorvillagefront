@@ -33,6 +33,8 @@ function BusinessOnlineOrderDetailPage() {
   const [customerBonus, setCustomerBonus] = useState(null);
   const [bonusSettings, setBonusSettings] = useState(null);
   const [bonusParams, setBonusParams] = useState({});
+  const [posPaymentMethods, setPosPaymentMethods] = useState([]);
+  const [posPaymentMethodId, setPosPaymentMethodId] = useState(null);
 
   // SELLER_STATUSES is defined after order loads (see below)
 
@@ -53,6 +55,9 @@ function BusinessOnlineOrderDetailPage() {
     axios.get(`/api/business/${business_slug}/bonus-settings/`)
       .then(r => setBonusSettings(r.data))
       .catch(() => {});
+    axios.get('/api/business/payment-methods/')
+      .then((r) => setPosPaymentMethods(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setPosPaymentMethods([]));
   }, [fetchOrder, business_slug]);
 
   useEffect(() => {
@@ -66,7 +71,7 @@ function BusinessOnlineOrderDetailPage() {
     if (order) {
       setSelectedStatus(order.status);
       // Предзаполняем форму confirm суммой из примерной суммы
-      if (['new', 'seen'].includes(order.status) && order.total_amount) {
+      if (order.status === 'new' && order.total_amount) {
         confirmForm.setFieldsValue({ invoice_amount: parseFloat(order.total_amount) });
       }
     }
@@ -108,6 +113,14 @@ function BusinessOnlineOrderDetailPage() {
       notification.error({ message: 'Укажите сумму счёта' });
       return;
     }
+    if (
+      selectedStatus === 'paid'
+      && order.payment_type === 'offline'
+      && (posPaymentMethodId === null || posPaymentMethodId === undefined)
+    ) {
+      notification.error({ message: 'Выберите способ оплаты в магазине (как в кассе)' });
+      return;
+    }
     setStatusLoading(true);
     try {
       const payload = { status: selectedStatus };
@@ -124,22 +137,27 @@ function BusinessOnlineOrderDetailPage() {
         // Сохраняем параметры начисления для использования при завершении
         Object.assign(payload, bonusParams);
       }
-      if (selectedStatus === 'paid' && order?.delivery_type === 'pickup') {
-        const base = parseFloat(invoiceAmount ?? order.invoice_amount ?? order.total_amount ?? 0);
-        const delivery = parseFloat(order.delivery_cost || 0);
-        const preDiscount = base + delivery;
-        const discAmt = discountType === 'percent'
-          ? Math.round(preDiscount * (discountValue || 0) / 100 * 100) / 100
-          : Math.min(discountValue || 0, preDiscount);
-        const afterDiscount = Math.max(0, preDiscount - discAmt);
-        const bonusDedPreview = calcBonusDeductionFor(bonusParams, afterDiscount);
-        payload.invoice_amount = base;
-        payload.discount_type = discountType;
-        payload.discount_value = discountValue || 0;
-        payload.bonus_redeemed = bonusDedPreview > 0 ? bonusDedPreview : null;
-        payload.bonus_accrued = bonusParams.bonus_accrued_prediction > 0
-          ? bonusParams.bonus_accrued_prediction : null;
-        Object.assign(payload, bonusParams);
+      if (selectedStatus === 'paid') {
+        if (order.payment_type === 'offline') {
+          payload.pos_payment_method_id = posPaymentMethodId;
+        }
+        if (order?.delivery_type === 'pickup') {
+          const base = parseFloat(invoiceAmount ?? order.invoice_amount ?? order.total_amount ?? 0);
+          const delivery = parseFloat(order.delivery_cost || 0);
+          const preDiscount = base + delivery;
+          const discAmt = discountType === 'percent'
+            ? Math.round(preDiscount * (discountValue || 0) / 100 * 100) / 100
+            : Math.min(discountValue || 0, preDiscount);
+          const afterDiscount = Math.max(0, preDiscount - discAmt);
+          const bonusDedPreview = calcBonusDeductionFor(bonusParams, afterDiscount);
+          payload.invoice_amount = base;
+          payload.discount_type = discountType;
+          payload.discount_value = discountValue || 0;
+          payload.bonus_redeemed = bonusDedPreview > 0 ? bonusDedPreview : null;
+          payload.bonus_accrued = bonusParams.bonus_accrued_prediction > 0
+            ? bonusParams.bonus_accrued_prediction : null;
+          Object.assign(payload, bonusParams);
+        }
       }
 
       if (selectedStatus === 'completed' && bonusParams) {
@@ -170,7 +188,11 @@ function BusinessOnlineOrderDetailPage() {
         bonus_accrued: bonusParams.bonus_accrued_prediction > 0 ? bonusParams.bonus_accrued_prediction : null,
         ...bonusParams,
       });
-      notification.success({ message: 'Заказ подтверждён, счёт выставлен' });
+      notification.success({
+        message: order?.delivery_type === 'pickup'
+          ? 'Заказ подтверждён'
+          : 'Заказ подтверждён, счёт выставлен',
+      });
       fetchOrder();
     } catch (err) {
       notification.error({ message: err.response?.data?.detail || 'Ошибка подтверждения' });
@@ -234,7 +256,20 @@ function BusinessOnlineOrderDetailPage() {
         { value: 'cancelled', label: 'Отменена' },
       ];
 
-  const canConfirm = ['new', 'seen'].includes(order.status);
+  // Доставка: «Счёт выставлен» только после «Подтверждена» — иначе в списке
+  // при «Просмотрена» выглядит как пропуск шага (бэкенд переход seen→invoiced не запрещает).
+  const statusSelectOptions = !isPickup
+    ? SELLER_STATUSES.filter(
+        (opt) =>
+          !(
+            opt.value === 'invoiced' &&
+            ['new', 'seen'].includes(order.status)
+          ),
+      )
+    : SELLER_STATUSES;
+
+  // «Просмотрена» — только смена статуса; суммы/бонусы — на следующих шагах (счёт, оплата).
+  const canConfirm = order.status === 'new';
   const canCancel = order.is_cancellable;
   // Pickup: complete only after payment (READY → PAID → COMPLETED).
   // Delivery: complete from PAID or READY (e.g. cash on delivery).
@@ -269,7 +304,7 @@ function BusinessOnlineOrderDetailPage() {
               <Descriptions column={1} size="small">
                 <Descriptions.Item label="Имя">{order.buyer_name}</Descriptions.Item>
                 <Descriptions.Item label="Email">{order.buyer_email}</Descriptions.Item>
-                <Descriptions.Item label="Телефон для счёта">
+                <Descriptions.Item label={isPickup ? 'Телефон' : 'Телефон для счёта'}>
                   {order.buyer_phone || '—'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Способ получения">
@@ -281,6 +316,11 @@ function BusinessOnlineOrderDetailPage() {
                 <Descriptions.Item label="Способ оплаты">
                   {order.payment_type_display || (order.payment_type === 'offline' ? 'При получении' : 'Онлайн')}
                 </Descriptions.Item>
+                {order.pos_payment_method?.name && (
+                  <Descriptions.Item label="Оплата в магазине">
+                    {order.pos_payment_method.name}
+                  </Descriptions.Item>
+                )}
                 {order.buyer_comment && (
                   <Descriptions.Item label="Комментарий">{order.buyer_comment}</Descriptions.Item>
                 )}
@@ -315,7 +355,7 @@ function BusinessOnlineOrderDetailPage() {
                 <div style={{ marginBottom: 12, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   {isPickup
                     ? 'Самовывоз: Подтверждена → Товар готов → Оплата → Завершена'
-                    : 'Доставка: Подтверждена → Оплачена → Товар готов → Завершена'}
+                    : 'Доставка: Подтверждена → Счёт выставлен → Оплачена → Товар готов → Завершена'}
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <Select
@@ -329,10 +369,13 @@ function BusinessOnlineOrderDetailPage() {
                         setDeliveryCost(null);
                         setDiscountType('percent');
                         setDiscountValue(0);
-                      } else if (val === 'paid' && order?.delivery_type === 'pickup') {
-                        setInvoiceAmount(parseFloat(order.invoice_amount || order.total_amount || 0));
-                        setDiscountType(order.discount_type || 'percent');
-                        setDiscountValue(parseFloat(order.discount_value || 0));
+                      } else if (val === 'paid') {
+                        setPosPaymentMethodId(order.pos_payment_method?.id ?? null);
+                        if (order?.delivery_type === 'pickup') {
+                          setInvoiceAmount(parseFloat(order.invoice_amount || order.total_amount || 0));
+                          setDiscountType(order.discount_type || 'percent');
+                          setDiscountValue(parseFloat(order.discount_value || 0));
+                        }
                       } else {
                         setInvoiceAmount(null);
                         setInvoiceComment('');
@@ -343,7 +386,7 @@ function BusinessOnlineOrderDetailPage() {
                     }}
                     style={{ flex: 1 }}
                     size="large"
-                    options={SELLER_STATUSES}
+                    options={statusSelectOptions}
                   />
                   <Button
                     type="primary"
@@ -355,6 +398,34 @@ function BusinessOnlineOrderDetailPage() {
                     Сохранить
                   </Button>
                 </div>
+
+                {/* Только для «при получении»: как прошла оплата в магазине (справочник кассы) */}
+                {selectedStatus === 'paid'
+                  && selectedStatus !== order.status
+                  && order.payment_type === 'offline' && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--text-muted)' }}>
+                      Как прошла оплата в магазине (справочник кассы)
+                    </div>
+                    <Select
+                      placeholder="Выберите способ"
+                      value={posPaymentMethodId}
+                      onChange={setPosPaymentMethodId}
+                      style={{ width: '100%' }}
+                      size="large"
+                      options={posPaymentMethods.map((m) => ({
+                        value: m.id,
+                        label: m.name,
+                      }))}
+                      allowClear={false}
+                    />
+                    {posPaymentMethods.length === 0 && (
+                      <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+                        Список способов оплаты пуст. Добавьте их в админке (способы оплаты для кассы).
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Pickup payment panel: shows when seller selects "Оплата" */}
                 {selectedStatus === 'paid' && isPickup && selectedStatus !== order.status && (() => {
@@ -600,21 +671,26 @@ function BusinessOnlineOrderDetailPage() {
             </Card>
 
             {canConfirm && (
-              <Card title="Выставить счёт и подтвердить" className={styles.card} style={{ marginTop: 16 }}>
+              <Card
+                title={isPickup ? 'Подтвердить заказ' : 'Выставить счёт и подтвердить'}
+                className={styles.card}
+                style={{ marginTop: 16 }}
+              >
                 <Form form={confirmForm} layout="vertical" onFinish={handleConfirm}>
                   <Form.Item
                     name="invoice_amount"
-                    label="Сумма счёта (₸)"
+                    label={isPickup ? 'Итоговая сумма (₸)' : 'Сумма счёта (₸)'}
                     rules={[{ required: true, message: 'Укажите сумму' }]}
                   >
                     <InputNumber
                       min={0}
                       precision={2}
                       style={{ width: '100%' }}
-                      placeholder="Введите итоговую сумму"
+                      placeholder={isPickup ? 'Сумма к оплате при получении' : 'Введите итоговую сумму'}
                       size="large"
                     />
                   </Form.Item>
+                  {!isPickup && (
                   <Form.Item name="delivery_cost" label="Стоимость доставки (₸)">
                     <InputNumber
                       min={0}
@@ -623,6 +699,7 @@ function BusinessOnlineOrderDetailPage() {
                       placeholder="Необязательно"
                     />
                   </Form.Item>
+                  )}
                   <Form.Item label="Скидка">
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <Form.Item name="discount_type" noStyle initialValue="percent">
@@ -643,8 +720,14 @@ function BusinessOnlineOrderDetailPage() {
                       </Form.Item>
                     </div>
                   </Form.Item>
-                  <Form.Item name="invoice_comment" label="Комментарий к счёту">
-                    <Input.TextArea rows={2} placeholder="Условия, детали доставки..." />
+                  <Form.Item
+                    name="invoice_comment"
+                    label={isPickup ? 'Комментарий для покупателя' : 'Комментарий к счёту'}
+                  >
+                    <Input.TextArea
+                      rows={2}
+                      placeholder={isPickup ? 'Условия выдачи, время работы…' : 'Условия, детали доставки...'}
+                    />
                   </Form.Item>
 
                   <Form.Item noStyle shouldUpdate>
@@ -702,7 +785,7 @@ function BusinessOnlineOrderDetailPage() {
 
                   <div className={styles.actions}>
                     <Button type="primary" size="large" htmlType="submit" loading={actionLoading}>
-                      Подтвердить и выставить счёт
+                      {isPickup ? 'Подтвердить заказ' : 'Подтвердить и выставить счёт'}
                     </Button>
                     {canCancel && (
                       <Popconfirm title="Отменить заказ?" onConfirm={handleCancel} okText="Да" cancelText="Нет">
@@ -759,7 +842,11 @@ function BusinessOnlineOrderDetailPage() {
                 : 'Скидка';
 
               return (
-                <Card title="Выставленный счёт" className={styles.card} style={{ marginTop: 16 }}>
+                <Card
+                  title={isPickup ? 'Сумма и условия' : 'Выставленный счёт'}
+                  className={styles.card}
+                  style={{ marginTop: 16 }}
+                >
                   <div className={styles.invoiceBreakdown}>
                     <div className={styles.invoiceBreakdownRow}>
                       <span>Товары</span>

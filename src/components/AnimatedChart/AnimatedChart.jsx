@@ -17,8 +17,6 @@ const AnimatedChart = ({ data, title, height = 300 }) => {
 
     const ctx = chartRef.current.getContext('2d');
     const chartData = data;
-    
-    console.log('AnimatedChart: Creating chart with data', chartData);
 
     const labels = chartData.map(item => dayjs(item.date).format('DD MMM'));
     const revenueData = chartData.map(item => parseFloat(item.amount || 0));

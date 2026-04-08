@@ -656,9 +656,32 @@ const BusinessMainPage = () => {
       <style>{customDatePickerStyles}</style>
       <main className={styles.mainContent}>
         <div className={styles.headerWithControls}>
-          <h3 className={styles.pageTitle}>
-            <FcLineChart className={styles.icon} /> {getReportTitle()}
-          </h3>
+          <div>
+            <h3 className={styles.pageTitle}>
+              <FcLineChart className={styles.icon} /> {getReportTitle()}
+            </h3>
+            {data?.meta && (
+              <p className={styles.metaCaption}>
+                {(() => {
+                  const m = data.meta;
+                  const locLabel =
+                    m.locations?.length > 0
+                      ? m.locations.map((l) => l.name).join(', ')
+                      : 'Все доступные локации';
+                  const start = dayjs
+                    .utc(m.period.start_utc)
+                    .tz(tz)
+                    .format('DD MMM YYYY');
+                  const end = dayjs
+                    .utc(m.period.end_utc)
+                    .tz(tz)
+                    .subtract(1, 'second')
+                    .format('DD MMM YYYY');
+                  return `${locLabel} · ${start} — ${end} · ${m.timezone}`;
+                })()}
+              </p>
+            )}
+          </div>
 
           <div className={styles.periodControls}>
             <button
@@ -695,27 +718,88 @@ const BusinessMainPage = () => {
         <div className={styles.statsGrid}>
           <div className={`${styles.statCard} ${styles.success}`}>
             <h6>Общий доход</h6>
-            <h3>{data?.totals?.revenue ? parseFloat(data.totals.revenue).toLocaleString('ru-RU') : '0'} ₸</h3>
-          </div>
-
-          <div className={`${styles.statCard} ${styles.warning}`}>
-            <h6>Продано товаров</h6>
-            <h3>{data?.totals?.sales_count || 0}</h3>
+            <h3>{data?.totals?.revenue != null ? parseFloat(data.totals.revenue).toLocaleString('ru-RU') : '0'} ₸</h3>
+            {data?.comparison?.deltas_pct?.revenue != null && (
+              <small className={data.comparison.deltas_pct.revenue >= 0 ? styles.success : styles.danger}>
+                {data.comparison.deltas_pct.revenue >= 0 ? '↗' : '↘'} {Math.abs(data.comparison.deltas_pct.revenue)}% к прошлому периоду
+              </small>
+            )}
+            {data?.comparison?.deltas_pct?.revenue == null && data?.comparison && (
+              <small className={styles.metaCaption}>Нет сравнения с прошлым периодом</small>
+            )}
           </div>
 
           <div className={`${styles.statCard} ${styles.success}`}>
-            <h6>Всего продаж</h6>
-            <h3>{data?.totals?.orders || 0}</h3>
+            <h6>Нетто после возвратов</h6>
+            <h3>{data?.derived?.net_revenue != null ? parseFloat(data.derived.net_revenue).toLocaleString('ru-RU') : '0'} ₸</h3>
+            {data?.comparison?.deltas_pct?.net_revenue != null && (
+              <small className={data.comparison.deltas_pct.net_revenue >= 0 ? styles.success : styles.danger}>
+                {data.comparison.deltas_pct.net_revenue >= 0 ? '↗' : '↘'} {Math.abs(data.comparison.deltas_pct.net_revenue)}% к прошлому периоду
+              </small>
+            )}
+          </div>
+
+          <div className={`${styles.statCard} ${styles.warning}`}>
+            <h6>Средний чек</h6>
+            <h3>
+              {data?.derived?.avg_check != null
+                ? `${parseFloat(data.derived.avg_check).toLocaleString('ru-RU')} ₸`
+                : '—'}
+            </h3>
+            {data?.comparison?.deltas_pct?.avg_check != null && (
+              <small className={data.comparison.deltas_pct.avg_check >= 0 ? styles.success : styles.danger}>
+                {data.comparison.deltas_pct.avg_check >= 0 ? '↗' : '↘'} {Math.abs(data.comparison.deltas_pct.avg_check)}% к прошлому периоду
+              </small>
+            )}
+          </div>
+
+          <div className={`${styles.statCard} ${styles.success}`}>
+            <h6>Чеков (заказов)</h6>
+            <h3>{data?.totals?.orders ?? 0}</h3>
+            {data?.comparison?.deltas_pct?.orders != null && (
+              <small className={data.comparison.deltas_pct.orders >= 0 ? styles.success : styles.danger}>
+                {data.comparison.deltas_pct.orders >= 0 ? '↗' : '↘'} {Math.abs(data.comparison.deltas_pct.orders)}% к прошлому периоду
+              </small>
+            )}
+          </div>
+
+          <div className={`${styles.statCard} ${styles.warning}`}>
+            <h6>Продано единиц товара</h6>
+            <h3>{data?.totals?.sales_count ?? 0}</h3>
+            {data?.comparison?.deltas_pct?.sales_count != null && (
+              <small className={data.comparison.deltas_pct.sales_count >= 0 ? styles.success : styles.danger}>
+                {data.comparison.deltas_pct.sales_count >= 0 ? '↗' : '↘'} {Math.abs(data.comparison.deltas_pct.sales_count)}% к прошлому периоду
+              </small>
+            )}
           </div>
 
           <div className={`${styles.statCard} ${styles.danger}`}>
             <h6>Сумма возвратов</h6>
-            <h3>{data?.totals?.refund_amount ? parseFloat(data.totals.refund_amount).toLocaleString('ru-RU') : '0'} ₸</h3>
+            <h3>{data?.totals?.refund_amount != null ? parseFloat(data.totals.refund_amount).toLocaleString('ru-RU') : '0'} ₸</h3>
+            {data?.comparison?.deltas_pct?.refund_amount != null && (
+              <small className={data.comparison.deltas_pct.refund_amount <= 0 ? styles.success : styles.danger}>
+                {data.comparison.deltas_pct.refund_amount <= 0 ? '↘' : '↗'} {Math.abs(data.comparison.deltas_pct.refund_amount)}% к прошлому периоду
+              </small>
+            )}
+            {data?.derived?.refund_share_percent != null && (
+              <small className={styles.metaCaption}>
+                Доля от выручки: {parseFloat(data.derived.refund_share_percent).toLocaleString('ru-RU')}%
+              </small>
+            )}
           </div>
-          
+
           <div className={`${styles.statCard} ${styles.danger}`}>
-            <h6>Количество возвратов</h6>
-            <h3>{data?.totals?.returns_count || 0}</h3>
+            <h6>Количество возвратов (шт.)</h6>
+            <h3>{data?.totals?.returns_count ?? 0}</h3>
+          </div>
+
+          <div className={`${styles.statCard} ${styles.warning}`}>
+            <h6>Позиций на чек (средн.)</h6>
+            <h3>
+              {data?.derived?.items_per_order != null
+                ? parseFloat(data.derived.items_per_order).toLocaleString('ru-RU')
+                : '—'}
+            </h3>
           </div>
         </div>
 
@@ -735,7 +819,15 @@ const BusinessMainPage = () => {
               >
                 <div className={styles.transactionHeader}>
                   <span>#{transaction.number}</span>
-                  <span className={transaction.is_refund ? styles.danger : styles.success}>
+                  <span
+                    className={
+                      transaction.is_refund
+                        ? styles.danger
+                        : transaction.has_refunds
+                          ? styles.warning
+                          : styles.success
+                    }
+                  >
                     {transaction.is_refund ? '-' : '+'}₸{parseFloat(transaction.amount).toLocaleString('ru-RU')}
                   </span>
                 </div>

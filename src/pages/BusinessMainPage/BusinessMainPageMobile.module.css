@@ -53,6 +53,14 @@
     color: var(--royal-emerald);
 }
 
+.metaCaption {
+    font-size: 0.8rem;
+    color: var(--silver-whisper);
+    line-height: 1.4;
+    margin: 0 0.5rem;
+    text-align: center;
+}
+
 .locationInfo {
     margin-top: 0.5rem;
 }

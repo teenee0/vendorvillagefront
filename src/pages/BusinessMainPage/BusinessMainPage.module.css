@@ -77,6 +77,14 @@
   letter-spacing: -0.5px;
 }
 
+.metaCaption {
+  font-size: 0.85rem;
+  color: var(--silver-whisper);
+  margin: 0.6rem 0 0;
+  line-height: 1.45;
+  max-width: 720px;
+}
+
 .icon {
   font-size: 32px;
   filter: drop-shadow(0 2px 8px rgba(45, 175, 159, 0.6));

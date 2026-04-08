@@ -101,8 +101,6 @@ const BusinessMainPageMobile = () => {
         .format();
 
       const locationParams = getLocationParam();
-      console.log('BusinessMainPageMobile: Location params', locationParams);
-      console.log('BusinessMainPageMobile: Selected location', selectedLocation);
 
       const params = {
         start: startUtc,
@@ -111,7 +109,6 @@ const BusinessMainPageMobile = () => {
         ...locationParams
       };
 
-      console.log('BusinessMainPageMobile: Final API params', params);
       const response = await axios.get(`/api/business/${business_slug}/dashboard/`, { params });
       setData(response.data);
     } catch (err) {
@@ -361,17 +358,13 @@ const BusinessMainPageMobile = () => {
   };
 
   useEffect(() => {
-    // Ждем, пока локация будет готова
     if (selectedLocation !== undefined) {
-      console.log('BusinessMainPageMobile: Location ready, selectedLocation:', selectedLocation);
       handlePeriodChange('week');
     }
   }, [selectedLocation]);
 
-  // Дополнительный useEffect для отслеживания изменений локации
   useEffect(() => {
     if (startDate && endDate && selectedLocation !== undefined) {
-      console.log('BusinessMainPageMobile: Location changed, refetching data');
       fetchData(startDate, endDate);
     }
   }, [selectedLocation]);
@@ -613,7 +606,27 @@ const BusinessMainPageMobile = () => {
           <FaChartLine className={styles.titleIcon} />
           Дашборд
         </h1>
-        
+        {data?.meta && (
+          <p className={styles.metaCaption}>
+            {(() => {
+              const m = data.meta;
+              const locLabel =
+                m.locations?.length > 0
+                  ? m.locations.map((l) => l.name).join(', ')
+                  : 'Все доступные локации';
+              const start = dayjs
+                .utc(m.period.start_utc)
+                .tz(tz)
+                .format('DD MMM YYYY');
+              const end = dayjs
+                .utc(m.period.end_utc)
+                .tz(tz)
+                .subtract(1, 'second')
+                .format('DD MMM YYYY');
+              return `${locLabel} · ${start} — ${end} · ${m.timezone}`;
+            })()}
+          </p>
+        )}
       </div>
 
       {/* Period Selector */}
@@ -683,39 +696,79 @@ const BusinessMainPageMobile = () => {
             <div className={styles.statsGrid}>
               <StatCard
                 title="Общий доход"
-                value={`${data?.totals?.revenue ? parseFloat(data.totals.revenue).toLocaleString('ru-RU') : '0'} ₸`}
+                value={`${data?.totals?.revenue != null ? parseFloat(data.totals.revenue).toLocaleString('ru-RU') : '0'} ₸`}
                 icon={<FaMoneyBillWave />}
                 color="primary"
+                trend={data?.comparison?.deltas_pct?.revenue}
                 delay={0}
               />
 
               <StatCard
-                title="Всего продаж"
-                value={data?.totals?.orders || 0}
-                icon={<FaShoppingCart />}
-                color="success"
+                title="Нетто после возвратов"
+                value={`${data?.derived?.net_revenue != null ? parseFloat(data.derived.net_revenue).toLocaleString('ru-RU') : '0'} ₸`}
+                icon={<FaMoneyBillWave />}
+                color="primary"
+                trend={data?.comparison?.deltas_pct?.net_revenue}
+                delay={0.05}
+              />
+
+              <StatCard
+                title="Средний чек"
+                value={
+                  data?.derived?.avg_check != null
+                    ? `${parseFloat(data.derived.avg_check).toLocaleString('ru-RU')} ₸`
+                    : '—'
+                }
+                icon={<FaReceipt />}
+                color="warning"
+                trend={data?.comparison?.deltas_pct?.avg_check}
+                trendHint="нет чеков или нет сравнения"
                 delay={0.1}
               />
 
               <StatCard
-                title="Продано товаров"
-                value={data?.totals?.sales_count || 0}
+                title="Чеков"
+                value={data?.totals?.orders ?? 0}
+                icon={<FaShoppingCart />}
+                color="success"
+                trend={data?.comparison?.deltas_pct?.orders}
+                delay={0.15}
+              />
+
+              <StatCard
+                title="Продано единиц"
+                value={data?.totals?.sales_count ?? 0}
                 icon={<FaReceipt />}
                 color="warning"
+                trend={data?.comparison?.deltas_pct?.sales_count}
                 delay={0.2}
               />
 
               <StatCard
-                title="Возвраты"
-                value={data?.totals?.returns_count || 0}
+                title="Сумма возвратов"
+                value={`${data?.totals?.refund_amount != null ? parseFloat(data.totals.refund_amount).toLocaleString('ru-RU') : '0'} ₸`}
                 icon={<FaUndoAlt />}
                 color="danger"
+                trend={data?.comparison?.deltas_pct?.refund_amount}
+                inverseTrend
+                subtitle={
+                  data?.derived?.refund_share_percent != null
+                    ? `Доля от выручки: ${parseFloat(data.derived.refund_share_percent).toLocaleString('ru-RU')}%`
+                    : undefined
+                }
+                delay={0.25}
+              />
+
+              <StatCard
+                title="Возвратов (шт.)"
+                value={data?.totals?.returns_count ?? 0}
+                icon={<FaUndoAlt />}
+                color="danger"
+                suppressTrendHint
                 delay={0.3}
               />
             </div>
 
-            {/* Chart */}
-            {console.log('BusinessMainPageMobile: Chart data', data?.chart)}
             <AnimatedChart
               data={data?.chart}
               title={
