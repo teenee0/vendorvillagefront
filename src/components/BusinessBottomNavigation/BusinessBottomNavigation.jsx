@@ -97,6 +97,11 @@ const BusinessBottomNavigation = () => {
           label: 'Задачи'
         },
         {
+          path: `/business/${business_slug}/expenses`,
+          icon: 'fas fa-wallet',
+          label: 'Расходы'
+        },
+        {
           path: `/business/${business_slug}/settings`,
           icon: 'fas fa-cog',
           label: 'Настройки'
@@ -149,6 +154,11 @@ const BusinessBottomNavigation = () => {
           label: 'Инвентаризация'
         },
         {
+          path: `/business/${business_slug}/expenses`,
+          icon: 'fas fa-wallet',
+          label: 'Расходы'
+        },
+        {
           path: `/business/${business_slug}/settings`,
           icon: 'fas fa-cog',
           label: 'Настройки'
@@ -182,6 +192,11 @@ const BusinessBottomNavigation = () => {
         path: `/business/${business_slug}/online-orders`,
         icon: 'fas fa-shopping-bag',
         label: 'Онлайн заказы'
+      },
+      {
+        path: `/business/${business_slug}/expenses`,
+        icon: 'fas fa-wallet',
+        label: 'Расходы'
       },
       {
         path: '/business/' + business_slug + '/settings',

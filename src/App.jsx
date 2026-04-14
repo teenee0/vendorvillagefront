@@ -76,6 +76,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy/PrivacyPolicy.jsx';
 import CookieConsent from './components/CookieConsent/CookieConsent.jsx';
 import BonusHistory from './pages/BonusHistory/BonusHistory.jsx';
 import BonusHistoryMobile from './pages/BonusHistory/BonusHistoryMobile.jsx';
+import ExpensesPage from './pages/ExpensesPage/ExpensesPage.jsx';
+import ExpensesPageMobile from './pages/ExpensesPage/ExpensesPageMobile.jsx';
 import CartPage from './pages/CartPage/CartPage.jsx';
 import CheckoutPage from './pages/CheckoutPage/CheckoutPage.jsx';
 import MyOrdersPage from './pages/MyOrdersPage/MyOrdersPage.jsx';
@@ -221,6 +223,15 @@ function App() {
                           <ResponsiveRoute
                             desktopComponent={BonusHistory}
                             mobileComponent={BonusHistoryMobile}
+                          />
+                        } 
+                      />
+                      <Route 
+                        path="/business/:business_slug/expenses" 
+                        element={
+                          <ResponsiveRoute
+                            desktopComponent={ExpensesPage}
+                            mobileComponent={ExpensesPageMobile}
                           />
                         } 
                       />

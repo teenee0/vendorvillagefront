@@ -118,6 +118,7 @@ export const BusinessFooter = () => {
         { icon: <div>🛒</div>, label: 'Онлайн заказы', onClick: () => handleNavigate('/online-orders') },
         { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
         { icon: <div>✅</div>, label: 'Задачи', onClick: () => handleNavigate('/tasks') },
+        { icon: <div>💰</div>, label: 'Расходы', onClick: () => handleNavigate('/expenses') },
         { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
       ];
     }
@@ -134,6 +135,7 @@ export const BusinessFooter = () => {
         { icon: <div>🧾</div>, label: 'Транзакции', onClick: () => handleNavigate('/transactions') },
         { icon: <div>✅</div>, label: 'Задачи', onClick: () => handleNavigate('/tasks') },
         { icon: <div>📊</div>, label: 'Инвентаризация', onClick: () => handleNavigate('/inventory') },
+        { icon: <div>💰</div>, label: 'Расходы', onClick: () => handleNavigate('/expenses') },
         { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
       ];
     }
@@ -146,6 +148,7 @@ export const BusinessFooter = () => {
       { icon: <div>📊</div>, label: 'Импорт Excel', onClick: () => handleNavigate('/products/excel-import') },
       { icon: <div>📋</div>, label: 'Партии', onClick: () => handleNavigate('/batches') },
       { icon: <div>🛒</div>, label: 'Онлайн заказы', onClick: () => handleNavigate('/online-orders') },
+      { icon: <div>💰</div>, label: 'Расходы', onClick: () => handleNavigate('/expenses') },
       { icon: <div>⚙️</div>, label: 'Настройки', onClick: () => handleNavigate('/settings') },
     ];
   };
