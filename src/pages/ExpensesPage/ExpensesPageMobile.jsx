@@ -302,6 +302,37 @@ const ExpensesPageMobile = () => {
             </select>
           </div>
         )}
+        {activeTab === 'payments' && (
+          <div className={styles.filterGroup}>
+            <label>Периодичность расхода</label>
+            <select
+              value={filters.recurrence_unit || ''}
+              onChange={set('recurrence_unit')}
+              aria-label="Периодичность шаблона расхода"
+            >
+              <option value="">Все</option>
+              <option value="one_time">Разовый</option>
+              <option value="day">Ежедневно</option>
+              <option value="week">Еженедельно</option>
+              <option value="month">Ежемесячно</option>
+              <option value="year">Ежегодно</option>
+            </select>
+          </div>
+        )}
+        {activeTab === 'payments' && (
+          <div className={styles.filterSearchSlot}>
+            <div className={styles.filterGroup}>
+              <label>Поиск по расходу</label>
+              <input
+                type="search"
+                value={filters.search || ''}
+                onChange={set('search')}
+                placeholder="Название или описание…"
+                aria-label="Поиск по названию расхода"
+              />
+            </div>
+          </div>
+        )}
         <div className={styles.filterGroup}>
           <label>Начало</label>
           <input type="date" value={filters.start_date || ''} onChange={set('start_date')} />

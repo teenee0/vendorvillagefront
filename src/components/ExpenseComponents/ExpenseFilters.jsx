@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaFilter, FaCalendarAlt, FaMapMarkerAlt, FaLayerGroup, FaArchive, FaSyncAlt } from 'react-icons/fa';
+import { FaFilter, FaCalendarAlt, FaMapMarkerAlt, FaLayerGroup, FaArchive, FaSyncAlt, FaSearch } from 'react-icons/fa';
 import ExpenseDateRangePresets from './ExpenseDateRangePresets';
 
 const RECURRENCE_OPTIONS = [
@@ -19,6 +19,7 @@ const ExpenseFilters = ({
   showStatus,
   showExpenseArchive,
   showRecurrenceFilter,
+  showExpenseSearch,
   showDatePresets = true,
   styles,
 }) => {
@@ -81,6 +82,22 @@ const ExpenseFilters = ({
               <option key={o.value || 'all'} value={o.value}>{o.label}</option>
             ))}
           </select>
+        </div>
+      )}
+
+      {showExpenseSearch && (
+        <div className={styles.filterSearchSlot}>
+          <div className={styles.filterGroup}>
+            <label><FaSearch /> Поиск по расходу</label>
+            <p className={styles.fieldHint}>Подстрока в названии или описании шаблона расхода.</p>
+            <input
+              type="search"
+              value={filters.search || ''}
+              onChange={set('search')}
+              placeholder="Например, аренда, склад…"
+              aria-label="Поиск платежей по названию расхода"
+            />
+          </div>
         </div>
       )}
 

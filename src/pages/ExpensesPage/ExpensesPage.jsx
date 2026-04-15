@@ -353,6 +353,8 @@ const ExpensesPage = () => {
         filters={payFilters}
         onChange={setPayFilters}
         showStatus
+        showRecurrenceFilter
+        showExpenseSearch
         styles={styles}
       />
 

@@ -159,6 +159,10 @@
   border-bottom: 1px solid var(--gilded-shadow);
 }
 
+.filterSearchSlot {
+  width: 100%;
+}
+
 .filterGroup {
   display: flex;
   flex-direction: column;
